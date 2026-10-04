@@ -1,0 +1,37 @@
+PokePal is an unofficial personal fan game.
+
+Pokemon names, characters and original sprite artwork belong to
+their respective rights holders, including Nintendo, Game Freak
+and Creatures. These assets are not covered by the code license.
+
+Animated Gen V sprites are sourced from the PokeAPI sprites
+repository. Exact source URLs and sampled source frame indices
+are recorded in assets/sources.json.
+https://github.com/PokeAPI/sprites
+
+Charmander, Charmeleon and Charizard pose animations use front-facing
+frames from PMDCollab SpriteCollab sprite sheets. Idle, Sleep, Walk,
+Attack and available Eat sheets were cropped, resized and converted
+to four-level grayscale. Exact sheets and sampled indices are in
+assets/pose-sources.json.
+https://github.com/PMDCollab/SpriteCollab
+
+The source sheets credit CHUNSOFT for the original frames. The
+Charmeleon Eat sheet credits bwappi and Grimlin; Charizard Sleep
+credits Emboarger. Artist and license records are supplied in
+SPRITE-SOURCE-CREDITS.txt. The PMDCollab source includes CC BY-NC 4.0
+and PMDCollab artist terms; copies are included as SPRITE-LICENSE*.md.
+The sprites and Pokemon characters are not covered by the game's
+Lua code license.
+
+Charmander-line evolution levels were checked against PokeAPI:
+https://pokeapi.co/api/v2/evolution-chain/2/
+
+KOReader provides the device input, image rendering, screen refresh
+and suspend/resume facilities. It is installed separately.
+https://github.com/koreader/koreader
+
+The game's Lua implementation, native pixel icons and UI layout
+were created for this request. The meadow layout was inspired by
+the user's reference image. Grayscale conversion and brief sampled
+animations are adaptations for e-ink displays.

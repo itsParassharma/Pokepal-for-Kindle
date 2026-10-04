@@ -1,0 +1,177 @@
+POKEPAL 0.2.0 - CHARMANDER EDITION
+
+A quiet Pokemon companion for a jailbroken, touch-screen Kindle.
+Starts with Charmander. Grow into Charmeleon and then Charizard.
+
+INSTALL
+
+1. Have a working KOReader installation on your Kindle.
+   For firmware 5.17.1, use the kindlehf build. Your existing KUAL
+   launcher can open KOReader if it already works with your setup.
+   This plugin does not launch by itself from KUAL.
+
+   Official KOReader download:
+   https://github.com/koreader/koreader/releases
+
+   Verified current package at creation (4 October 2026):
+   koreader-kindlehf-v2026.07.1.zip
+   https://github.com/koreader/koreader/releases/download/v2026.07.1/koreader-kindlehf-v2026.07.1.zip
+
+   Official installation guide:
+   https://github.com/koreader/koreader/wiki/Installation-on-Kindle-devices
+
+2. Connect the Kindle to your computer by USB.
+   Open the PokePal ZIP and copy its koreader folder into the top
+   level of the Kindle drive, merging folders if asked.
+   This only adds the pokepal.koplugin folder.
+
+   The resulting path on the Kindle drive should be:
+   koreader/plugins/pokepal.koplugin/main.lua
+
+   Do not leave an extra PokePal-v0.2.0 folder around that path.
+
+3. Safely eject and unplug the Kindle. Quit and reopen KOReader
+   so it discovers the plugin.
+
+4. In KOReader, tap the top of the screen to open its menu.
+   Open Tools (wrench) > More tools > PokePal - Pokemon companion.
+
+   If it is absent, look in Tools > More tools > Plugin management
+   and enable PokePal, then restart KOReader. A customized menu
+   may put it elsewhere; search the menu for PokePal.
+
+5. Charmander is waiting in the meadow. A brief idle pose plays on
+   opening; tap Charmander to see it again. Exit returns to KOReader.
+
+PLAY
+
+Feed: one berry restores 24 food and adds 2 bond. Save berries
+when your partner is full. Start with 6 berries.
+
+Play: remember a three-bush path, hide it, then repeat it.
+Costs 10 energy, restores 20 joy, adds 4 bond and 5 XP.
+A perfect path earns 8 XP. Ready again after 30 minutes.
+You can leave an unfinished game without losing anything.
+
+Train: choose a move to practice. Costs 18 energy and 8 food,
+adds 12 XP and 2 bond. Ready again after one hour.
+Practice moves unlock at levels 1, 7, 20 and 36.
+Move unlocks and care rewards are this game's own rules.
+
+Rest: toggle a nap. Energy recovers at 12 per hour while napping,
+or 4 per hour while awake. Food declines more slowly during naps.
+Wake your partner before playing, training or exploring.
+
+Clean: tidy the nest when it gets dirty. Adds joy and 2 bond.
+
+Basket: collect 5 berries once every 24 hours, measured from the
+previous collection. The basket also works during an expedition.
+
+Explore: send your partner on an offline expedition. The game does
+not have to stay open. Reopen it and collect the result after:
+  Meadow:    30 minutes; 12 energy; 3 berries and 12 XP
+  Coast:      2 hours;   20 energy; 5 berries and 22 XP
+  Moon Cave:  4 hours;   28 energy; 8 berries and 35 XP
+Each expedition adds 4 bond and a Pokemon sighting to the journal.
+Rewards are claimed once. Discoveries are collected, not playable
+partners in this edition.
+
+Profile: see your partner's progression. Each 20 XP adds a level.
+  Charmander -> Charmeleon: level 16 (300 XP) and at least 30 bond
+  Charmeleon -> Charizard: level 36 (700 XP) and at least 30 bond
+Evolution is your choice: tap the enabled evolution button.
+The levels follow the Charmander line; bond is an extra pet-game
+requirement. Care meters, memories and XP survive evolution.
+
+Journal: browse discovered Pokemon, recent activity and badges.
+Activity: review the last 24 actions, with their dates and times.
+More: animation settings, a screen refresh, help and profile.
+The Play, Train and Basket buttons show their remaining cooldowns.
+
+Your partner never dies. Needs decline gently and stop at forgiving
+minimums after a long absence. Two or three brief visits a day are
+enough for a relaxed game. There are no alerts or deadlines.
+
+SPRITES AND BATTERY
+
+Charmander, Charmeleon and Charizard have distinct idle, sleeping,
+walking and attack animations sampled from real Pokemon Mystery
+Dungeon sprite sheets. Eating poses appear where the source has
+them. The earlier Black/White animated sprite frames remain for
+the journal and other Pokemon. Source sheets are attributed in
+CREDITS.txt and assets/pose-sources.json. All display frames are
+converted to grayscale and enlarged with nearest-neighbour scaling.
+The game is completely offline after installation.
+
+Eco (default for new saves): 2 frames over about 1.6 seconds.
+Gentle: the full short pose, up to 6 frames for the Charmander line
+and up to 8 for other Pokemon, at about 2 frames per second.
+Off: still sprites. Every burst settles to a still image. Existing
+saves keep their previous animation preference.
+
+Only the sprite/effect region refreshes during a burst. Normal
+actions refresh the interface; a clearing refresh runs every
+12 actions. You can also use More > Refresh screen.
+
+There is no animation loop, background polling, Wi-Fi requirement,
+sleep inhibition or wake alarm. An opening idle/sleep pose runs once
+and stops; tapping the sprite or taking an action starts another
+short burst. Power-button sleep cancels it, and resuming shows a
+still frame without restarting it. Care, rests and expeditions are
+calculated from elapsed time when you next interact. The sky
+changes between day and night on interaction, using the Kindle's
+clock. KOReader continues to handle power-button sleep.
+
+For the lowest drain, choose Eco or Off, use airplane mode if you
+normally do, and exit or put the Kindle to sleep between visits.
+Actual battery drain and animation quality have not been measured
+on a physical Kindle. E-ink response and ghosting vary by model.
+
+SAVES AND REMOVAL
+
+The save is normally koreader/settings/pokepal.dat on the Kindle
+USB drive. The previous snapshot is pokepal.dat.old. The exact
+location follows KOReader's settings directory if customized.
+
+Progress saves after actions, when starting, on sleep and on exit.
+Writes use a temporary file and atomic rename, with the previous
+valid snapshot retained. An unreadable current save falls back to
+the previous one; two unreadable copies are left untouched.
+
+Back up both save files before changing devices or reinstalling.
+To remove the game, quit KOReader and remove only
+koreader/plugins/pokepal.koplugin. Saved progress is kept.
+
+TROUBLESHOOTING
+
+KOReader does not launch: first make its normal launcher work.
+Use kindlehf for firmware 5.17.1, and consult the official guide.
+This game cannot fix a broken KUAL/KOReader installation.
+
+Game absent: check the exact folder path, enable external plugins
+if you have disabled them, and restart KOReader.
+
+Game crashes or pictures are missing: recopy the entire plugin
+folder, including assets. KOReader's crash.log may show the cause.
+
+Ghosting or animation is distracting: use Eco or Off and tap
+More > Refresh screen.
+
+Save failed: check free storage and copy the existing save files
+to your computer before attempting repairs.
+
+Save unreadable: back up pokepal.dat and pokepal.dat.old first.
+Do not erase them unless you want a new adventure. A manual fresh
+start can be made by renaming both files while KOReader is closed.
+
+DEVICE STATUS
+
+This is an installable preview release. The Lua rules, save recovery,
+touch dispatch and animation lifecycle were tested on a computer.
+Layouts were rendered at Basic, Paperwhite and Oasis-style screen
+sizes. That does not certify firmware/device compatibility.
+Please begin with Eco mode on your Kindle and confirm feed, exit,
+power-button sleep, resume and save persistence.
+
+Artwork credits and validation details are included alongside
+this file in the plugin folder.

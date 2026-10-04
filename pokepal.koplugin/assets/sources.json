@@ -1,0 +1,338 @@
+[
+  {
+    "id": 1,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/1.gif",
+    "original_frames": 51,
+    "sampled": [
+      0,
+      6,
+      40,
+      45
+    ],
+    "count": 4
+  },
+  {
+    "id": 2,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/2.gif",
+    "original_frames": 56,
+    "sampled": [
+      0,
+      6,
+      45,
+      50
+    ],
+    "count": 4
+  },
+  {
+    "id": 3,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/3.gif",
+    "original_frames": 100,
+    "sampled": [
+      0,
+      16,
+      32,
+      81
+    ],
+    "count": 4
+  },
+  {
+    "id": 4,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/4.gif",
+    "original_frames": 55,
+    "sampled": [
+      0,
+      3,
+      6,
+      9,
+      40,
+      43,
+      47,
+      51
+    ],
+    "count": 8
+  },
+  {
+    "id": 5,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/5.gif",
+    "original_frames": 46,
+    "sampled": [
+      0,
+      4,
+      10,
+      16,
+      31,
+      34,
+      38,
+      42
+    ],
+    "count": 8
+  },
+  {
+    "id": 6,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/6.gif",
+    "original_frames": 72,
+    "sampled": [
+      0,
+      7,
+      13,
+      39,
+      46,
+      52,
+      59,
+      65
+    ],
+    "count": 8
+  },
+  {
+    "id": 7,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/7.gif",
+    "original_frames": 30,
+    "sampled": [
+      0,
+      19,
+      22,
+      25
+    ],
+    "count": 4
+  },
+  {
+    "id": 8,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/8.gif",
+    "original_frames": 44,
+    "sampled": [
+      0,
+      5,
+      29,
+      34
+    ],
+    "count": 4
+  },
+  {
+    "id": 9,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/9.gif",
+    "original_frames": 124,
+    "sampled": [
+      0,
+      9,
+      30,
+      39
+    ],
+    "count": 4
+  },
+  {
+    "id": 25,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif",
+    "original_frames": 58,
+    "sampled": [
+      0,
+      12,
+      25,
+      38
+    ],
+    "count": 4
+  },
+  {
+    "id": 26,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/26.gif",
+    "original_frames": 85,
+    "sampled": [
+      0,
+      7,
+      14,
+      50
+    ],
+    "count": 4
+  },
+  {
+    "id": 133,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif",
+    "original_frames": 67,
+    "sampled": [
+      0,
+      6,
+      53,
+      60
+    ],
+    "count": 4
+  },
+  {
+    "id": 134,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/134.gif",
+    "original_frames": 77,
+    "sampled": [
+      0,
+      4,
+      17,
+      52
+    ],
+    "count": 4
+  },
+  {
+    "id": 135,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/135.gif",
+    "original_frames": 51,
+    "sampled": [
+      0,
+      5,
+      34,
+      38
+    ],
+    "count": 4
+  },
+  {
+    "id": 136,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/136.gif",
+    "original_frames": 61,
+    "sampled": [
+      0,
+      4,
+      8,
+      52
+    ],
+    "count": 4
+  },
+  {
+    "id": 10,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/10.gif",
+    "original_frames": 45,
+    "sampled": [
+      0,
+      2,
+      4,
+      6
+    ],
+    "count": 4
+  },
+  {
+    "id": 16,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/16.gif",
+    "original_frames": 25,
+    "sampled": [
+      0,
+      5,
+      10,
+      17
+    ],
+    "count": 4
+  },
+  {
+    "id": 19,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/19.gif",
+    "original_frames": 54,
+    "sampled": [
+      0,
+      4,
+      41,
+      44
+    ],
+    "count": 4
+  },
+  {
+    "id": 35,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/35.gif",
+    "original_frames": 69,
+    "sampled": [
+      0,
+      14,
+      44,
+      55
+    ],
+    "count": 4
+  },
+  {
+    "id": 39,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/39.gif",
+    "original_frames": 61,
+    "sampled": [
+      0,
+      7,
+      25,
+      33
+    ],
+    "count": 4
+  },
+  {
+    "id": 41,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/41.gif",
+    "original_frames": 55,
+    "sampled": [
+      0,
+      8,
+      20,
+      35
+    ],
+    "count": 4
+  },
+  {
+    "id": 54,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/54.gif",
+    "original_frames": 43,
+    "sampled": [
+      0,
+      6,
+      11,
+      25
+    ],
+    "count": 4
+  },
+  {
+    "id": 74,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/74.gif",
+    "original_frames": 55,
+    "sampled": [
+      0,
+      7,
+      17,
+      26
+    ],
+    "count": 4
+  },
+  {
+    "id": 129,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/129.gif",
+    "original_frames": 60,
+    "sampled": [
+      0,
+      6,
+      15,
+      24
+    ],
+    "count": 4
+  },
+  {
+    "id": 131,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/131.gif",
+    "original_frames": 40,
+    "sampled": [
+      0,
+      3,
+      8,
+      34
+    ],
+    "count": 4
+  },
+  {
+    "id": 143,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/143.gif",
+    "original_frames": 90,
+    "sampled": [
+      0,
+      13,
+      64,
+      77
+    ],
+    "count": 4
+  },
+  {
+    "id": 147,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/147.gif",
+    "original_frames": 29,
+    "sampled": [
+      0,
+      4,
+      8,
+      11
+    ],
+    "count": 4
+  }
+]

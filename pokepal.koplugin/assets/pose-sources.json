@@ -1,0 +1,152 @@
+[
+  {
+    "species": 4,
+    "pose": "Idle",
+    "source": "https://github.com/PMDCollab/SpriteCollab/blob/master/sprite/0004/Idle-Anim.png",
+    "frames": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "species": 4,
+    "pose": "Sleep",
+    "source": "https://github.com/PMDCollab/SpriteCollab/blob/master/sprite/0004/Sleep-Anim.png",
+    "frames": [
+      0,
+      1
+    ]
+  },
+  {
+    "species": 4,
+    "pose": "Walk",
+    "source": "https://github.com/PMDCollab/SpriteCollab/blob/master/sprite/0004/Walk-Anim.png",
+    "frames": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "species": 4,
+    "pose": "Attack",
+    "source": "https://github.com/PMDCollab/SpriteCollab/blob/master/sprite/0004/Attack-Anim.png",
+    "frames": [
+      0,
+      3,
+      7,
+      10
+    ]
+  },
+  {
+    "species": 4,
+    "pose": "Eat",
+    "source": "https://github.com/PMDCollab/SpriteCollab/blob/master/sprite/0004/Eat-Anim.png",
+    "frames": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "species": 5,
+    "pose": "Idle",
+    "source": "https://github.com/PMDCollab/SpriteCollab/blob/master/sprite/0005/Idle-Anim.png",
+    "frames": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  {
+    "species": 5,
+    "pose": "Sleep",
+    "source": "https://github.com/PMDCollab/SpriteCollab/blob/master/sprite/0005/Sleep-Anim.png",
+    "frames": [
+      0,
+      1
+    ]
+  },
+  {
+    "species": 5,
+    "pose": "Walk",
+    "source": "https://github.com/PMDCollab/SpriteCollab/blob/master/sprite/0005/Walk-Anim.png",
+    "frames": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "species": 5,
+    "pose": "Attack",
+    "source": "https://github.com/PMDCollab/SpriteCollab/blob/master/sprite/0005/Attack-Anim.png",
+    "frames": [
+      0,
+      4,
+      9,
+      13
+    ]
+  },
+  {
+    "species": 5,
+    "pose": "Eat",
+    "source": "https://github.com/PMDCollab/SpriteCollab/blob/master/sprite/0005/Eat-Anim.png",
+    "frames": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "species": 6,
+    "pose": "Idle",
+    "source": "https://github.com/PMDCollab/SpriteCollab/blob/master/sprite/0006/Idle-Anim.png",
+    "frames": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "species": 6,
+    "pose": "Sleep",
+    "source": "https://github.com/PMDCollab/SpriteCollab/blob/master/sprite/0006/Sleep-Anim.png",
+    "frames": [
+      0,
+      1
+    ]
+  },
+  {
+    "species": 6,
+    "pose": "Walk",
+    "source": "https://github.com/PMDCollab/SpriteCollab/blob/master/sprite/0006/Walk-Anim.png",
+    "frames": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "species": 6,
+    "pose": "Attack",
+    "source": "https://github.com/PMDCollab/SpriteCollab/blob/master/sprite/0006/Attack-Anim.png",
+    "frames": [
+      0,
+      4,
+      9,
+      13
+    ]
+  }
+]
