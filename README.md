@@ -1,7 +1,5 @@
 # PokePal for Kindle
 
-![PokePal's Charmander screen, rendered at Kindle size](docs/kindle-preview.png)
-
 PokePal is a small offline pet game for KOReader on a jailbroken Kindle. You start with Charmander. Feed it, play a three-bush memory game, practise moves, or send it on an expedition. With enough XP and bond, it can evolve into Charmeleon and then Charizard.
 
 The screen stays still most of the time. Charmander has short idle, sleeping, walking, and attack animations; they stop when the Kindle sleeps. Care and expeditions use elapsed time when you next open the game, so there is no background polling or wake alarm. Battery use has not been measured on a physical Kindle yet.
