@@ -12,7 +12,7 @@ The screen stays still most of the time. Charmander has short idle, sleeping, wa
 
 You need a working [KOReader](https://github.com/koreader/koreader) installation. KUAL can start KOReader, but PokePal itself lives in KOReader's menu.
 
-1. Download [PokePal-v0.2.0-kindle.zip](dist/PokePal-v0.2.0-kindle.zip).
+1. Download [PokePal-v0.2.0-kindle.zip](https://github.com/itsParassharma/kindle-pokepal/raw/refs/heads/main/dist/PokePal-v0.2.0-kindle.zip).
 2. Connect the Kindle by USB. Open the ZIP and merge its `koreader` folder into the top level of the Kindle drive. The resulting file should be `koreader/plugins/pokepal.koplugin/main.lua`.
 3. Safely eject the Kindle and restart KOReader.
 4. In KOReader, open **Tools → More tools → PokePal – Pokemon companion**. If it is missing, check **Tools → More tools → Plugin management** and restart KOReader.
