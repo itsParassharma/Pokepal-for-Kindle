@@ -1,5 +1,5 @@
 return {
  fullname = "PokePal",
- description = "Raise Charmander through Charmeleon and Charizard: real sprite animations, care, a berry game, training and offline expeditions.",
- version = "0.2.0",
+ description = "Choose from eight Pokemon partners, including Chikorita, Cyndaquil and Totodile. Care, play, train, explore and evolve together.",
+ version = "0.3.0",
 }

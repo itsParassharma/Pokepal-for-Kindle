@@ -1,25 +1,36 @@
-POKEPAL 0.2.0 VALIDATION - 4 OCTOBER 2026
+POKEPAL 0.3.0 VALIDATION - 7 OCTOBER 2026
 
-Passed 26 game-rule and storage checks in LuaJIT (Lua 5.1).
-Passed 16 interface/lifecycle checks with mocked KOReader APIs.
+Passed 31 game-rule and storage checks in LuaJIT (Lua 5.1).
+Passed 20 interface/lifecycle checks with mocked KOReader APIs.
 Rendered all 12 view states at 600x800, 1072x1448, 1264x1680 and 800x600.
+Rendered 416 additional starter/profile/home/training/sleep layouts
+across the same four sizes, checking partner text and evolution art.
+Starter confirmation was exercised through scaled touch coordinates.
 All drawings stayed within screen bounds in the desktop renderer.
-Validated 120 transparent grayscale frames for 27 Pokemon.
+Validated 156 transparent grayscale frames for 36 Pokemon.
 Validated 52 additional idle, sleep, walk, attack and eat pose frames.
 Charmander, Charmeleon and Charizard each retain 8 Gen V frames.
 All species have at least two visually distinct source frames.
+All species have matching frame manifests and source records.
 Verified syntax for every shipped Lua source file.
 
 Specific checks include:
-- Starter selection, care decay, long absence and clock rollback
+- All eight starter choices, browsing without changing saved progress,
+  unchosen-save reopening and partner selection persistence
+- Care decay, long absence and clock rollback
 - Inventory bounds, cooldowns and rest recovery
 - Expeditions, early collection and duplicate-reward prevention
 - Complete Charmander evolution chain and move unlocks
+- Johto evolution XP/bond boundaries, ancestry and care preservation
+- All three Eevee evolution buttons and their XP/bond gates
+- Family-specific training and level unlocks
 - Badges, dated activity and strict data-only save decoding
 - Save round-trip, backup recovery and unwritable destinations
 - Old save compatibility and expanded activity history
+- Existing Charmander progress bypasses the new-adventure picker
 - No timer while idle, finite bursts, Eco and Off modes
 - Idle, sleeping and attack poses; animation blocked during screen saver
+- Finite four-frame fallback animations for all nine Johto forms
 - Timer cancellation on navigation, suspension and closing
 - Touch dispatch and plugin menu/save integration
 - Perfect/failed/incomplete memory-game outcomes
@@ -29,7 +40,7 @@ Limits:
 No physical Kindle was connected. This is not a certification of
 firmware 5.17.1 compatibility or a battery measurement. Desktop
 previews execute the actual view layout with substituted drawing
-APIs and Arial fonts; Kindle text metrics and refresh timing differ.
+APIs and desktop fonts; Kindle text metrics and refresh timing differ.
 The plugin uses KOReader APIs checked against its official sources.
 A first device check should cover feed, exit, sleep, resume and save
 persistence. Installation guidance is in INSTALL.txt.

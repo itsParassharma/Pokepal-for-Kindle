@@ -25,7 +25,6 @@ function PokePal:openPet()
  end
  if not self.state then
   self.state=self.engine.new(os.time())
-  self.engine.act(self.state,"choose",4,os.time())
   local ok=self:save()
   if not ok then
    UIManager:show(InfoMessage:new{text="PokePal could not create its save. Check free space on the Kindle."})

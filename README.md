@@ -1,25 +1,28 @@
 # PokePal for Kindle
 
-PokePal is a small offline pet game for KOReader on a jailbroken Kindle. You start with Charmander. Feed it, play a three-bush memory game, practise moves, or send it on an expedition. With enough XP and bond, it can evolve into Charmeleon and then Charizard.
+PokePal is a small offline pet game for KOReader on a jailbroken Kindle. Choose Bulbasaur, Charmander, Squirtle, Pikachu, Eevee, Chikorita, Cyndaquil or Totodile. Feed your partner, play a three-bush memory game, practise moves, or send it on an expedition. With enough XP and bond, evolve it from its partner profile. Eevee can become Vaporeon, Jolteon or Flareon.
 
 The screen stays still most of the time. Charmander has short idle, sleeping, walking, and attack animations; they stop when the Kindle sleeps. Care and expeditions use elapsed time when you next open the game, so there is no background polling or wake alarm. Battery use has not been measured on a physical Kindle yet.
 
 ![A brief idle animation](docs/idle-preview.gif) ![A brief sleeping animation](docs/sleep-preview.gif)
 
+![Choose a partner, including Chikorita](docs/starter-picker.png)
+
 ## Install
 
 You need a working [KOReader](https://github.com/koreader/koreader) installation. KUAL can start KOReader, but PokePal itself lives in KOReader's menu.
 
-1. Download [PokePal-v0.2.0-kindle.zip](https://github.com/itsParassharma/kindle-pokepal/raw/refs/heads/main/dist/PokePal-v0.2.0-kindle.zip).
+1. Download [PokePal-v0.3.0-kindle.zip](dist/PokePal-v0.3.0-kindle.zip?raw=true).
 2. Connect the Kindle by USB. Open the ZIP and merge its `koreader` folder into the top level of the Kindle drive. The resulting file should be `koreader/plugins/pokepal.koplugin/main.lua`.
 3. Safely eject the Kindle and restart KOReader.
 4. In KOReader, open **Tools → More tools → PokePal – Pokemon companion**. If it is missing, check **Tools → More tools → Plugin management** and restart KOReader.
 
-The longer [install and play guide](pokepal.koplugin/INSTALL.txt) covers controls, evolution, saves, and troubleshooting. Existing 0.1 saves remain readable. Your save lives in KOReader's settings directory as `pokepal.dat`; back it up before changing devices.
+The longer [install and play guide](pokepal.koplugin/INSTALL.txt) covers controls, evolution, saves, and troubleshooting. Existing 0.1 and 0.2 saves remain readable and keep their current partner. The picker appears for a new adventure. Your save lives in KOReader's settings directory as `pokepal.dat`; back it up before changing devices. To start again with another partner, close KOReader and rename both `pokepal.dat` and `pokepal.dat.old` to backup names first. This begins separate progress; it does not transfer the old partner's progress.
 
 ## In the game
 
 - **Care:** feed, clean, rest, and wake your partner. The Play, Train, and Basket buttons show their cooldowns.
+- **Partners:** browse eight starters, confirm your choice, and see the correct evolution family and requirements in Profile.
 - **Play and train:** finish the berry-trail memory game or practise moves to earn XP and bond.
 - **Explore:** choose an offline trail, then collect its berries, XP, and Pokémon sighting later.
 - **Keep track:** browse the field journal, badges, and 24 recent activities.
@@ -39,6 +42,8 @@ python tests/test_and_render.py
 ```
 
 These checks cover game rules, save recovery, animation scheduling, and several screen sizes using mocked KOReader APIs. They do not replace a test on the Kindle. The images above are renders of the game's view code with desktop fonts, not photographs of the device.
+
+After the checks pass, `python tools/package_release.py` rebuilds the Kindle ZIP and SHA-256 file from the plugin folder. To reproduce the nine Johto species' assets, download their pinned GIF URLs from `assets/sources.json` in the plugin, then run `python tools/import_johto_sprites.py /path/to/gifs`. Neither tool is needed on the Kindle.
 
 ## Art and license
 

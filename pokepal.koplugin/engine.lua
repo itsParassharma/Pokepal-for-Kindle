@@ -6,11 +6,30 @@ E.species = {
  [7]={"Squirtle",8,60}, [8]={"Wartortle",9,180}, [9]={"Blastoise"},
  [25]={"Pikachu",26,120}, [26]={"Raichu"},
  [133]={"Eevee",134,120}, [134]={"Vaporeon"}, [135]={"Jolteon"}, [136]={"Flareon"},
+ [152]={"Chikorita",153,300}, [153]={"Bayleef",154,620}, [154]={"Meganium"},
+ [155]={"Cyndaquil",156,260}, [156]={"Quilava",157,700}, [157]={"Typhlosion"},
+ [158]={"Totodile",159,340}, [159]={"Croconaw",160,580}, [160]={"Feraligatr"},
  [10]={"Caterpie"}, [16]={"Pidgey"}, [19]={"Rattata"}, [35]={"Clefairy"},
  [39]={"Jigglypuff"}, [41]={"Zubat"}, [54]={"Psyduck"}, [74]={"Geodude"},
  [129]={"Magikarp"}, [131]={"Lapras"}, [143]={"Snorlax"}, [147]={"Dratini"},
 }
-E.starters = {1,4,7,25,133}
+E.starters = {1,4,7,25,133,152,155,158}
+E.evolution_branches = {[133]={134,135,136}}
+E.evolution_stones = {[134]="Water stone",[135]="Thunder stone",[136]="Fire stone"}
+-- Practice unlocks are PokePal rules, not a battle-game learnset.
+E.move_sets = {
+ [1]={"Tackle","Vine Whip","Razor Leaf","Solar Beam"},
+ [4]={"Scratch","Ember","Flame Burst","Flamethrower"},
+ [7]={"Tackle","Water Gun","Bubble Beam","Hydro Pump"},
+ [25]={"Thunder Shock","Quick Attack","Thunderbolt","Thunder"},
+ [133]={"Tackle","Quick Attack","Bite","Swift"},
+ [134]={"Tackle","Water Gun","Aurora Beam","Hydro Pump"},
+ [135]={"Tackle","Thunder Shock","Thunderbolt","Thunder"},
+ [136]={"Tackle","Ember","Fire Fang","Flamethrower"},
+ [152]={"Tackle","Razor Leaf","Magical Leaf","Solar Beam"},
+ [155]={"Tackle","Ember","Flame Wheel","Flamethrower"},
+ [158]={"Scratch","Water Gun","Bite","Hydro Pump"},
+}
 E.badge_goals={
  {"First friend","Begin your adventure"}, {"Kind heart","Care for your partner 20 times"},
  {"Trail scout","Complete 5 expeditions"}, {"Field researcher","Discover 10 Pokemon"},
@@ -24,6 +43,23 @@ E.routes = {
 local function clamp(n, lo, hi) return math.max(lo, math.min(hi,n)) end
 function E.name(id) return E.species[id] and E.species[id][1] or "Egg" end
 function E.level(s) return math.min(100,1+math.floor(s.xp/20)) end
+function E.evolutionChoices(id)
+ if E.evolution_branches[id] then return E.evolution_branches[id] end
+ local p=E.species[id];return p and p[2] and {p[2]} or {}
+end
+local function parentOf(id)
+ for parent in pairs(E.species) do
+  for _,child in ipairs(E.evolutionChoices(parent)) do if child==id then return parent end end
+ end
+end
+function E.evolutionLine(id)
+ local line={id};local parent=parentOf(id)
+ while parent do table.insert(line,1,parent);parent=parentOf(parent) end
+ local choices=E.evolutionChoices(id)
+ -- Branching partners show their choices separately; evolved partners retain their ancestry.
+ while #choices==1 do id=choices[1];line[#line+1]=id;choices=E.evolutionChoices(id) end
+ return line
+end
 function E.mood(s,now)
  if s.trip>0 then return now>=s.due and "Home from an adventure" or "Exploring the world" end
  if s.resting then return "Dreaming by the warm campfire" end
@@ -35,12 +71,10 @@ function E.mood(s,now)
  return "Happy to be with you"
 end
 function E.moves(s)
- local moves={{name="Scratch",level=1}}
- if s.species==4 or s.species==5 or s.species==6 then
-  moves[#moves+1]={name="Ember",level=7}
-  moves[#moves+1]={name="Flame Burst",level=20}
-  moves[#moves+1]={name="Flamethrower",level=36}
- end
+ local root=E.evolutionLine(s.species)[1]
+ local names=E.move_sets[s.species] or E.move_sets[root] or {"Tackle"}
+ local levels={1,7,20,36};local moves={}
+ for i,name in ipairs(names) do moves[i]={name=name,level=levels[i]} end
  return moves
 end
 function E.canPlay(s,now)
@@ -115,8 +149,8 @@ function E.act(s,action,arg,now)
  end
  if action=="choose" and s.species==0 then
   local allowed=false;for _,id in ipairs(E.starters) do if arg==id then allowed=true end end
-  if not allowed then return "Choose one of the five starters." end
-  s.species=arg;s.seen[tostring(arg)]=true;s.gift=now
+  if not allowed then return "Choose one of the available starters." end
+  s.species=arg;s.seen[tostring(arg)]=true;s.gift=now;s.started=now
   return done(E.name(arg).." is your new friend!","hello")
  end
  if action=="animation" then
@@ -161,7 +195,7 @@ function E.act(s,action,arg,now)
  elseif action=="train" then
   if now-s.trained<3600 then return "Training ready in "..math.ceil((3600-now+s.trained)/60).." min." end
   if s.energy<18 or s.food<30 then return "Training needs 18 energy and 30 fullness." end
-  local move=arg or "Scratch";local unlocked=false
+  local move=arg or E.moves(s)[1].name;local unlocked=false
   for _,m in ipairs(E.moves(s)) do if m.name==move and E.level(s)>=m.level then unlocked=true end end
   if not unlocked then return "That move is not ready yet. Keep growing together." end
   s.trained=now;s.energy=s.energy-18;s.food=s.food-8;s.xp=s.xp+12;s.bond=clamp(s.bond+2,0,100)
@@ -178,11 +212,10 @@ function E.act(s,action,arg,now)
   return done("Off to "..r.name.."! Return in "..r.seconds/60 .." min.","explore")
  elseif action=="evolve" then
   if not E.ready(s) then return "Evolution needs enough XP and at least 30 bond." end
-  local id=E.species[s.species][2]
-  if s.species==133 then
-   if arg~=134 and arg~=135 and arg~=136 then return "Choose a water, thunder, or fire stone." end
-   id=arg
-  end
+  local choices=E.evolutionChoices(s.species)
+  local id=arg or (#choices==1 and choices[1]);local allowed=false
+  for _,choice in ipairs(choices) do if choice==id then allowed=true end end
+  if not allowed then return "Choose an evolution from your partner's profile." end
   s.species=id;s.seen[tostring(id)]=true
   return done("Your partner evolved into "..E.name(id).."!","evolve")
  end
