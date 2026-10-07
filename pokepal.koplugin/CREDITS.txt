@@ -9,6 +9,14 @@ repository. Exact source URLs and sampled source frame indices
 are recorded in assets/sources.json.
 https://github.com/PokeAPI/sprites
 
+Chikorita, Bayleef, Meganium, Cyndaquil, Quilava, Typhlosion,
+Totodile, Croconaw and Feraligatr use four sampled Gen V frames each.
+The source revision, GIF SHA-256 and frame indices are recorded in
+assets/sources.json. The conversion uses one shared crop per species,
+nearest-neighbour scaling and four-level grayscale with transparency.
+The upstream repository's license and image copyright notice are
+included in SPRITE-LICENSE.PokeAPI.txt.
+
 Charmander, Charmeleon and Charizard pose animations use front-facing
 frames from PMDCollab SpriteCollab sprite sheets. Idle, Sleep, Walk,
 Attack and available Eat sheets were cropped, resized and converted
@@ -26,6 +34,12 @@ Lua code license.
 
 Charmander-line evolution levels were checked against PokeAPI:
 https://pokeapi.co/api/v2/evolution-chain/2/
+
+Johto evolution levels were checked against PokeAPI's original
+Gold/Silver records (version group 3) in data/v2/csv/pokemon_evolution.csv:
+https://github.com/PokeAPI/pokeapi/blob/master/data/v2/csv/pokemon_evolution.csv
+Chikorita 16/32, Cyndaquil 14/36, Totodile 18/30. Practice move
+unlocks use PokePal's levels 1, 7, 20 and 36, not canonical learnsets.
 
 KOReader provides the device input, image rendering, screen refresh
 and suspend/resume facilities. It is installed separately.

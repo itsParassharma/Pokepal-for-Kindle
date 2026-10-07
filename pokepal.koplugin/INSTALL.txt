@@ -1,7 +1,8 @@
-POKEPAL 0.2.0 - CHARMANDER EDITION
+POKEPAL 0.3.0 - CHOOSE YOUR PARTNER
 
 A quiet Pokemon companion for a jailbroken, touch-screen Kindle.
-Starts with Charmander. Grow into Charmeleon and then Charizard.
+Choose Bulbasaur, Charmander, Squirtle, Pikachu, Eevee, Chikorita,
+Cyndaquil or Totodile. Care for your partner and help it evolve.
 
 INSTALL
 
@@ -28,7 +29,7 @@ INSTALL
    The resulting path on the Kindle drive should be:
    koreader/plugins/pokepal.koplugin/main.lua
 
-   Do not leave an extra PokePal-v0.2.0 folder around that path.
+   Do not leave an extra PokePal-v0.3.0 folder around that path.
 
 3. Safely eject and unplug the Kindle. Quit and reopen KOReader
    so it discovers the plugin.
@@ -40,8 +41,11 @@ INSTALL
    and enable PokePal, then restart KOReader. A customized menu
    may put it elsewhere; search the menu for PokePal.
 
-5. Charmander is waiting in the meadow. A brief idle pose plays on
-   opening; tap Charmander to see it again. Exit returns to KOReader.
+5. For a new adventure, use Previous and Next to browse partners,
+   then tap Start with your chosen Pokemon. Browsing does not commit
+   your choice. Existing saves open with their current partner.
+   A brief animation plays on opening; tap your partner to see it
+   again. Exit returns to KOReader.
 
 PLAY
 
@@ -77,11 +81,28 @@ Rewards are claimed once. Discoveries are collected, not playable
 partners in this edition.
 
 Profile: see your partner's progression. Each 20 XP adds a level.
+  Bulbasaur -> Ivysaur: level 4 (60 XP)
+  Ivysaur -> Venusaur: level 10 (180 XP)
   Charmander -> Charmeleon: level 16 (300 XP) and at least 30 bond
   Charmeleon -> Charizard: level 36 (700 XP) and at least 30 bond
+  Squirtle -> Wartortle: level 4 (60 XP)
+  Wartortle -> Blastoise: level 10 (180 XP)
+  Pikachu -> Raichu: level 7 (120 XP)
+  Eevee -> Vaporeon, Jolteon or Flareon: level 7 (120 XP),
+    then choose the Water, Thunder or Fire stone button in Profile.
+    These are choices, not inventory items that must be collected.
+  Chikorita -> Bayleef: level 16 (300 XP)
+  Bayleef -> Meganium: level 32 (620 XP)
+  Cyndaquil -> Quilava: level 14 (260 XP)
+  Quilava -> Typhlosion: level 36 (700 XP)
+  Totodile -> Croconaw: level 18 (340 XP)
+  Croconaw -> Feraligatr: level 30 (580 XP)
+Every evolution also needs at least 30 bond.
 Evolution is your choice: tap the enabled evolution button.
-The levels follow the Charmander line; bond is an extra pet-game
-requirement. Care meters, memories and XP survive evolution.
+Charmander and Johto evolution levels follow their original game
+lines. Other existing XP requirements remain PokePal's own rules.
+Care meters, memories and XP survive evolution. Training moves
+match your partner's family; unlock levels are PokePal's own rules.
 
 Journal: browse discovered Pokemon, recent activity and badges.
 Activity: review the last 24 actions, with their dates and times.
@@ -98,7 +119,10 @@ Charmander, Charmeleon and Charizard have distinct idle, sleeping,
 walking and attack animations sampled from real Pokemon Mystery
 Dungeon sprite sheets. Eating poses appear where the source has
 them. The earlier Black/White animated sprite frames remain for
-the journal and other Pokemon. Source sheets are attributed in
+the journal and other Pokemon, including all nine Johto forms.
+Those partners reuse their four frames for short action bursts;
+they do not have separate sleeping or eating pose sheets.
+Source sheets are attributed in
 CREDITS.txt and assets/pose-sources.json. All display frames are
 converted to grayscale and enlarged with nearest-neighbour scaling.
 The game is completely offline after installation.
@@ -139,6 +163,12 @@ valid snapshot retained. An unreadable current save falls back to
 the previous one; two unreadable copies are left untouched.
 
 Back up both save files before changing devices or reinstalling.
+Upgrading keeps your current partner, progress and animation mode.
+To choose a different partner for a new adventure, close KOReader
+and rename both pokepal.dat and pokepal.dat.old to backup names.
+The next opening shows the picker with fresh progress. There is no
+in-place partner switch. Older plugin versions cannot load a save
+containing Johto Pokemon; retain the matching plugin and save backup.
 To remove the game, quit KOReader and remove only
 koreader/plugins/pokepal.koplugin. Saved progress is kept.
 

@@ -1,4 +1,4 @@
-import sys,pathlib,os,tempfile
+import sys,pathlib,os,tempfile,json
 from lupa.luajit21 import LuaRuntime
 from PIL import Image,ImageDraw,ImageFont
 REPO=pathlib.Path(__file__).resolve().parents[1]
@@ -14,7 +14,7 @@ def rename(a,b):
 g.host_rename=rename;lua.execute('os.rename=host_rename')
 lua.execute((REPO/'tests'/'test_engine.lua').read_text())
 
-canvas=None;draw=None;bounds=[];truncated=[]
+canvas=None;draw=None;bounds=[];truncated=[];painted_text=[];painted_sprites=[]
 def font(size,bold=False):
  choices=(['C:/Windows/Fonts/arialbd.ttf','/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'] if bold
           else ['C:/Windows/Fonts/arial.ttf','/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'])
@@ -32,6 +32,7 @@ def get_text(t,sz,bold,maxw):
 def text_size(t,sz,bold,maxw):
  t,f=get_text(t,sz,bold,maxw);return round(draw.textlength(t,font=f)),int(sz*1.2)
 def render_text(t,x,y,sz,bold,maxw):
+ painted_text.append(t)
  t,f=get_text(t,sz,bold,maxw);draw.text((round(x),round(y)),t,font=f,fill=0,anchor='lt')
 def rect(x,y,w,h,col):
  x,y,w,h=map(round,(x,y,w,h))
@@ -39,6 +40,7 @@ def rect(x,y,w,h,col):
   if x<0 or y<0 or x+w>canvas.width or y+h>canvas.height:bounds.append((x,y,w,h))
   draw.rectangle((x,y,x+w-1,y+h-1),fill=int(col))
 def image(path,x,y,w,h):
+ painted_sprites.append(int(pathlib.Path(path).name.split('-')[0]))
  img=Image.open(path).convert('LA').resize((int(w),int(h)),Image.Resampling.NEAREST)
  canvas.paste(img.getchannel('L'),(round(x),round(y)),img.getchannel('A'))
 g.text_size=text_size;g.render_text=render_text;g.render_rect=rect;g.render_image=image
@@ -92,10 +94,20 @@ function newView(id)
  local owner={save=function(self) self.saved=(self.saved or 0)+1;return true end}
  local v=V:new{engine=E,state=s,owner=owner,path=BASE};owner.view=v;return v
 end
+function tapButton(view,action,arg)
+ view:paintTo(bb,0,0)
+ for _,button in ipairs(view.buttons) do
+  if button.action==action and button.arg==arg then
+   local r=view:region(button.x+4,button.y+4,0,0)
+   view:onTap(nil,{pos={x=r.x,y=r.y}});return button
+  end
+ end
+ error('Button not found: '..action..' '..tostring(arg))
+end
 ''')
 def start(w=600,h=800):
- global canvas,draw,bounds,truncated
- canvas=Image.new('L',(w,h),255);draw=ImageDraw.Draw(canvas);bounds=[];truncated=[]
+ global canvas,draw,bounds,truncated,painted_text,painted_sprites
+ canvas=Image.new('L',(w,h),255);draw=ImageDraw.Draw(canvas);bounds=[];truncated=[];painted_text=[];painted_sprites=[]
  g.D.w=w;g.D.h=h
 start()
 lua.execute(r'''
@@ -127,12 +139,55 @@ check('touch controls dispatch at scaled coordinates',function()
  v=newView(25);v.state.animation='off';v:paintTo(bb,0,0)
  v:onTap(nil,{pos={x=70,y=612}});assert(v.state.berries==5)
 end)
-check('main plugin starts with Charmander and persists it',function()
+check('starter browsing wraps and confirms every available partner',function()
+ for index,id in ipairs(E.starters) do
+  v=newView();local before=dofile(BASE..'/storage.lua').encode(v.state)
+  tapButton(v,'starter',-1);assert(v.starter_index==#E.starters)
+  tapButton(v,'starter',1);assert(v.starter_index==1)
+  for i=2,index do tapButton(v,'starter',1) end
+  assert(dofile(BASE..'/storage.lua').encode(v.state)==before and #U.queue==0 and not v.owner.saved)
+  tapButton(v,'choose',id);assert(v.state.species==id and v.owner.saved==1)
+  v:leave();assert(#U.queue==0)
+ end
+end)
+check('main plugin persists the picker until a partner is chosen',function()
  local P=dofile(BASE..'/main.lua')
  p=P:new{path=BASE,ui={menu={registerToMainMenu=function() end}}}
  local items={};p:addToMainMenu(items);assert(items.pokepal.callback)
- items.pokepal.callback();assert(p.view and p.state.species==4 and #U.queue==1);p.view:act('feed');p.view:leave()
- p:openPet();assert(p.state.species==4 and p.state.berries==5 and #U.queue==1);p.view:leave()
+ items.pokepal.callback();assert(p.view and p.state.species==0 and #U.queue==0);p.view:leave()
+ p:openPet();assert(p.state.species==0 and #U.queue==0)
+ for i=1,5 do tapButton(p.view,'starter',1) end
+ tapButton(p.view,'choose',152);assert(p.state.species==152 and #U.queue==1)
+ p.view:act('feed');p.view:leave()
+ p:openPet();assert(p.state.species==152 and p.state.berries==5 and #U.queue==1);p.view:leave()
+end)
+check('existing Charmander save keeps progress and bypasses the picker',function()
+ local S=dofile(BASE..'/storage.lua');local s=E.new(os.time())
+ E.act(s,'choose',4,os.time());s.xp=200;s.bond=42;s.berries=9;s.animation='off'
+ assert(S.save(p.savepath,s,E));p:openPet()
+ assert(p.state.species==4 and p.state.xp==200 and p.state.bond==42 and p.state.berries==9)
+ assert(#U.queue==0);p.view:leave()
+end)
+check('Eevee profile gates and dispatches each evolution branch',function()
+ for _,id in ipairs({134,135,136}) do
+  v=newView(133);v.state.animation='off';v:go('profile')
+  v.state.xp=119;v.state.bond=30
+  assert(tapButton(v,'evolve',id).disabled and v.state.species==133)
+  v.state.xp=120;v.state.bond=29
+  assert(tapButton(v,'evolve',id).disabled and v.state.species==133)
+  v.state.bond=30;assert(not tapButton(v,'evolve',id).disabled)
+  assert(v.state.species==id and v.state.seen[tostring(id)]);v:leave()
+ end
+end)
+check('new partners use finite fallback frames across actions',function()
+ for id=152,160 do
+  v=newView(152);v.state.species=id;v.state.animation='gentle'
+  for _,effect in ipairs({'hello','feed','play','train','evolve','rest'}) do
+   v.state.resting=effect=='rest';v:animate(effect);assert(U:drain()==4 and not v.animating)
+  end
+  v.state.animation='eco';v:animate('play');assert(U:drain()==2)
+  v.state.animation='off';v:animate('play');assert(#U.queue==0);v:leave()
+ end
 end)
 check('Charmander idle, sleep and attack use dedicated poses',function()
  v=newView(4);v.state.animation='gentle';v:animate('hello');assert(U:drain()==4 and #U.queue==0)
@@ -186,6 +241,34 @@ for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
   v.freeImages(v)
 print('LAYOUT: 48 screen/size combinations painted within bounds (desktop renderer)')
 
+# Assert visible species, lineage and text, not just that drawing does not crash.
+families=[(1,2,3),(4,5,6),(7,8,9),(25,26),(133,),
+          (133,134),(133,135),(133,136),(152,153,154),(155,156,157),(158,159,160)]
+profile_cases={species:family for family in families for species in family if species!=133}
+profile_cases[133]=(133,)
+species_layouts=0
+for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
+ for index,species in g.E.starters.items():
+  v=g.newView(None);v.starter_index=index;paint(v,w,h)
+  assert painted_sprites==[species] and not truncated,(species,truncated)
+  assert f'Start with {g.E.name(species)}' in painted_text
+  if (w,h)==(600,800) and species==152:canvas.save(OUT/'PokePal-starter-picker.png')
+  g.tapButton(v,'choose',species);assert v.state.species==species;v.leave(v);species_layouts+=1
+ for species,family in profile_cases.items():
+  v=g.newView(family[0]);v.state.species=species;v.screen='profile';paint(v,w,h)
+  assert painted_sprites==list(family),(species,painted_sprites,family)
+  assert not truncated,(species,truncated)
+  if not g.E.species[species][2]:
+   assert any(f'{g.E.name(species)} is fully evolved.' in text for text in painted_text)
+  if (w,h)==(600,800) and species in (152,133,160):canvas.save(OUT/f'PokePal-profile-{species}.png')
+  species_layouts+=1
+  for screen in ('home','train','sleep'):
+   v.screen='home' if screen=='sleep' else screen;v.state.resting=screen=='sleep';paint(v,w,h)
+   assert not truncated,(species,screen,truncated)
+   species_layouts+=1
+  v.freeImages(v)
+print(f'PARTNERS: {species_layouts} starter/profile/home/training/sleep layouts verified')
+
 v=g.newView(4);v.state.bond=28;v.state.xp=48;v.state.food=76;v.state.joy=84;v.state.energy=72;v.state.dirt=22
 v.message='Charmander is happy to see you.'
 v.state.animation='gentle';v.animating=False;v.effect=None
@@ -218,18 +301,26 @@ for id in g.E.species.keys():
  hashes=[]
  for fr in range(1,manifest[id]+1):
   img=Image.open(ROOT/'assets'/f'{id}-{fr}.png');assert img.size==(96,96) and img.mode=='LA'
-  assert set(img.getchannel('L').get_flattened_data()).issubset({0,85,170,255});hashes.append(img.tobytes());count+=1
+  assert set(img.getchannel('L').tobytes()).issubset({0,85,170,255});hashes.append(img.tobytes());count+=1
  assert len(set(hashes))>=2,f'{id}: no motion'
-print(f'ASSETS: {count} valid transparent frames; all 27 species have changing animation frames')
+species_ids=set(g.E.species.keys())
+assert set(manifest.keys())==species_ids
+sources=json.loads((ROOT/'assets'/'sources.json').read_text())
+assert len(sources)==len(species_ids) and {record['id'] for record in sources}==species_ids
+for record in sources:
+ assert record['count']==manifest[record['id']] and len(record['sampled'])==record['count']
+ assert len(set(record['sampled']))==record['count']
+ assert all(0<=index<record['original_frames'] for index in record['sampled'])
+print(f'ASSETS: {count} valid transparent frames; all {len(species_ids)} species have changing animation frames and source records')
 poses=lua.execute((ROOT/'assets'/'poses.lua').read_text())
 pose_count=0
-for id in (4,5,6):
+for id in poses.keys():
  for pose,frames in poses[id].items():
   hashes=[]
   for fr in range(1,frames+1):
    img=Image.open(ROOT/'assets'/f'{id}-{pose}-{fr}.png')
    assert img.size==(96,96) and img.mode=='LA'
-   assert set(img.getchannel('L').get_flattened_data()).issubset({0,85,170,255})
+   assert set(img.getchannel('L').tobytes()).issubset({0,85,170,255})
    hashes.append(img.tobytes());pose_count+=1
   assert len(set(hashes))>=2,f'{id} {pose}: no motion'
 print(f'POSES: {pose_count} valid grayscale alpha frames; every pose moves')

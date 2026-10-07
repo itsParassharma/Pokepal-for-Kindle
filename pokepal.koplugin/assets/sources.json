@@ -334,5 +334,122 @@
       11
     ],
     "count": 4
+  },
+  {
+    "id": 152,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/152.gif",
+    "source_sha256": "04d0ceab2d1054cf29f1c1d41932b27d6ef4bcbd66026f355fdcf1db91986319",
+    "original_frames": 36,
+    "sampled": [
+      0,
+      6,
+      22,
+      29
+    ],
+    "count": 4
+  },
+  {
+    "id": 153,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/153.gif",
+    "source_sha256": "c49b80b81ede29b1136938926ea95191b1fa56c0860a39a7b4d31c0886a9ca2b",
+    "original_frames": 61,
+    "sampled": [
+      0,
+      15,
+      28,
+      46
+    ],
+    "count": 4
+  },
+  {
+    "id": 154,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/154.gif",
+    "source_sha256": "38a4a7d61886826877bd228ea8bea5e3a889b6eb94e62df806f3faa2017868fc",
+    "original_frames": 64,
+    "sampled": [
+      0,
+      16,
+      32,
+      48
+    ],
+    "count": 4
+  },
+  {
+    "id": 155,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/155.gif",
+    "source_sha256": "ad71ef0d25c7bea54d5aee2c8e33c1b33681cd3f6acd579c2a95873298baf0c4",
+    "original_frames": 84,
+    "sampled": [
+      0,
+      7,
+      19,
+      54
+    ],
+    "count": 4
+  },
+  {
+    "id": 156,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/156.gif",
+    "source_sha256": "f7d7b1f54a66da070ba66ccaae6aea1bc40abdefe758de0596d27742df1b2046",
+    "original_frames": 61,
+    "sampled": [
+      0,
+      15,
+      31,
+      46
+    ],
+    "count": 4
+  },
+  {
+    "id": 157,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/157.gif",
+    "source_sha256": "fc3dabf200a324cb92277ae158239a2c87515634d6643038def80dbd28d1aaec",
+    "original_frames": 85,
+    "sampled": [
+      0,
+      8,
+      53,
+      61
+    ],
+    "count": 4
+  },
+  {
+    "id": 158,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/158.gif",
+    "source_sha256": "06f9a86879f45a01f041c98fbb4d48fd41f8fc3de43868c89253c9899e41cf69",
+    "original_frames": 54,
+    "sampled": [
+      0,
+      7,
+      41,
+      47
+    ],
+    "count": 4
+  },
+  {
+    "id": 159,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/159.gif",
+    "source_sha256": "81d82a43ffb3659cadfdfa38d5909c42ad063835f1a2fed9d1d4256d27d1d8e0",
+    "original_frames": 90,
+    "sampled": [
+      0,
+      10,
+      23,
+      43
+    ],
+    "count": 4
+  },
+  {
+    "id": 160,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/160.gif",
+    "source_sha256": "94cad283beef49e8c61ab23d77d51c1f376e621ef09bb9ed558cfeaf9fc62061",
+    "original_frames": 71,
+    "sampled": [
+      0,
+      18,
+      36,
+      53
+    ],
+    "count": 4
   }
 ]

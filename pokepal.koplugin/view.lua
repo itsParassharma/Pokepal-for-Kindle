@@ -20,7 +20,7 @@ end
 function View:init()
  self.art=dofile(self.path.."/art.lua");self.frames=dofile(self.path.."/assets/frames.lua")
  self.poses=dofile(self.path.."/assets/poses.lua")
- self.screen="home";self.frame=1;self.buttons={};self.images={};self.action_count=0
+ self.screen="home";self.frame=1;self.buttons={};self.images={};self.action_count=0;self.starter_index=1
  self.message=self.engine.act(self.state,"check",nil,os.time())
  self.key_events.Back={{"Back"}};self.key_events.Close={{"Esc"}};self:geometry()
  -- The only scheduled callback is a bounded animation following an action.
@@ -64,7 +64,7 @@ function View:wrapped(bb,text,y,size)
  for word in text:gmatch("%S+") do
   local trial=line=="" and word or line.." "..word
   local t=TextWidget:new{text=trial,face=face,padding=0}
-  local too_wide=t:getSize().w>round(508*self.scale);t:free()
+  local too_wide=t:getSize().w>round(504*self.scale);t:free()
   if too_wide and line~="" then rows[#rows+1]=line;line=word else line=trial end
  end
  rows[#rows+1]=line
@@ -146,9 +146,14 @@ function View:paintTo(bb,x,y)
  else self:paintMore(bb) end
 end
 function View:paintWelcome(bb)
- self:text(bb,"Meet your little flame",32,105,29,536,true,true);self:sprite(bb,4,176,225,248,1)
- self:wrapped(bb,"Feed, play, explore and grow together. Charmander is ready for a quiet adventure.",509,19)
- self:button(bb,"Start with Charmander",60,621,480,62,"choose",4,"flame")
+ local id=self.engine.starters[self.starter_index]
+ self:text(bb,"Choose your partner",32,105,29,536,true,true)
+ self:text(bb,self.engine.name(id),32,166,25,536,true,true);self:sprite(bb,id,176,218,248,1)
+ self:text(bb,self.starter_index.." / "..#self.engine.starters,32,488,18,536,false,true)
+ self:wrapped(bb,"Feed, play, explore and grow together. Choose a friend for your adventure.",530,19)
+ self:button(bb,"Previous",60,602,232,48,"starter",-1)
+ self:button(bb,"Next",308,602,232,48,"starter",1)
+ self:button(bb,"Start with "..self.engine.name(id),60,670,480,62,"choose",id,"heart")
 end
 function View:landscape(bb)
  self:outline(bb,32,153,536,265);self:rect(bb,33,154,534,263,WHITE)
@@ -177,7 +182,8 @@ function View:paintHome(bb)
   self.art.icon(self,bb,"boot",270,258,6);self:text(bb,self.engine.routes[s.trip].name,169,345,20,263,true,true)
   self:text(bb,minutes(s.due-now).." min until home",169,377,17,263,false,true)
  else
-  local size=s.species==6 and 224 or s.species==5 and 208 or 192;local id=s.species
+  local size=192;local id=s.species
+  for i,member in ipairs(self.engine.evolutionLine(id)) do if member==id then size=176+i*16 end end
   if self.effect=="evolve" and self.previous_species and self.step<=2 then id=self.previous_species end
   local dy=(self.animating and self.effect=="play" and self.frame%2==0) and -6 or 0
   self:rect(bb,253,401,94,3,GRAY);self:rect(bb,265,398,70,3,GRAY)
@@ -194,7 +200,7 @@ function View:paintHome(bb)
  end
  self:text(bb,self.engine.ready(s) and "Evolution is ready!" or "Bond "..math.floor(s.bond).." / 100   |   "..s.xp.." XP",32,559,17,350)
  self:button(bb,"Profile",431,547,137,36,"nav","profile")
- local buttons={{"Feed","feed",nil,"berry"},{readyLabel("Play",s.played+1800-now),"startplay",nil,"ball"},{readyLabel("Train",s.trained+3600-now),"nav","train","flame"},
+ local buttons={{"Feed","feed",nil,"berry"},{readyLabel("Play",s.played+1800-now),"startplay",nil,"ball"},{readyLabel("Train",s.trained+3600-now),"nav","train","ball"},
   {s.resting and "Wake" or "Rest","rest",nil,"moon"},{"Explore","nav","explore","boot"},{"Journal","nav","journal","book"},
   {"Clean","clean",nil,"clean"},{readyLabel("Basket",s.gift+86400-now),"gift",nil,"berry"},{"More","nav","more","settings"}}
  for i,b in ipairs(buttons) do self:button(bb,b[1],32+(i-1)%3*182,596+math.floor((i-1)/3)*57,172,48,b[2],b[3],b[4]) end
@@ -204,7 +210,7 @@ function View:paintEffect(bb)
  local up=self.frame%2==0 and -7 or 0;local e=self.effect
  if e=="feed" then self.art.icon(self,bb,"berry",160,279+up,3)
  elseif e=="play" then self.art.icon(self,bb,"ball",409,277+up,3)
- elseif e=="train" then self.art.icon(self,bb,"flame",410,275+up,3)
+ elseif e=="train" then self.art.icon(self,bb,"ball",410,275+up,3)
  elseif e=="clean" or e=="evolve" then self.art.icon(self,bb,"clean",148,248+up,3);self.art.icon(self,bb,"clean",414,284-up,3)
  elseif e=="rest" then return
  else self.art.icon(self,bb,"heart",419,253+up,3) end
@@ -262,19 +268,28 @@ function View:paintHistory(bb)
 end
 function View:paintProfile(bb)
  local s=self.state;local lv=self.engine.level(s)
- self:title(bb,"Partner","Fire partner   /   Lv "..lv.."   /   Bond "..math.floor(s.bond).." / 100")
- for i,id in ipairs({4,5,6}) do
-  local x=32+(i-1)*182;self:sprite(bb,id,x+16,207,140,1)
+ local line=self.engine.evolutionLine(s.species);local choices=self.engine.evolutionChoices(s.species)
+ self:title(bb,"Partner",self.engine.name(s.species).."   /   Lv "..lv.."   /   Bond "..math.floor(s.bond).." / 100")
+ for i,id in ipairs(line) do
+  local x=(600-(#line*182-10))/2+(i-1)*182;self:sprite(bb,id,x+16,207,140,1)
   self:text(bb,self.engine.name(id),x,355,18,172,id==s.species,true)
-  self:text(bb,i==1 and "Your first friend" or i==2 and "Lv 16 + 30 bond" or "Lv 36 + 30 bond",x,389,14,172,false,true)
+  local previous=i>1 and self.engine.species[line[i-1]]
+  local requirement=previous and "Lv "..(1+math.ceil(previous[3]/20)).." + 30 bond" or "Your first friend"
+  self:text(bb,requirement,x,389,14,172,false,true)
   if id==s.species then self:rect(bb,x+30,422,112,3) end
  end
  local p=self.engine.species[s.species]
- if p[2] then
-  self:wrapped(bb,"Next: "..self.engine.name(p[2])..". Reach Lv "..(1+p[3]/20).." and 30 bond, then evolve when you are ready.",466,19)
-  self:button(bb,self.engine.ready(s) and "Evolve into "..self.engine.name(p[2]) or "Growing toward "..self.engine.name(p[2]),32,538,536,56,"evolve",nil,"flame",not self.engine.ready(s))
- else self:wrapped(bb,"Charizard is fully evolved. Keep exploring and fill your field journal together.",465,19) end
- self:text(bb,"Together for "..math.max(0,math.floor((os.time()-s.started)/86400)).." days   /   "..s.trips.." expeditions",32,625,18,536,false,true)
+ if #choices>1 then
+  self:wrapped(bb,"Choose a stone at Lv "..(1+math.ceil(p[3]/20)).." and 30 bond. Each stone leads to a different friend.",454,18)
+  for i,id in ipairs(choices) do
+   self:button(bb,self.engine.evolution_stones[id]..": "..self.engine.name(id),32,511+(i-1)*51,536,44,"evolve",id,nil,not self.engine.ready(s))
+  end
+ elseif #choices==1 then
+  local id=choices[1]
+  self:wrapped(bb,"Next: "..self.engine.name(id)..". Reach Lv "..(1+math.ceil(p[3]/20)).." and 30 bond, then evolve when you are ready.",466,19)
+  self:button(bb,self.engine.ready(s) and "Evolve into "..self.engine.name(id) or "Growing toward "..self.engine.name(id),32,538,536,56,"evolve",id,"clean",not self.engine.ready(s))
+ else self:wrapped(bb,self.engine.name(s.species).." is fully evolved. Keep exploring and fill your field journal together.",465,19) end
+ self:text(bb,"Together for "..math.max(0,math.floor((os.time()-s.started)/86400)).." days   /   "..s.trips.." expeditions",32,681,18,536,false,true)
  self:backButton(bb)
 end
 function View:paintBadges(bb)
@@ -314,7 +329,7 @@ function View:paintTrain(bb)
  self:title(bb,"A little move practice","18 energy   /   8 food   /   +12 XP   /   +2 bond");local lv=self.engine.level(self.state)
  for i,m in ipairs(self.engine.moves(self.state)) do
   local y=200+(i-1)*112;local locked=lv<m.level
-  self:button(bb,m.name,32,y,536,56,"train",m.name,"flame",locked)
+  self:button(bb,m.name,32,y,536,56,"train",m.name,"ball",locked)
   self:text(bb,locked and "Unlocks at Lv "..m.level or "Ready to practice with your partner",43,y+71,17,513)
  end
  self:backButton(bb)
@@ -325,7 +340,7 @@ function View:paintMore(bb)
  self:text(bb,"Gentle: up to 8 frames. Eco: 2 frames. Off: still.",32,267,17,536)
  self:button(bb,"Refresh screen - clear ghosting",32,323,536,48,"refresh",nil,"clean")
  self:button(bb,"How to care for your partner",32,391,536,48,"nav","help","book")
- self:button(bb,"Evolution and partner profile",32,459,536,48,"nav","profile","flame")
+ self:button(bb,"Evolution and partner profile",32,459,536,48,"nav","profile","clean")
  self:button(bb,"Activity",32,527,536,48,"nav","history","book")
  self:text(bb,"Latest activity",32,623,19,536,true);if self.state.log[1] then self:text(bb,self.state.log[1],32,655,16,536) end
  self:backButton(bb)
@@ -344,6 +359,9 @@ function View:onTap(_,ges)
  for _,b in ipairs(self.buttons) do if x>=b.x and x<b.x+b.w and y>=b.y and y<b.y+b.h then
   if b.action=="exit" then self:leave()
   elseif b.disabled then return true
+  elseif b.action=="starter" then
+   self.starter_index=(self.starter_index-1+b.arg)%#self.engine.starters+1
+   self:freeImages();UIManager:setDirty(self,"ui")
   elseif b.action=="nav" then
    if b.arg=="home" then self.message=self.engine.act(self.state,"check",nil,os.time()) end;self:go(b.arg)
   elseif b.action=="hello" then self:animate("hello");UIManager:setDirty(self,"ui",self:stageRegion())
