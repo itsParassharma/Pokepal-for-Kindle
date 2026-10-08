@@ -1,8 +1,8 @@
 # PokePal for Kindle
 
-PokePal is a small offline pet game for KOReader on a jailbroken Kindle. Choose Bulbasaur, Charmander, Squirtle, Pikachu, Eevee, Chikorita, Cyndaquil or Totodile. Feed your partner, play a three-bush memory game, practise moves, or send it on an expedition. With enough XP and bond, evolve it from its partner profile. Eevee can become Vaporeon, Jolteon or Flareon.
+PokePal is a small Tamagotchi style game for KOReader on a jailbroken Kindle. Choose Bulbasaur, Charmander, Squirtle, Pikachu, Eevee, Chikorita, Cyndaquil or Totodile. Feed your partner, play a three-bush memory game, practise moves, or send it on an expedition. With enough XP and bond, evolve it from its partner profile. Eevee can become Vaporeon, Jolteon or Flareon.
 
-The screen stays still most of the time. Charmander has short idle, sleeping, walking, and attack animations; they stop when the Kindle sleeps. Care and expeditions use elapsed time when you next open the game, so there is no background polling or wake alarm. Battery use has not been measured on a physical Kindle yet.
+The screen stays still most of the time. Charmander has short idle, sleeping, walking, and attack animations; they stop when the Kindle sleeps. Care and expeditions use elapsed time when you next open the game, so there is no background polling or wake alarm..
 
 ![A brief idle animation](docs/idle-preview.gif) ![A brief sleeping animation](docs/sleep-preview.gif)
 
