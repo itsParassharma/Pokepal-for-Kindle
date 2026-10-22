@@ -3,7 +3,6 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [pokepal.koplugin/_meta.lua, docs/PokePal-trailer.mp4]
 permissions:
   contents: write
 jobs:

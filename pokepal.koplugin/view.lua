@@ -443,7 +443,7 @@ function View:paintProfile(bb)
  self:backButton(bb)
 end
 function View:paintNickname(bb)
- self:title(bb,"What should we call you?","Up to 12 characters. Your partner keeps its name as it evolves.")
+ self:title(bb,"What should we call you?","Up to 12 characters. The name stays after evolution.")
  self:outline(bb,32,198,536,58)
  self:text(bb,self.nickname_text~="" and self.nickname_text or self.engine.name(self.state.species),48,211,25,504,true,true)
  self:text(bb,#self.nickname_text.." / 12",32,271,16,536,false,true)
