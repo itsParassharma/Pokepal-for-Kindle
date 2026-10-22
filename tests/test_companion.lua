@@ -86,7 +86,7 @@ test('nicknames survive switches, evolution and save reloads',function()
 end)
 test('nicknames reject unsafe or unsupported text without changing the name',function()
  local s=pet();E.act(s,'nickname','Pal',now)
- for _,name in ipairs({'1234567890123','hello\nworld','name=bad','caf'..string.char(195,169)}) do E.act(s,'nickname',name,now);assert(E.displayName(s)=='Pal') end
+ for _,name in ipairs({'1234567890123','hello\nworld','name=bad',string.char(255)}) do E.act(s,'nickname',name,now);assert(E.displayName(s)=='Pal') end
  local data=S.encode(pet())
  for _,line in ipairs({'nickname=999,Pal','nickname=25,Pal','nickname=4,Pal\nnickname=4,Other','nickname=4, space','nickname=4,1234567890123'}) do assert(not S.decode(data..line..'\n',E)) end
 end)

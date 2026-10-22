@@ -1,3 +1,4 @@
+app.owner:syncReading()
 local s=app.state;local E=app.engine;local v=app.view
 for key in pairs(s) do s[key]=nil end
 for key,value in pairs(E.new(os.time())) do s[key]=value end
@@ -9,7 +10,7 @@ s.xp=60;s.bond=30;v:act('partner',4);v:act('partner',150);assert(s.xp==60 and s.
 v:go('entry');v.detail_id=150
 for _,pose in ipairs({'idle','sleep','walk','attack','eat'}) do
  v.preview_pose=pose
- for frame=1,v.poses[150][pose] do v.frame=frame;app_paint();assert(#v.buttons==8) end
+ for frame=1,v.poses[150][pose] do v.frame=frame;app_paint();assert(#v.buttons==9) end
 end
 assert(app.owner:save())
 local save=app.storage.save;app.storage.save=function() return nil,'Test save failure' end
@@ -24,7 +25,8 @@ dofile('../../../tests/test_reading.lua')
 dofile('../../../tests/test_adventures.lua')
 dofile('../../../tests/test_companion.lua')
 dofile('../../../tests/test_backups.lua')
-v:go('reading');app_paint();assert(#v.buttons==7)
+dofile('../../../tests/test_improvements.lua')
+v:go('reading');app_paint();assert(#v.buttons==9)
 dofile('game/reading.lua').init(s);s.berries=6;v:act('egg');v:act('readingtrip',1)
 assert(s.egg and s.trail)
 E.readingReward(s,7200,os.time());v:act('hatch');assert(v.screen=='entry' and s.trip==1)
@@ -51,3 +53,16 @@ local function clean(path)
  assert(F.rmdir(path))
 end
 clean(TESTDIR)
+
+-- Repeat paints reuse decoded sprites and glyphs; a stage paint skips the UI.
+v:go('home');s.animation='off';app_paint()
+local images,glyphs,bytes=host_cache_stats();app_paint()
+local images2,glyphs2=host_cache_stats();assert(images==images2 and glyphs==glyphs2 and bytes<=4*1024*1024)
+app.ui:setDirty(v,'ui',v:stageRegion())
+local paint=v.paintTo;v.paintTo=function() error('Full UI painted for an animation') end
+local flash,x,y,w,h=app_paint();v.paintTo=paint
+assert(not flash and w<600 and h<800)
+app.ui:setDirty(v,'ui');flash,x,y,w,h=app_paint();assert(not flash and w==600 and h==800)
+app.ui:setDirty(v,'full');flash=app_paint();assert(flash)
+assert(host_text_width('Évoli',20,false)>0)
+print('NATIVE CACHE: reused sprites and glyphs; regional redraw and explicit refresh passed')

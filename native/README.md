@@ -15,13 +15,15 @@ python tools/package_release.py --deps /path/to/build-cache
 
 The build fetches pinned Lua and FBInk revisions and the pinned stb submodule. Output goes under `native/build/`. The package tool includes exact dependency sources in a corresponding-source ZIP. Keep that ZIP alongside any redistributed executable.
 
-On Windows, add `--headless` to build the renderer smoke-test executable. From `native/build/extension`, run:
+Add `--headless` to build the renderer smoke-test executable on Linux or Windows. From `native/build/extension`, run:
 
 ```sh
-pokepal-headless.exe ../../../tests/test_native.lua native-test.pgm
+./pokepal-headless ../../../tests/test_native.lua native-test.pgm
 ```
 
 This tests native text/image drawing, the Lua bridge, actions, partner switching, save reload and suspend cancellation. It cannot test Linux input or e-ink updates.
+
+On Windows the executable is named `pokepal-headless.exe`. The renderer caches decoded sprites and glyphs, uses UTF-8 text and repaints only the stage during animation. Ordinary navigation does not request a flashing refresh. Idle input waits have no timeout.
 
 ## Device check still needed
 
@@ -33,8 +35,10 @@ The touch reader handles single-touch and slot-zero multitouch, scales reported 
 
 Both editions use `/mnt/us/pokepal/pokepal.dat`. The first launch copies the most recently used legacy save from `extensions/pokepal/data` or the default KOReader settings folder, leaving the originals intact. On a desktop or a non-Kindle KOReader installation, the previous local save location is used. Release archives contain no test save.
 
-Reading rewards inspect local book counters when the game opens. They do not install a background service. KOReader exports its page-turn time to the same folder, so either edition can collect it. [Formats, limits and tests](../docs/reading-rewards.md).
+Reading rewards inspect local book counters in small batches after the game opens. KOReader exports its page-turn time to the same folder, so either edition can collect it. [Formats, limits and tests](../docs/reading-rewards.md).
+
+The optional auto-rest preference starts a power-event listener after PokePal closes. It calls `--suspend` and `--resume` without opening the framebuffer or grabbing touch input. KUAL keeps the normal Kindle sleep screen; no screensaver add-on is needed. [Setup and limits](../docs/companion-update.md#sleep-screen).
 
 ## License
 
-The native host and launcher are GPL-3.0-or-later; the shared game remains MIT. FBInk, Lua, stb and Bitstream Vera retain their original notices. Pokemon assets have separate terms in `game/CREDITS.txt`.
+The native host and launcher are GPL-3.0-or-later; the shared game remains MIT. FBInk, Lua, stb, DejaVu and Bitstream Vera retain their original notices. Pokemon assets have separate terms in `game/CREDITS.txt`.

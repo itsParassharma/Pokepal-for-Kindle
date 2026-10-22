@@ -4,6 +4,7 @@ python tools/build_native.py --zig /path/to/zig --deps /path/to/cache
 Use --headless for the host-platform rendering/smoke-test executable.
 """
 import argparse
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -31,7 +32,7 @@ def main():
  if (deps/'FBInk/.git').exists():run('git','submodule','update','--init','stb',cwd=deps/'FBInk')
  fb=deps/'FBInk';lua=deps/'lua'
  out=ROOT/'native'/'build';out.mkdir(exist_ok=True)
- binary=out/('pokepal-headless.exe' if args.headless else 'pokepal')
+ binary=out/(('pokepal-headless.exe' if os.name=='nt' else 'pokepal-headless') if args.headless else 'pokepal')
  flags=['-O2','-s','-ffunction-sections','-fdata-sections','-std=gnu11','-Wno-unknown-warning-option','-Wno-unknown-pragmas','-I'+str(lua),'-I'+str(fb),'-I'+str(fb/'stb')]
  source=[ROOT/'native'/'main.c']+[f for f in sorted(lua.glob('*.c')) if f.name not in ('lua.c','luac.c','onelua.c','ltests.c')]
  if args.headless:flags+=['-DHEADLESS']
@@ -44,7 +45,7 @@ def main():
  shutil.copytree(ROOT/'native'/'fonts',stage/'fonts',dirs_exist_ok=True)
  shutil.copytree(ROOT/'native'/'kual',stage,dirs_exist_ok=True)
  shutil.copy2(ROOT/'native'/'runtime.lua',stage/'runtime.lua')
- shutil.copy2(binary,stage/('pokepal-headless.exe' if args.headless else 'pokepal'))
+ shutil.copy2(binary,stage/(('pokepal-headless.exe' if os.name=='nt' else 'pokepal-headless') if args.headless else 'pokepal'))
  (stage/'data').mkdir(exist_ok=True)
  print(binary)
 

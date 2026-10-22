@@ -41,7 +41,7 @@ test('preview is read only and a changed backup must be previewed again',functio
 end)
 test('backup parsing rejects corruption and recovers the previous complete copy',function()
  local s,b,p=fixture();local data=bytes(p..'.backup')
- for _,bad in ipairs({data:sub(1,-2),data..'extra',data:gsub('POKEPAL_BACKUP_1','POKEPAL_BACKUP_9'),
+ for _,bad in ipairs({data:sub(1,-2),data..'extra',data:gsub('POKEPAL_BACKUP_%d','POKEPAL_BACKUP_9'),
   data:gsub('\n100\n','\n1000000000001\n'),(data:gsub('species=4','species=999'))}) do assert(not b:decode(bad)) end
  s.xp=9;assert(b:create(s));write(p..'.backup','broken')
  local preview=assert(b:preview('backup'));assert(preview.previous and preview.state.xp==0)
