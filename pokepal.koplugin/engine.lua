@@ -104,7 +104,7 @@ function E.new(now)
   seed=now % 2147483646 + 1, resting=false, care=0, started=now}
 end
 function E.valid(s)
- if type(s)~="table" or s.version~=1 then return false end
+ if type(s)~="table" or (s.version~=1 and s.version~=2) then return false end
  for _,k in ipairs({"species","food","joy","energy","bond","xp","berries","last","gift","trained","played","cleaned","dirt","trip","due","trips","seed","care","started"}) do
   local n=s[k]; if type(n)~="number" or n~=n or n<0 or n>1e12 then return false end
  end
@@ -122,6 +122,19 @@ function E.valid(s)
   for id,p in pairs(s.partners) do
    if type(id)~="string" or not E.species[tonumber(id)] or not s.seen[id] or type(p)~="table" then return false end
    for _,k in ipairs({"xp","bond"}) do local n=p[k];if type(n)~="number" or n~=n or n<0 or n>(k=="bond" and 100 or 1e12) then return false end end
+  end
+ end
+ if s.reading~=nil then
+  local r=s.reading
+  if type(r)~="table" or type(r.enabled)~="boolean" or type(r.ko_ready)~="boolean" or type(r.kindle)~="table" then return false end
+  for _,k in ipairs({"seconds","carry","kindle_at","ko"}) do
+   local n=r[k];if type(n)~="number" or n~=n or n<0 or n>1e12 or n%1~=0 then return false end
+  end
+  local count=0
+  for key,n in pairs(r.kindle) do
+   count=count+1
+   if count>10000 or type(key)~="string" or #key~=16 or not key:match("^%x+$")
+    or type(n)~="number" or n~=n or n<0 or n>1e12 or n%1~=0 then return false end
   end
  end
  return type(s.resting)=="boolean"
@@ -161,6 +174,19 @@ function E.ready(s)
  local p=E.species[s.species]
  return p and p[2] and s.xp>=p[3] and s.bond>=30
 end
+function E.readingReward(s,seconds,now)
+ local r=s.reading;if not r or not r.enabled then return nil end
+ if type(seconds)~="number" or seconds~=seconds or seconds<0 or seconds>1e12 then return nil end
+ seconds=math.floor(seconds)
+ r.seconds=math.min(1e12,r.seconds+seconds);r.carry=math.min(1e12,r.carry+seconds)
+ if s.species==0 then return nil end
+ local rewards=math.floor(r.carry/900);if rewards==0 then return nil end
+ r.carry=r.carry%900
+ local berries=math.min(rewards,999-s.berries)
+ s.berries=s.berries+berries;s.xp=math.min(1e12,s.xp+rewards*3)
+ local message="Reading: +"..berries..(berries==1 and " berry" or " berries")..", +"..(rewards*3).." XP."
+ E.note(s,message,now);E.badges(s,now);return message
+end
 function E.act(s,action,arg,now)
  E.advance(s,now)
  local function done(msg,anim)
@@ -170,6 +196,7 @@ function E.act(s,action,arg,now)
   local allowed=false;for _,id in ipairs(E.starters) do if arg==id then allowed=true end end
   if not allowed then return "Choose one of the available starters." end
   s.species=arg;s.seen[tostring(arg)]=true;s.gift=now;s.started=now
+  E.readingReward(s,0,now)
   return done(E.name(arg).." is your new friend!","hello")
  end
  if action=="animation" then

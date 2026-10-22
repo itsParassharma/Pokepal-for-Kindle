@@ -15,3 +15,15 @@ assert(app.owner:save())
 local loaded=app.storage.load('data/pokepal.dat',E);assert(loaded.species==150 and loaded.partners['4'])
 v:onSuspend();assert(#app.ui.queue==0);v:onResume()
 print('NATIVE: drawing, actions, partner progress, save reload and suspend passed')
+BASE='game';TESTDIR=os.tmpname();os.remove(TESTDIR);assert(host_fs('mkdir',TESTDIR))
+dofile('../../../tests/test_reading.lua')
+v:go('reading');app_paint();assert(#v.buttons==3)
+local F=dofile('game/filesystem.lua')
+local function clean(path)
+ for _,name in ipairs(F.list(path)) do
+  local file=path..'/'..name
+  if F.mode(file)=='directory' then clean(file) else assert(os.remove(file)) end
+ end
+ assert(F.rmdir(path))
+end
+clean(TESTDIR)

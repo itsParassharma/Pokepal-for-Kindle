@@ -13,10 +13,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Update the 1.0.4 trailer
+      - name: Update the 1.0.5 trailer
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload v1.0.4 docs/PokePal-trailer.mp4 --clobber
+        run: gh release upload v1.0.5 docs/PokePal-trailer.mp4 --clobber
   release:
     if: github.repository == 'itsParassharma/Pokepal-for-Kindle' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release]'))
     runs-on: ubuntu-22.04
@@ -50,20 +50,13 @@ jobs:
           sh -n native/kual/launch.sh
       - name: Package clean downloads and corresponding source
         run: python tools/package_release.py --deps ../pokepal-build-cache
-      - name: Publish 1.0.4
+      - name: Publish 1.0.5
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view v1.0.4 >/dev/null 2>&1; then
-            gh release edit v1.0.4 --title "1.0.4" --prerelease=false --latest --notes-file docs/release-v1.0.4.md
-          elif gh release view v0.4.0 >/dev/null 2>&1; then
-            gh release edit v0.4.0 --tag v1.0.4 --target "$GITHUB_SHA" --title "1.0.4" --prerelease=false --latest --notes-file docs/release-v1.0.4.md
+          if gh release view v1.0.5 >/dev/null 2>&1; then
+            gh release edit v1.0.5 --title "1.0.5" --prerelease=false --latest --notes-file docs/release-v1.0.5.md
           else
-            gh release create v1.0.4 --target "$GITHUB_SHA" --title "1.0.4" --latest --notes-file docs/release-v1.0.4.md
+            gh release create v1.0.5 --target "$GITHUB_SHA" --title "1.0.5" --latest --notes-file docs/release-v1.0.5.md
           fi
-          gh release upload v1.0.4 dist/PokePal-v1.0.4-* docs/PokePal-trailer.mp4 --clobber
-          for asset in PokePal-v0.4.0-koreader.zip PokePal-v0.4.0-kual-preview.zip PokePal-v0.4.0-corresponding-source.zip PokePal-v0.4.0-SHA256.txt; do
-            if gh release view v1.0.4 --json assets --jq '.assets[].name' | grep -Fxq "$asset"; then
-              gh release delete-asset v1.0.4 "$asset" --yes
-            fi
-          done
+          gh release upload v1.0.5 dist/PokePal-v1.0.5-* docs/PokePal-trailer.mp4 --clobber

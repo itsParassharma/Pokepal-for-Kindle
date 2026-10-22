@@ -152,6 +152,7 @@ function View:paintTo(bb,x,y)
  elseif self.screen=="play" then self:paintPlay(bb)
  elseif self.screen=="train" then self:paintTrain(bb)
  elseif self.screen=="help" then self:paintHelp(bb)
+ elseif self.screen=="reading" then self:paintReading(bb)
  else self:paintMore(bb) end
 end
 function View:paintWelcome(bb)
@@ -367,7 +368,20 @@ function View:paintMore(bb)
  self:button(bb,"How to care for your partner",32,391,536,48,"nav","help","book")
  self:button(bb,"Evolution and partner profile",32,459,536,48,"nav","profile","clean")
  self:button(bb,"Activity",32,527,536,48,"nav","history","book")
- self:text(bb,"Latest activity",32,623,19,536,true);if self.state.log[1] then self:text(bb,self.state.log[1],32,655,16,536) end
+ self:button(bb,"Reading rewards",32,595,536,48,"nav","reading","book")
+ self:backButton(bb)
+end
+function View:paintReading(bb)
+ local r=self.state.reading or {enabled=true,seconds=0,carry=0}
+ self:title(bb,"Read with your partner","Earn berries and XP between visits.")
+ self:text(bb,"15 minutes = 1 berry + 3 XP",32,194,25,536,true,true)
+ self:text(bb,math.floor(r.seconds/60).." minutes recorded",32,254,22,536,false,true)
+ self:text(bb,math.ceil((900-r.carry%900)/60).." min to the next reward",32,296,20,536,false,true)
+ self:button(bb,r.enabled and "Rewards: On" or "Rewards: Off",122,354,356,52,"reading",nil,"book",false,r.enabled)
+ local status=self.owner.reading_status or {"Kindle: checked when you open PokePal","KOReader: tracks while you read"}
+ for i,line in ipairs(status) do self:text(bb,line,32,439+(i-1)*36,18,536) end
+ self:wrapped(bb,"Open PokePal after reading to collect. Leftover minutes carry over.",545,18)
+ self:wrapped(bb,"Time is estimated. Long pauses count for at most two minutes per page in KOReader.",610,17)
  self:backButton(bb)
 end
 function View:paintHelp(bb)
@@ -400,6 +414,9 @@ function View:onTap(_,ges)
    local count=self.screen=="history" and #self.state.log or self.engine.count(self.state.seen)
    self:freeImages();self.page=math.max(1,math.min(math.max(1,math.ceil(count/6)),self.page+b.arg));UIManager:setDirty(self,"ui")
   elseif b.action=="animation" then self.engine.act(self.state,"animation",b.arg,os.time());self.owner:save();UIManager:setDirty(self,"ui")
+  elseif b.action=="reading" then
+   if self.owner.toggleReading then self.owner:toggleReading() end
+   UIManager:setDirty(self,"ui")
   else self:act(b.action,b.arg) end
   return true
  end end
@@ -413,7 +430,10 @@ function View:leave()
  self:stopAnimation();self.closed=true;local ok=self.owner:save();UIManager:close(self,"full")
  if not ok then UIManager:show(require("ui/widget/infomessage"):new{text="PokePal could not save. Check free space on the Kindle before playing again."}) end
 end
-function View:onCloseWidget() self:stopAnimation();self.closed=true;self:freeImages();self.owner.view=nil end
+function View:onCloseWidget()
+ self:stopAnimation();self.closed=true;self:freeImages();self.owner.view=nil
+ if self.owner.onPetClosed then self.owner:onPetClosed() end
+end
 function View:onSuspend()
  if self.suspended or self.closed then return end;self.suspended=true;self:stopAnimation();self.owner:save()
 end

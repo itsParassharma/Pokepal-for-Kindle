@@ -2,7 +2,7 @@
 
 The KUAL edition loads the shared Lua game and view through a local drawing/input host. It does not load KOReader.
 
-The executable contains Lua, FBInk and musl. It targets ARMv7 Linux, initially the 2021 Paperwhite. A static runtime avoids relying on the firmware's soft-float or hard-float C library. Device support still depends on the screen, touchscreen and power-event interfaces.
+The executable contains Lua, FBInk and musl. It targets ARMv7 Linux touchscreen Kindles. A static runtime avoids relying on the firmware's soft-float or hard-float C library. Device support still depends on the screen, touchscreen and power-event interfaces; the app does not restrict tracking to particular model names.
 
 ## Build
 
@@ -31,7 +31,9 @@ PokePal saves and exits on `goingToScreenSaver`. The launcher temporarily pauses
 
 The touch reader handles single-touch and slot-zero multitouch, scales reported axis ranges and applies FBInk's axis/mirror information. Device-specific calibration and rotation have not been checked on hardware. Use portrait orientation for this preview.
 
-Saves live in `data/`, separately from KOReader saves. Release archives contain no test save.
+Both editions use `/mnt/us/pokepal/pokepal.dat`. The first launch copies the most recently used legacy save from `extensions/pokepal/data` or the default KOReader settings folder, leaving the originals intact. On a desktop or a non-Kindle KOReader installation, the previous local save location is used. Release archives contain no test save.
+
+Reading rewards inspect local book counters when the game opens. They do not install a background service. KOReader exports its page-turn time to the same folder, so either edition can collect it. [Formats, limits and tests](../docs/reading-rewards.md).
 
 ## License
 

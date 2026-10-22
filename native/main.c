@@ -6,6 +6,7 @@
 #include <math.h>
 #include <time.h>
 #include <signal.h>
+#include <sys/stat.h>
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
@@ -102,11 +103,75 @@ static int host_sync_file(lua_State *s) {
  return 0;
 }
 static int host_sync_directory(lua_State *s) {
- (void)s;
 #ifndef HEADLESS
- int fd=open("data",O_RDONLY|O_DIRECTORY);if(fd>=0){fsync(fd);close(fd);}
+ char path[4096];const char *file=luaL_checkstring(s,1);
+ if(strlen(file)>=sizeof(path))return luaL_error(s,"Save path too long");
+ strcpy(path,file);char *slash=strrchr(path,'/');if(slash)*slash=0;else strcpy(path,".");
+ int fd=open(path,O_RDONLY|O_DIRECTORY);
+ if(fd<0)return luaL_error(s,"Cannot open save directory");
+ int rc=fsync(fd);close(fd);if(rc<0)return luaL_error(s,"Directory sync failed");
+#else
+ (void)s;
 #endif
  return 0;
+}
+static int host_fs(lua_State *s) {
+ const char *op=luaL_checkstring(s,1),*path=luaL_checkstring(s,2);
+ if(!strcmp(op,"pid")) {
+#ifdef HEADLESS
+  lua_pushinteger(s,GetCurrentProcessId());
+#else
+  lua_pushinteger(s,getpid());
+#endif
+  return 1;
+ }
+ if(!strcmp(op,"mode")) {
+#ifdef HEADLESS
+  if(!strncmp(path,"/proc/",6)) {
+   DWORD pid=(DWORD)strtoul(path+6,NULL,10);
+   HANDLE process=OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION,FALSE,pid);
+   DWORD status=0;int alive=process && GetExitCodeProcess(process,&status) && status==STILL_ACTIVE;
+   if(process)CloseHandle(process);if(!alive)return 0;lua_pushliteral(s,"directory");return 1;
+  }
+  DWORD a=GetFileAttributesA(path);if(a==INVALID_FILE_ATTRIBUTES)return 0;
+  lua_pushstring(s,(a&FILE_ATTRIBUTE_REPARSE_POINT)?"link":(a&FILE_ATTRIBUTE_DIRECTORY)?"directory":"file");
+#else
+  struct stat st;if(lstat(path,&st)<0)return 0;
+  lua_pushstring(s,S_ISLNK(st.st_mode)?"link":S_ISDIR(st.st_mode)?"directory":S_ISREG(st.st_mode)?"file":"other");
+#endif
+  return 1;
+ }
+ if(!strcmp(op,"mtime")) {
+  struct stat st;if(stat(path,&st)<0)return 0;lua_pushnumber(s,(lua_Number)st.st_mtime);return 1;
+ }
+ int result=0;
+#ifdef HEADLESS
+ if(!strcmp(op,"mkdir"))result=CreateDirectoryA(path,NULL);
+ else if(!strcmp(op,"rmdir"))result=RemoveDirectoryA(path);
+#else
+ if(!strcmp(op,"mkdir"))result=mkdir(path,0700)==0;
+ else if(!strcmp(op,"rmdir"))result=rmdir(path)==0;
+#endif
+ lua_pushboolean(s,result);return 1;
+}
+static int host_listdir(lua_State *s) {
+ const char *path=luaL_checkstring(s,1);int count=0;
+#ifdef HEADLESS
+ char pattern[4096];if(snprintf(pattern,sizeof(pattern),"%s/*",path)>=(int)sizeof(pattern))return 0;
+ WIN32_FIND_DATAA entry;HANDLE dir=FindFirstFileA(pattern,&entry);
+ if(dir==INVALID_HANDLE_VALUE)return 0;lua_newtable(s);
+ do {const char *name=entry.cFileName;
+  if(strcmp(name,".") && strcmp(name,"..")){lua_pushstring(s,name);lua_rawseti(s,-2,++count);}
+  if(count>20000){FindClose(dir);lua_pop(s,1);return 0;}
+ } while(FindNextFileA(dir,&entry));FindClose(dir);
+#else
+ DIR *dir=opendir(path);if(!dir)return 0;lua_newtable(s);struct dirent *entry;
+ while((entry=readdir(dir))) {const char *name=entry->d_name;
+  if(strcmp(name,".") && strcmp(name,"..")){lua_pushstring(s,name);lua_rawseti(s,-2,++count);}
+  if(count>20000){closedir(dir);lua_pop(s,1);return 0;}
+ }closedir(dir);
+#endif
+ return 1;
 }
 #ifdef HEADLESS
 static int host_rename(lua_State *s) {
@@ -196,7 +261,7 @@ int main(int argc,char **argv) {
 #ifdef HEADLESS
  lua_getglobal(L,"os");lua_pushcfunction(L,host_rename);lua_setfield(L,-2,"rename");lua_pop(L,1);
 #endif
- const luaL_Reg functions[]={{"host_rect",host_rect},{"host_image",host_image},{"host_text",host_text},{"host_text_width",host_text_width},{"host_time",host_time},{"host_sync_file",host_sync_file},{"host_sync_directory",host_sync_directory},{NULL,NULL}};
+ const luaL_Reg functions[]={{"host_rect",host_rect},{"host_image",host_image},{"host_text",host_text},{"host_text_width",host_text_width},{"host_time",host_time},{"host_sync_file",host_sync_file},{"host_sync_directory",host_sync_directory},{"host_fs",host_fs},{"host_listdir",host_listdir},{NULL,NULL}};
  for(const luaL_Reg *f=functions;f->name;f++){lua_pushcfunction(L,f->func);lua_setglobal(L,f->name);}
  if(luaL_dofile(L,"runtime.lua")!=LUA_OK){fprintf(stderr,"%s\n",lua_tostring(L,-1));goto done;}
 #ifdef HEADLESS

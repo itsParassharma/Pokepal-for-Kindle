@@ -12,7 +12,25 @@ def rename(a,b):
  try:os.replace(a,b);return True
  except OSError as ex:return None,str(ex)
 g.host_rename=rename;lua.execute('os.rename=host_rename')
+def fs(op,path):
+ p=pathlib.Path(path)
+ if op=='pid':return os.getpid()
+ if op=='mode':
+  if path==f'/proc/{os.getpid()}':return 'directory'
+  return 'link' if p.is_symlink() else 'directory' if p.is_dir() else 'file' if p.is_file() else None
+ if op=='mtime':return p.stat().st_mtime if p.exists() else None
+ try:
+  if op=='mkdir':p.mkdir()
+  elif op=='rmdir':p.rmdir()
+  else:return False
+  return True
+ except OSError:return False
+def listdir(path):
+ try:return lua.table_from(os.listdir(path))
+ except OSError:return None
+g.host_fs=fs;g.host_listdir=listdir
 lua.execute((REPO/'tests'/'test_engine.lua').read_text())
+lua.execute((REPO/'tests'/'test_reading.lua').read_text())
 
 sprite_index=json.loads((ROOT/'assets/sprite-index.json').read_text())
 def read_sprite(name):
@@ -233,6 +251,31 @@ check('evolution animation survives sleep without undoing evolution',function()
  v=newView(4);v.state.xp=300;v.state.bond=30;v:act('evolve');assert(v.state.species==5)
  v:onSuspend();assert(#U.queue==0 and v.state.species==5);v:onResume();assert(v.state.species==5)
 end)
+check('KOReader events persist reading time, exclude sleep and pet visits, and collect once',function()
+ local real_time=os.time;local clock=real_time();os.time=function() return clock end
+ local P=dofile(BASE..'/main.lua')
+ local reader=P:new{path=BASE,ui={menu={registerToMainMenu=function() end}}}
+ reader:openPet();local xp=reader.state.xp;reader.view:leave()
+ reader:onPageUpdate(1);reader:onReaderReady()
+ for page=2,16 do clock=clock+60;reader:onPageUpdate(page) end
+ reader:onSuspend();clock=clock+7200;reader:onResume();reader:onReadingResumed()
+ reader:openPet();assert(reader.state.xp==xp+3)
+ clock=clock+7200;reader:onPageUpdate(17)
+ reader.view:go('reading');tapButton(reader.view,'reading',nil);assert(not reader.state.reading.enabled)
+ tapButton(reader.view,'reading',nil);assert(reader.state.reading.enabled)
+ reader.view:leave();reader:openPet();assert(reader.state.xp==xp+3)
+ reader.view:leave();clock=clock+60;reader:onCloseDocument();clock=clock+7200;reader:onClose()
+ reader:openPet();assert(reader.state.xp==xp+3 and reader.state.reading.carry==60)
+ reader.view:leave();os.time=real_time
+end)
+check('failed KOReader counter promotion retains time for retry without duplicate credit',function()
+ local P=dofile(BASE..'/main.lua');local reader=P:new{path=BASE,ui={menu={registerToMainMenu=function() end}}}
+ local R=reader.reading;local before=assert(R.counter(reader.counterpath));reader.clock.pending=60
+ local real_save=R.saveCounter;R.saveCounter=function() return nil,'disk full' end
+ reader:flushReading();assert(reader.clock.pending==60 and reader.reading_error)
+ R.saveCounter=real_save;reader:flushReading();assert(reader.clock.pending==0 and R.counter(reader.counterpath)==before+60)
+ reader:flushReading();assert(R.counter(reader.counterpath)==before+60)
+end)
 print('UI LIFECYCLE: '..checks..' checks passed (mock KOReader device APIs)')
 ''')
 
@@ -241,7 +284,7 @@ def paint(v,w=600,h=800):
 
 # Layout smoke tests execute every actual view at representative portrait/landscape sizes.
 for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
- for screen in ['welcome','home','sleep','explore','journal','history','more','profile','badges','play','train','help']:
+ for screen in ['welcome','home','sleep','explore','journal','history','more','profile','badges','play','train','help','reading']:
   v=g.newView(None if screen=='welcome' else 4)
   v.screen='home' if screen in ('welcome','sleep') else screen
   if screen=='sleep':v.state.resting=True
@@ -253,7 +296,7 @@ for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
   im=paint(v,w,h)
   if (w,h)==(600,800):im.save(OUT/f'layout-{screen}.png')
   v.freeImages(v)
-print('LAYOUT: 48 screen/size combinations painted within bounds (desktop renderer)')
+print('LAYOUT: 52 screen/size combinations painted within bounds (desktop renderer)')
 
 # Assert visible species, lineage and text, not just that drawing does not crash.
 families=[(1,2,3),(4,5,6),(7,8,9),(25,26),(133,),

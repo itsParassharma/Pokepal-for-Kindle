@@ -40,23 +40,39 @@ package.preload['ui/uimanager']=function() return U end
 package.preload['ui/widget/infomessage']=function() return W end
 local E=dofile('game/engine.lua')
 local S=dofile('game/storage.lua')
+local F=dofile('game/filesystem.lua')
+local R=dofile('game/reading.lua')
 local V=dofile('game/view.lua')
-local state,notice=S.load('data/pokepal.dat',E)
-if not state and notice then error(notice) end
-state=state or E.new(os.time())
-local owner={}
+local savepath=assert(S.location('data/pokepal.dat',F))
+local session,err=S.open(savepath,{'data/pokepal.dat','/mnt/us/koreader/settings/pokepal.dat'},E,F)
+if not session then error(err) end
+local state=session.state or E.new(os.time());local notice=session.notice
+local owner={savepath=savepath}
+function owner:onPetClosed() if session then session.close();session=nil end end
 function owner:save()
- local ok,err=S.save('data/pokepal.dat',state,E,host_sync_file,host_sync_directory)
+ local ok,err=S.save(savepath,state,E,host_sync_file,host_sync_directory)
  if not ok then
   io.stderr:write('Save failed: '..tostring(err)..'\n')
   if self.view then self.view.message='Save failed. Check the free space on your Kindle.' end
  end
  return ok,err
 end
-assert(owner:save())
+function owner:syncReading()
+ local counters,status=R.scan('/mnt/us/documents',F)
+ local ko,problem=R.counter(savepath..'.reading')
+ local f=io.open(savepath..'.reading','rb');if f then f:close() end
+ self.reading_status={status,problem and 'KOReader: reading data unavailable'
+  or (f and 'KOReader: reading time available' or 'KOReader: open PokePal there once')}
+ return R.collect(state,E,counters,ko,os.time())
+end
+function owner:toggleReading()
+ self:syncReading();state.reading.enabled=not state.reading.enabled;return self:save()
+end
+local reward=owner:syncReading()
+local saved,problem=owner:save();if not saved then owner:onPetClosed();error(problem) end
 E.advance(state,os.time())
 local view=V:new{state=state,engine=E,owner=owner,path='game'};owner.view=view
-if notice then view.message=notice end
+if reward or notice then view.message=reward or notice end
 local bb={paintRect=function(_,...) host_rect(...) end}
 function app_paint()
  view:paintTo(bb,0,0)

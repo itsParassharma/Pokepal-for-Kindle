@@ -1,9 +1,9 @@
-POKEPAL 1.0.4
+POKEPAL 1.0.5
 
 KUAL
 Needs a jailbroken touchscreen Kindle with KUAL installed.
 
-1. Unzip PokePal-v1.0.4-kual.zip.
+1. Unzip PokePal-v1.0.5-kual.zip.
 2. Copy extensions onto your Kindle drive, next to documents.
    Merge folders if asked.
 3. Eject, then open KUAL > PokePal > Play PokePal.
@@ -13,17 +13,29 @@ KOReader is not required for this version.
 KOREADER
 Needs KOReader installed on your Kindle.
 
-1. Unzip PokePal-v1.0.4-koreader.zip.
+1. Unzip PokePal-v1.0.5-koreader.zip.
 2. Copy koreader onto your Kindle drive. Merge with the existing folder.
 3. Restart KOReader. Open Tools > More tools > PokePal.
 
 SAVES
-Back up your save before updating.
-KUAL: keep extensions/pokepal/data.
-KOReader: keep pokepal.dat and pokepal.dat.old in its settings folder.
+Both editions use pokepal/pokepal.dat on the Kindle drive.
+Back up the whole pokepal folder before updating. Keep it when replacing
+the app files. Update both editions if you use both.
 
-To move from KOReader to KUAL, close both apps and copy those two save
-files into extensions/pokepal/data. The copies stay separate afterward.
+Older saves are copied across on first launch; the originals are kept.
+If both editions had separate saves, the most recently used one is chosen.
+The old locations are extensions/pokepal/data and KOReader's settings folder.
+Close the other copy before opening PokePal in a different reader.
+
+READING REWARDS
+Open PokePal once, then read. Return to collect 1 berry and 3 XP for every
+15 recorded minutes. Leftover minutes carry over. Old reading history
+isn't rewarded when you first turn it on.
+Kindle's reader needs supported timing files beside the book.
+KOReader needs this plugin enabled; Reading statistics can stay off.
+Sleep and time spent in PokePal do not count. KOReader counts at most
+two minutes per page and skips turns faster than five seconds.
+More > Reading rewards shows progress and lets you turn rewards off.
 
 HELP
 Missing from KUAL? Check extensions/pokepal/menu.json is on your Kindle.
