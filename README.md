@@ -8,14 +8,16 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 ## Features
 
-- 160 Pokémon to discover, with eight starters to choose from.
-- Feed, play, train and rest. Give your partner a nickname and watch its reactions change with its mood.
-- Explore three trails with discoveries along the way. Trips can run on a timer or advance as you read.
-- Track XP and bond toward evolution. Each partner keeps its progress when you switch.
-- Choose from six backgrounds and decorate with a cushion, plant, lamp or bookshelf.
+- Choose from eight starters and discover 160 Pokémon.
+- Feed, play, train, rest and clean. Collect daily berries, give your partner a nickname and watch it react to its mood.
+- Explore three trails, with discoveries along the way. Trips run on a timer or advance as you read.
+- Help your partner evolve by building XP and bond. Each Pokémon keeps its progress when you switch.
+- Make a home for your partner with six backgrounds and decorations.
 - Browse your Pokémon journal, try five animations, collect badges and check your activity log.
-- Reading is an optional way to earn berries and XP, hatch eggs and work toward weekly goals. Kindle's reader and KOReader share your progress.
+- Earn berries and XP, hatch eggs and reach weekly goals as you read. Reading rewards are optional, and progress is shared across Kindle's reader and KOReader.
 - Back up your game and reading records, with a preview before restoring. Everything works offline.
+
+See the [reading rewards guide](docs/reading-rewards.md) to get started.
 
 ## Install with KUAL
 
@@ -32,22 +34,6 @@ You need KOReader installed on your Kindle.
 1. Download and unzip **PokePal-v1.0.6-koreader.zip**.
 2. Copy the `koreader` folder onto the Kindle drive. Merge it with the existing folder.
 3. Restart KOReader, then open **Tools > More tools > PokePal**.
-
-## Looking after your partner
-
-Feed, play, train, rest and clean from the home screen. **Basket** has your daily berries. **Profile** shows evolution progress and lets you choose a nickname. Open **More** to change the background or buy decorations.
-
-## Reading rewards
-
-Reading rewards are optional. Open PokePal once, then read as usual. Every 15 recorded minutes earns **1 berry and 3 XP** when you return. Leftover minutes carry over. Open **More > Reading rewards** to check progress, see your last recap or turn rewards off.
-
-Under **Explore**, choose **As you read** and pick a trail. Open **More > Reading rewards > Your egg** to pick up an egg. The same reading time advances both, and you still earn berries and XP. Hatchlings join your journal without replacing your current partner. Timed trips are the default.
-
-Keep reading your book, then return to see what happened. Your egg sits beside your partner and starts to crack as it gets closer to hatching.
-
-Choose a 60, 120 or 180 minute target under **More > Reading rewards > Weekly goal**. Reaching it adds 5 berries and 10 XP. The week starts on Monday and counts minutes collected during your visits.
-
-Kindle rewards use the timing data saved with books, where available. KOReader tracks page turns, pauses during sleep and limits long pauses to two minutes per page. Keep the PokePal plugin enabled. [How tracking works](docs/reading-rewards.md).
 
 ## Saves
 
