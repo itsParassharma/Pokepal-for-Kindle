@@ -10,6 +10,7 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 - Choose from eight starters and discover 160 Pokémon.
 - Feed, play, train, rest and clean. Collect daily berries, give your partner a nickname and watch it react to its mood.
+- No need to keep the screen on. PokePal saves your progress when your Kindle goes to sleep.
 - Explore three trails, with discoveries along the way. Trips run on a timer or advance as you read.
 - Help your partner evolve by building XP and bond. Each Pokémon keeps its progress when you switch.
 - Make a home for your partner with six backgrounds and decorations.
@@ -37,9 +38,7 @@ You need KOReader installed on your Kindle.
 
 ## Saves
 
-Both editions use `pokepal/pokepal.dat` on the Kindle drive. Existing saves are copied across automatically and the originals are kept. Update both editions if you use both, and back up the `pokepal` folder before updating. Older builds cannot read saves with the new features.
-
-Under **More > Backups**, tap **Save a backup now**. To restore, tap **Preview**, check the partner and date, then confirm. Your current game is kept under **Before last restore**. Backups stay on the Kindle, so copy the `pokepal` folder to your computer to protect against losing the device.
+Both editions share your save. Use **More > Backups** to save or restore, and copy the `pokepal` folder to your computer before updating. Keep both editions on the same version; older builds cannot read newer saves.
 
 [Save help](pokepal.koplugin/INSTALL.txt) · [Build and device notes](native/README.md) · [Credits](pokepal.koplugin/CREDITS.txt)
 
