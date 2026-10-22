@@ -1,0 +1,47 @@
+name: Build and publish PokePal
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [pokepal.koplugin/_meta.lua]
+permissions:
+  contents: write
+jobs:
+  release:
+    if: github.repository == 'itsParassharma/Pokepal-for-Kindle' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release]'))
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check game, saves, sprites and layouts
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python tests/test_and_render.py
+      - name: Download the pinned compiler
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, tarfile, urllib.request
+          data=json.load(urllib.request.urlopen('https://ziglang.org/download/index.json'))['0.13.0']['x86_64-linux']
+          compiler=pathlib.Path('../pokepal-compiler');compiler.mkdir(exist_ok=True)
+          source=compiler/'zig.tar.xz'
+          urllib.request.urlretrieve(data['tarball'],source)
+          assert hashlib.sha256(source.read_bytes()).hexdigest()==data['shasum']
+          with tarfile.open(source) as archive: archive.extractall(compiler,filter='data')
+          PY
+      - name: Build and inspect ARM executable
+        run: |
+          python tools/build_native.py --zig ../pokepal-compiler/zig-linux-x86_64-0.13.0/zig --deps ../pokepal-build-cache
+          file native/build/pokepal
+          readelf -h native/build/pokepal
+          if readelf -l native/build/pokepal | grep -q INTERP; then exit 1; fi
+          sh -n native/kual/launch.sh
+      - name: Package clean downloads and corresponding source
+        run: python tools/package_release.py --deps ../pokepal-build-cache
+      - name: Publish preview release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v0.4.0 dist/PokePal-v0.4.0-* --target "$GITHUB_SHA" --prerelease --title "PokePal 0.4.0 - Kanto and standalone KUAL preview" --notes-file docs/release-v0.4.0.md

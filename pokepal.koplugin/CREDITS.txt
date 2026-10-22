@@ -1,51 +1,40 @@
-PokePal is an unofficial personal fan game.
+PokePal is an unofficial Pokemon fan game.
+Pokemon names, characters and original artwork belong to their respective
+owners, including Nintendo, Game Freak, Creatures and CHUNSOFT.
+They are not covered by the code license.
 
-Pokemon names, characters and original sprite artwork belong to
-their respective rights holders, including Nintendo, Game Freak
-and Creatures. These assets are not covered by the code license.
-
-Animated Gen V sprites are sourced from the PokeAPI sprites
-repository. Exact source URLs and sampled source frame indices
-are recorded in assets/sources.json.
-https://github.com/PokeAPI/sprites
-
-Chikorita, Bayleef, Meganium, Cyndaquil, Quilava, Typhlosion,
-Totodile, Croconaw and Feraligatr use four sampled Gen V frames each.
-The source revision, GIF SHA-256 and frame indices are recorded in
-assets/sources.json. The conversion uses one shared crop per species,
-nearest-neighbour scaling and four-level grayscale with transparency.
-The upstream repository's license and image copyright notice are
-included in SPRITE-LICENSE.PokeAPI.txt.
-
-Charmander, Charmeleon and Charizard pose animations use front-facing
-frames from PMDCollab SpriteCollab sprite sheets. Idle, Sleep, Walk,
-Attack and available Eat sheets were cropped, resized and converted
-to four-level grayscale. Exact sheets and sampled indices are in
-assets/pose-sources.json.
+SPRITES
 https://github.com/PMDCollab/SpriteCollab
+Revision: 4702f10d888d19e804c5986a91170dfc92ae01b8
+The package includes all 151 Kanto Pokemon and nine Johto starter forms.
+Front-facing Idle, Sleep, Walk and Attack sheets were cropped as a group,
+scaled with nearest-neighbour sampling and converted to four-level grayscale.
+Eat is included for 33 species. Animations use at most four sampled frames.
+Persian and Arcanine have still Idle poses.
 
-The source sheets credit CHUNSOFT for the original frames. The
-Charmeleon Eat sheet credits bwappi and Grimlin; Charizard Sleep
-credits Emboarger. Artist and license records are supplied in
-SPRITE-SOURCE-CREDITS.txt. The PMDCollab source includes CC BY-NC 4.0
-and PMDCollab artist terms; copies are included as SPRITE-LICENSE*.md.
-The sprites and Pokemon characters are not covered by the game's
-Lua code license.
+assets/pose-sources.json records sheet URLs, SHA-256, metadata, selected
+frames, motion and per-species credit files. assets/credits/ contains the
+original records. Artist names are in SPRITE-PMDCollab-credit_names.txt.
+The upstream license is in SPRITE-PMDCollab-LICENSE.md; original license
+files are also retained. SpriteCollab requires attribution and non-commercial
+use. Its terms do not transfer ownership of Pokemon or original game art.
 
-Charmander-line evolution levels were checked against PokeAPI:
-https://pokeapi.co/api/v2/evolution-chain/2/
+SPECIES DATA
+https://github.com/PokeAPI/pokeapi
+Revision: 2bf639e5572812a67d2b94903fdcb9d095f5aeb2
+Names, types and family relationships come from its CSVs.
+XP thresholds, moves, rewards and cooldowns are PokePal rules.
+Legacy starter thresholds are kept for save compatibility.
 
-Johto evolution levels were checked against PokeAPI's original
-Gold/Silver records (version group 3) in data/v2/csv/pokemon_evolution.csv:
-https://github.com/PokeAPI/pokeapi/blob/master/data/v2/csv/pokemon_evolution.csv
-Chikorita 16/32, Cyndaquil 14/36, Totodile 18/30. Practice move
-unlocks use PokePal's levels 1, 7, 20 and 36, not canonical learnsets.
+CODE AND RUNTIME
+Shared game, original pixel icons and UI: MIT (LICENSE-CODE.txt).
+The KOReader edition uses the separately installed KOReader runtime.
+The standalone host is GPL-3.0-or-later and uses FBInk, Lua, stb and
+Bitstream Vera. Runtime licenses and corresponding source are included
+with the standalone release. KOReader is not required for that edition.
 
-KOReader provides the device input, image rendering, screen refresh
-and suspend/resume facilities. It is installed separately.
-https://github.com/koreader/koreader
-
-The game's Lua implementation, native pixel icons and UI layout
-were created for this request. The meadow layout was inspired by
-the user's reference image. Grayscale conversion and brief sampled
-animations are adaptations for e-ink displays.
+FBInk: https://github.com/NiLuJe/FBInk
+Lua: https://www.lua.org/
+kdoom provided a useful example of a native KUAL game:
+https://github.com/bomberfish/kdoom
+No DOOM data or kdoom source is included.

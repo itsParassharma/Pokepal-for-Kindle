@@ -195,4 +195,36 @@ end)
 test("unwritable destination reports failure",function()
  local ok,err=S.save(TESTDIR.."/absent/save.dat",pet(),E);assert(not ok and err)
 end)
+test("all Kanto Pokemon and retained Johto partners are reachable",function()
+ local reachable={}
+ for _,route in ipairs(E.routes) do for _,id in ipairs(route.pool) do reachable[id]=true end end
+ for id=1,160 do assert(E.species[id] and reachable[id] and E.species[id].types) end
+end)
+test("trails discover every member before repeating",function()
+ for route,r in ipairs(E.routes) do
+  local s=pet();local t=now
+  for i=1,#r.pool do
+   s.energy=100;s.food=100
+   E.act(s,"trip",route,t);t=t+r.seconds;E.act(s,"collect",nil,t)
+  end
+  for _,id in ipairs(r.pool) do assert(s.seen[tostring(id)]) end
+ end
+end)
+test("switching preserves separate XP and bond across saves",function()
+ local s=pet(4);s.xp=300;s.bond=40;s.seen['150']=true
+ E.act(s,'partner',150,now);assert(s.species==150 and s.xp==0 and s.bond==0)
+ s.xp=80;s.bond=20;s=S.decode(S.encode(s),E)
+ E.act(s,'partner',4,now);assert(s.xp==300 and s.bond==40)
+ E.act(s,'partner',150,now);assert(s.xp==80 and s.bond==20)
+ E.act(s,'partner',151,now);assert(s.species==150)
+ s.resting=true;E.act(s,'partner',4,now);assert(s.species==150)
+ s.resting=false;E.act(s,'trip',1,now);E.act(s,'partner',4,now);assert(s.species==150)
+end)
+test("partner records reject malformed, duplicate and undiscovered data",function()
+ local data=S.encode(pet(4))
+ assert(not S.decode(data..'partner=150,10,20\n',E))
+ assert(not S.decode(data..'partner=4,10,101\n',E))
+ assert(not S.decode(data..'partner=4,10,20\npartner=4,30,40\n',E))
+ assert(not S.decode(data..'partner=4,nan,20\n',E))
+end)
 print("ENGINE AND STORAGE: "..passed.." checks passed")

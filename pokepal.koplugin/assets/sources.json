@@ -1,200 +1,909 @@
 [
   {
     "id": 1,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/1.gif",
-    "original_frames": 51,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0001/Idle-Anim.png",
+    "source_sha256": "bae238b6ae50dc97781a03b2210dc3ee1954c9f6207826e49091227bb9c783d1",
+    "original_frames": 3,
     "sampled": [
       0,
-      6,
-      40,
-      45
+      1,
+      2
     ],
-    "count": 4
+    "count": 3
   },
   {
     "id": 2,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/2.gif",
-    "original_frames": 56,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0002/Idle-Anim.png",
+    "source_sha256": "d251cbd9aaf3f9ff6ee6f6119a9ce87267e2548124fd499c0c62fe1083fc72b9",
+    "original_frames": 4,
     "sampled": [
       0,
-      6,
-      45,
-      50
+      1,
+      2,
+      3
     ],
     "count": 4
   },
   {
     "id": 3,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/3.gif",
-    "original_frames": 100,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0003/Idle-Anim.png",
+    "source_sha256": "53547ad2b27a60f270a9cd698ab53fe55df8352d6ebc54fecae955362d8563c3",
+    "original_frames": 4,
     "sampled": [
       0,
-      16,
-      32,
-      81
+      1,
+      2,
+      3
     ],
     "count": 4
   },
   {
     "id": 4,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/4.gif",
-    "original_frames": 55,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0004/Idle-Anim.png",
+    "source_sha256": "304a2a2d7f07e6a81bec42270b585b57d4ce0af78b20a6905a1bc704e2415350",
+    "original_frames": 4,
     "sampled": [
       0,
-      3,
-      6,
-      9,
-      40,
-      43,
-      47,
-      51
+      1,
+      2,
+      3
     ],
-    "count": 8
+    "count": 4
   },
   {
     "id": 5,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/5.gif",
-    "original_frames": 46,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0005/Idle-Anim.png",
+    "source_sha256": "8addf741bbf9ff03ee6834012f7e63205db731c3f108dbd7e628c7141e10d9c3",
+    "original_frames": 6,
     "sampled": [
       0,
-      4,
-      10,
-      16,
-      31,
-      34,
-      38,
-      42
+      2,
+      3,
+      5
     ],
-    "count": 8
+    "count": 4
   },
   {
     "id": 6,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/6.gif",
-    "original_frames": 72,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0006/Idle-Anim.png",
+    "source_sha256": "ceeb33e0db05817c2566e964d7b2264d0fb8fdecd480f7245faeafc864bc0d9b",
+    "original_frames": 4,
     "sampled": [
       0,
-      7,
-      13,
-      39,
-      46,
-      52,
-      59,
-      65
+      1,
+      2,
+      3
     ],
-    "count": 8
+    "count": 4
   },
   {
     "id": 7,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/7.gif",
-    "original_frames": 30,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0007/Idle-Anim.png",
+    "source_sha256": "d796b3b94475e4e2a5089bf10f392559989d4104d29c2fe387cfe003bcba5447",
+    "original_frames": 8,
     "sampled": [
       0,
-      19,
-      22,
-      25
+      2,
+      5,
+      7
     ],
     "count": 4
   },
   {
     "id": 8,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/8.gif",
-    "original_frames": 44,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0008/Idle-Anim.png",
+    "source_sha256": "f08eadc10f327c5137631733ee406f53f642547ae1c375d65bccf09c8dd6a1f3",
+    "original_frames": 4,
     "sampled": [
       0,
-      5,
-      29,
-      34
+      1,
+      2,
+      3
     ],
     "count": 4
   },
   {
     "id": 9,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/9.gif",
-    "original_frames": 124,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0009/Idle-Anim.png",
+    "source_sha256": "eb9bca8db6a6fda567302db7815bf122829a07c2fb77ab5e5fb69fb67779815e",
+    "original_frames": 8,
     "sampled": [
       0,
-      9,
-      30,
-      39
-    ],
-    "count": 4
-  },
-  {
-    "id": 25,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif",
-    "original_frames": 58,
-    "sampled": [
-      0,
-      12,
-      25,
-      38
-    ],
-    "count": 4
-  },
-  {
-    "id": 26,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/26.gif",
-    "original_frames": 85,
-    "sampled": [
-      0,
-      7,
-      14,
-      50
-    ],
-    "count": 4
-  },
-  {
-    "id": 133,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif",
-    "original_frames": 67,
-    "sampled": [
-      0,
-      6,
-      53,
-      60
-    ],
-    "count": 4
-  },
-  {
-    "id": 134,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/134.gif",
-    "original_frames": 77,
-    "sampled": [
-      0,
-      4,
-      17,
-      52
-    ],
-    "count": 4
-  },
-  {
-    "id": 135,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/135.gif",
-    "original_frames": 51,
-    "sampled": [
-      0,
+      2,
       5,
-      34,
-      38
-    ],
-    "count": 4
-  },
-  {
-    "id": 136,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/136.gif",
-    "original_frames": 61,
-    "sampled": [
-      0,
-      4,
-      8,
-      52
+      7
     ],
     "count": 4
   },
   {
     "id": 10,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/10.gif",
-    "original_frames": 45,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0010/Idle-Anim.png",
+    "source_sha256": "2d89d59aa7f7112381a9e1fdc62f4317e35410b093eabc048a66364610ac24bd",
+    "original_frames": 10,
+    "sampled": [
+      0,
+      3,
+      6,
+      9
+    ],
+    "count": 4
+  },
+  {
+    "id": 11,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0011/Idle-Anim.png",
+    "source_sha256": "d3b3a68e8952a73ab7b76a370a02da4e405e44842fe3c90eade0d3cbe16ef423",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 12,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0012/Idle-Anim.png",
+    "source_sha256": "936ff1e2ef4d01aa3a30dc8436465bc179dea60142f5c34461091011bf934aea",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 13,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0013/Idle-Anim.png",
+    "source_sha256": "b7264b9f909623871b612e049ed4a3f5a6fe266f867a1099714a161809bd66a7",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 14,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0014/Idle-Anim.png",
+    "source_sha256": "47dc90664ac2ab1e82a82223b5e5086bbcdc9c6a7201370f99636079b75034fa",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 15,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0015/Walk-Anim.png",
+    "source_sha256": "832dfdb59cdd0cd8a17671e077266028198d9497fcc0c31f5016f3abe4ddb0b0",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 16,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0016/Idle-Anim.png",
+    "source_sha256": "1546828e0683aed0ed68fdc43d6c39a63df1d087693f1eb9291fa502134eb68c",
+    "original_frames": 5,
+    "sampled": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "count": 4
+  },
+  {
+    "id": 17,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0017/Idle-Anim.png",
+    "source_sha256": "bdaf24a02e4625e1ec0f5ac9ff2d6c61ebaad9ecd136151176cc95b0ebeb4a06",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 18,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0018/Idle-Anim.png",
+    "source_sha256": "5396ba5a5185250dc886137c36a219ac793726850c2590265f8fa2ff2701d0cc",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 19,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0019/Idle-Anim.png",
+    "source_sha256": "d6a6ce5590dc7685e38f7b5c9b368ce6d9e808a6099aec23a6959a292f08e050",
+    "original_frames": 8,
+    "sampled": [
+      0,
+      2,
+      5,
+      7
+    ],
+    "count": 4
+  },
+  {
+    "id": 20,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0020/Idle-Anim.png",
+    "source_sha256": "da1755f71efe7cb316588cb0ad2e76c94f35f5168a343a387337ef11fd9790ac",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 21,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0021/Idle-Anim.png",
+    "source_sha256": "583bcead45bcfcbbd5b2aeb2826b07711a4b7c3b0427d2a773eef9805756a638",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 22,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0022/Idle-Anim.png",
+    "source_sha256": "71e7f2dcadd704354729245a2252f1697c3bbb91bf4d9806a2281a1e1eabcf4e",
+    "original_frames": 10,
+    "sampled": [
+      0,
+      3,
+      6,
+      9
+    ],
+    "count": 4
+  },
+  {
+    "id": 23,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0023/Idle-Anim.png",
+    "source_sha256": "9dd2d0fc2e2d7425e50d2d7736b55a25f200023ce4935b37aea8cf292184649f",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 24,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0024/Idle-Anim.png",
+    "source_sha256": "fc55d0c845f2c6bac86774183818e05d949dd733f972a3d9889d1ef1565fc9e9",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 25,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0025/Idle-Anim.png",
+    "source_sha256": "f1021ac60879698076fdb80705f893d0646d2b9ddf2bdb8c81803fbb7e87ad86",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 26,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0026/Idle-Anim.png",
+    "source_sha256": "1277a3583989551b251b87fbe60ad04bd01ea19b23f2ba43e7aef5b3fecdd366",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 27,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0027/Idle-Anim.png",
+    "source_sha256": "d17af3f49298103936ed3726b5402be7413f1cee3c789b763e74b453fd65f0d0",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 28,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0028/Idle-Anim.png",
+    "source_sha256": "1b6012d1d07e8b6821e702df9d6308f14b67c21cb0bddfefd797b4c4fb5bb1aa",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 29,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0029/Idle-Anim.png",
+    "source_sha256": "7fad50149def4b8e7e17fc39c445a1eda624aac518e3febaa2b2d4a92dd0efb3",
+    "original_frames": 5,
+    "sampled": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "count": 4
+  },
+  {
+    "id": 30,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0030/Idle-Anim.png",
+    "source_sha256": "d279af1c10937064c7ece26d8a11a62dd1f7d902f3ad53ea31722383e26b511f",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 31,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0031/Idle-Anim.png",
+    "source_sha256": "3bcba822ca88be720f25c8d2e3e41dc86bee8e9f474fc52947fd430889869178",
+    "original_frames": 5,
+    "sampled": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "count": 4
+  },
+  {
+    "id": 32,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0032/Idle-Anim.png",
+    "source_sha256": "0c41f6e99f4418645f35cfce79a5002bfc6af245f3060a40f0c718223423d768",
+    "original_frames": 5,
+    "sampled": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "count": 4
+  },
+  {
+    "id": 33,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0033/Idle-Anim.png",
+    "source_sha256": "d8a5adc0757d0f72841317589d70cd97546f25fc8ef0000d6e4c85b5401bd3fa",
+    "original_frames": 10,
+    "sampled": [
+      0,
+      3,
+      6,
+      9
+    ],
+    "count": 4
+  },
+  {
+    "id": 34,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0034/Idle-Anim.png",
+    "source_sha256": "7fc391919541020478125f82630ebbb7500d627e90c881896c3d28ef0c299b53",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 35,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0035/Idle-Anim.png",
+    "source_sha256": "6330cffab1a8439a710e5489779ec97f118441c2cac68a87d6c0b06ed988b7a7",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 36,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0036/Idle-Anim.png",
+    "source_sha256": "be0561ff0bfa38f5711e30bb0060ec03dfc65f8941971a853a592cf4e5e6a74b",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 37,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0037/Idle-Anim.png",
+    "source_sha256": "365953294d7e2fc734e7ae2889cde72ef085ce3e6e5896f6b964bf36022a386a",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 38,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0038/Idle-Anim.png",
+    "source_sha256": "9333449d8723ed731bfdb5bc9baebca4d98889f5042646928c6e322da9ec9b8c",
+    "original_frames": 14,
+    "sampled": [
+      0,
+      4,
+      9,
+      13
+    ],
+    "count": 4
+  },
+  {
+    "id": 39,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0039/Idle-Anim.png",
+    "source_sha256": "c3d863ca58d1a2bb37b5b6413809f5760b98b8879abc9fa4b56e860d62fe90a9",
+    "original_frames": 5,
+    "sampled": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "count": 4
+  },
+  {
+    "id": 40,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0040/Idle-Anim.png",
+    "source_sha256": "7ca3678db4c4184cb681d20d67676ed32debdcc4a1fd6cabaf6b2f9728e3d14d",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 41,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0041/Idle-Anim.png",
+    "source_sha256": "28ea4512a68af47ba46e29ab48febbb726201a0f3d34fb400618e245cddbce09",
+    "original_frames": 8,
+    "sampled": [
+      0,
+      2,
+      5,
+      7
+    ],
+    "count": 4
+  },
+  {
+    "id": 42,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0042/Idle-Anim.png",
+    "source_sha256": "2e99a04927b21f73e5765cd9c813a8200980020b40eee35d870ad6b6cef16396",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 43,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0043/Idle-Anim.png",
+    "source_sha256": "397c9fa07408241d9f1f8712cf4ed49a0d32bdc9d5f90b00b8eb3e12d1fc8de2",
+    "original_frames": 5,
+    "sampled": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "count": 4
+  },
+  {
+    "id": 44,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0044/Idle-Anim.png",
+    "source_sha256": "de83cf338ae5ef152a46eaec6505e8ff54b149230f9ac22eb875314f7adedfdd",
+    "original_frames": 5,
+    "sampled": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "count": 4
+  },
+  {
+    "id": 45,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0045/Idle-Anim.png",
+    "source_sha256": "4c7ab47238f80736b9318fbf8a1227acdf3f5fbf00772676c2e4039d44ef2ef2",
+    "original_frames": 12,
+    "sampled": [
+      0,
+      4,
+      7,
+      11
+    ],
+    "count": 4
+  },
+  {
+    "id": 46,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0046/Idle-Anim.png",
+    "source_sha256": "482232a6a53879f9ef38972e93098e2579895b5bfa0f3e3b2675da272de12135",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 47,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0047/Idle-Anim.png",
+    "source_sha256": "a06d3b0b8046184ebe3a119585acf32329c64391abcee5fe368221c82004d88c",
+    "original_frames": 3,
+    "sampled": [
+      0,
+      1,
+      2
+    ],
+    "count": 3
+  },
+  {
+    "id": 48,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0048/Idle-Anim.png",
+    "source_sha256": "ec14db4d5041ab39f17aa0ae489377cac725a5e8d027ee783b779f67fe1614dd",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 49,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0049/Idle-Anim.png",
+    "source_sha256": "9c4c1f0cbe2f20d37c0e8d297f2a6300254363cbe40021b7f877e4f280fbc7e7",
+    "original_frames": 8,
+    "sampled": [
+      0,
+      2,
+      5,
+      7
+    ],
+    "count": 4
+  },
+  {
+    "id": 50,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0050/Idle-Anim.png",
+    "source_sha256": "42645eea007d78c1d1e6a695aa8b6c9b4f64daa878af3bd34f673c647b868bb1",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 51,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0051/Idle-Anim.png",
+    "source_sha256": "23b65f617bf2cbecdd4a4a29a04122f1b2e29b729ccaf6de0ebc34939e3c4f57",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 52,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0052/Idle-Anim.png",
+    "source_sha256": "df1b0115a3fbf15518f3a95eb8f0f48071da8d0715646e1f3f2d26f17d74a8e7",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 53,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0053/Idle-Anim.png",
+    "source_sha256": "951272b3c8fc6fa9228f22eb2b24e59f8e753e5892a46a6384d84d3e17892429",
+    "original_frames": 1,
+    "sampled": [
+      0
+    ],
+    "count": 1
+  },
+  {
+    "id": 54,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0054/Idle-Anim.png",
+    "source_sha256": "890be68026823e8c9807c5978d7420665bac67db0f7f5126a30bbf4c1ce9611e",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 55,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0055/Idle-Anim.png",
+    "source_sha256": "58e50d7f4b3f8999cc49e0399f3875f20b7bc73828df0210776fb77bc43f8cd4",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 56,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0056/Idle-Anim.png",
+    "source_sha256": "a64e1b52f08d9b0b5b98d99e32048a8b1901e9c9438c4c867951dfd116e7f1d9",
+    "original_frames": 5,
+    "sampled": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "count": 4
+  },
+  {
+    "id": 57,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0057/Idle-Anim.png",
+    "source_sha256": "d0dc539cfca14fda221f4caf392ee9c15afd2cdf1a6df34eae49dbae854efe14",
+    "original_frames": 8,
+    "sampled": [
+      0,
+      2,
+      5,
+      7
+    ],
+    "count": 4
+  },
+  {
+    "id": 58,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0058/Idle-Anim.png",
+    "source_sha256": "0cc65232a808eb456e95c02287a095e3df3ef26046e282d16f787eb8389cb187",
+    "original_frames": 3,
+    "sampled": [
+      0,
+      1,
+      2
+    ],
+    "count": 3
+  },
+  {
+    "id": 59,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0059/Idle-Anim.png",
+    "source_sha256": "c0adf6e40d44a363f2742667be42d8c1e4d900304bb8bba2d9e85e55289a0a22",
+    "original_frames": 1,
+    "sampled": [
+      0
+    ],
+    "count": 1
+  },
+  {
+    "id": 60,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0060/Idle-Anim.png",
+    "source_sha256": "0dd4b347beaca3ced08d33c7473e8d0a86b75bb1aff5ac49033174ea14fba62e",
+    "original_frames": 8,
+    "sampled": [
+      0,
+      2,
+      5,
+      7
+    ],
+    "count": 4
+  },
+  {
+    "id": 61,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0061/Idle-Anim.png",
+    "source_sha256": "8e87770471d476a28f0d1a399c98a82c7ed8fb28d90d363c854d5e0998b89e08",
+    "original_frames": 5,
+    "sampled": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "count": 4
+  },
+  {
+    "id": 62,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0062/Idle-Anim.png",
+    "source_sha256": "80842502cf06513064322d1feec404a00abddba180ee33591c7d9f088dc6643f",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 63,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0063/Idle-Anim.png",
+    "source_sha256": "4827bda3acc137dc76f778d95e64222915ed72747bc7bc6f32f2c308d6fda18d",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 64,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0064/Idle-Anim.png",
+    "source_sha256": "4d8bf9af135dc99f5605b839fca0a7481ce7f0d37c4bf5f31ff9dcefc6c8cc85",
+    "original_frames": 9,
+    "sampled": [
+      0,
+      3,
+      5,
+      8
+    ],
+    "count": 4
+  },
+  {
+    "id": 65,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0065/Idle-Anim.png",
+    "source_sha256": "9ffb292d6af152f830201880c5138991f3d1f0a98cdc0a2e832f6b12605d1a1e",
+    "original_frames": 8,
+    "sampled": [
+      0,
+      2,
+      5,
+      7
+    ],
+    "count": 4
+  },
+  {
+    "id": 66,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0066/Idle-Anim.png",
+    "source_sha256": "cffd63aa51fe47ed1761b38d4135100ecd7109f074d926001c42be619c072835",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 67,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0067/Idle-Anim.png",
+    "source_sha256": "f3bb20d55a66f84ef655c538c8616847eda75ffb8fd625dedcce1be84df4eef4",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 68,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0068/Idle-Anim.png",
+    "source_sha256": "e7a664e470fca6878f114a8e87a6e394f55166467eb207a5215efb4f031d76b7",
+    "original_frames": 10,
+    "sampled": [
+      0,
+      3,
+      6,
+      9
+    ],
+    "count": 4
+  },
+  {
+    "id": 69,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0069/Idle-Anim.png",
+    "source_sha256": "6cf172c29c31bbf8df296e61a855c36d543fdda9d7cb28e32e572852ed830172",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 70,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0070/Idle-Anim.png",
+    "source_sha256": "e87f03d13f633d026a97e606c1db2d4eb6e490d96f9faccbb93bd2ef363be4c5",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 71,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0071/Idle-Anim.png",
+    "source_sha256": "7d25cccf2b28753ec97dc7e93f3cefc58e732b9460118ddb37cb9d203d1aa94c",
+    "original_frames": 9,
+    "sampled": [
+      0,
+      3,
+      5,
+      8
+    ],
+    "count": 4
+  },
+  {
+    "id": 72,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0072/Idle-Anim.png",
+    "source_sha256": "7356f018b3741d13a4d786fff432d0e3dd011cec35a895089174cd990d644449",
+    "original_frames": 7,
     "sampled": [
       0,
       2,
@@ -204,251 +913,1112 @@
     "count": 4
   },
   {
-    "id": 16,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/16.gif",
-    "original_frames": 25,
+    "id": 73,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0073/Idle-Anim.png",
+    "source_sha256": "ce306be1553e16c96cef5e5c0495dc1b52790551bb3b8a9237c3b0dca5f17e3a",
+    "original_frames": 7,
     "sampled": [
       0,
-      5,
-      10,
-      17
-    ],
-    "count": 4
-  },
-  {
-    "id": 19,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/19.gif",
-    "original_frames": 54,
-    "sampled": [
-      0,
+      2,
       4,
-      41,
-      44
-    ],
-    "count": 4
-  },
-  {
-    "id": 35,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/35.gif",
-    "original_frames": 69,
-    "sampled": [
-      0,
-      14,
-      44,
-      55
-    ],
-    "count": 4
-  },
-  {
-    "id": 39,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/39.gif",
-    "original_frames": 61,
-    "sampled": [
-      0,
-      7,
-      25,
-      33
-    ],
-    "count": 4
-  },
-  {
-    "id": 41,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/41.gif",
-    "original_frames": 55,
-    "sampled": [
-      0,
-      8,
-      20,
-      35
-    ],
-    "count": 4
-  },
-  {
-    "id": 54,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/54.gif",
-    "original_frames": 43,
-    "sampled": [
-      0,
-      6,
-      11,
-      25
+      6
     ],
     "count": 4
   },
   {
     "id": 74,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/74.gif",
-    "original_frames": 55,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0074/Idle-Anim.png",
+    "source_sha256": "bbb71a05296140ae78b132f62a5408f5830a3c10e30127b23022bf9a9486d93f",
+    "original_frames": 4,
     "sampled": [
       0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 75,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0075/Idle-Anim.png",
+    "source_sha256": "65dc9f5b6e74823220ae1391ea6425e371ba412025441e28e2953754aa34a00b",
+    "original_frames": 14,
+    "sampled": [
+      0,
+      4,
+      9,
+      13
+    ],
+    "count": 4
+  },
+  {
+    "id": 76,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0076/Idle-Anim.png",
+    "source_sha256": "5444c9399764673a6d21b047d61ac3d42f031340f39c9c62a4be3142561bd337",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 77,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0077/Idle-Anim.png",
+    "source_sha256": "02e42426647788b6b24fd07d03ba663ef8d39a542a0e7398d5923c2593ecb359",
+    "original_frames": 14,
+    "sampled": [
+      0,
+      4,
+      9,
+      13
+    ],
+    "count": 4
+  },
+  {
+    "id": 78,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0078/Idle-Anim.png",
+    "source_sha256": "229a95285bb13c5b72f40ae6ced1c42c1efe17a4f1f770f97766fd0e977110db",
+    "original_frames": 14,
+    "sampled": [
+      0,
+      4,
+      9,
+      13
+    ],
+    "count": 4
+  },
+  {
+    "id": 79,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0079/Idle-Anim.png",
+    "source_sha256": "25f450104f22b787d189638f58f1f03a34758970454514bafb8e528cf147f706",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 80,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0080/Idle-Anim.png",
+    "source_sha256": "dfeb09e5d386bf7f61d5d630615f065f74f1f4eaa728336509a688ffaba45dd7",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 81,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0081/Idle-Anim.png",
+    "source_sha256": "cc5336b8b65ecd34b5638a3d6aaf7a7e24ce36ba1134eccdf763336c29cc087c",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 82,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0082/Idle-Anim.png",
+    "source_sha256": "97d2dac3e23c54fae174d71050cf154103879a0f4f39438340d72b324a767fd9",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 83,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0083/Idle-Anim.png",
+    "source_sha256": "2f75ab73c640d52d0e43f7fd62e4734074bd6b46d765243068c223a93befb8fc",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 84,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0084/Idle-Anim.png",
+    "source_sha256": "2c89aa42b803fb9f205ea45f1669d3f74ef024392c13fbae8c00eed17d9739fe",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 85,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0085/Idle-Anim.png",
+    "source_sha256": "10b37806cab387fde6ca28e2efe9e2e9649c268ef16d4d6dc287b0e28ac555f9",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 86,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0086/Idle-Anim.png",
+    "source_sha256": "89b2684ee3dc0f616352c174451d8475c7163b7fc54005ee1893d598d5bbb65a",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 87,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0087/Idle-Anim.png",
+    "source_sha256": "b342742b7115de6b98cfa3e23393c8edcb51042fa3f009431ffd3e294dd36b31",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 88,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0088/Idle-Anim.png",
+    "source_sha256": "b7ecab6fbf29608cc55b81f71c95375b18f05d3e8546146fc46c5e002e24a18d",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 89,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0089/Idle-Anim.png",
+    "source_sha256": "b2f0a55e8f085a3d750d686b92795df83ba191a3eef38c3e9ae1b9e6625480b2",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 90,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0090/Idle-Anim.png",
+    "source_sha256": "35fc4db049b53e767be06c1596095dbe2e297d138551d2f9a8385cdce81e4fc1",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 91,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0091/Idle-Anim.png",
+    "source_sha256": "527854b3a7883a10390a2f0b5577b365c0e3468d4f6bf0525a7182f9ba01c513",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 92,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0092/Idle-Anim.png",
+    "source_sha256": "fab0e9c1c3c5444b03bdbd570c7a24d73f2e25fb35f27b407a6c9f53dc63cd11",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 93,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0093/Idle-Anim.png",
+    "source_sha256": "473291a23ff5ea0056d71b247500138fc05de59225a46b9759b540a58dd1248d",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 94,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0094/Idle-Anim.png",
+    "source_sha256": "b361da86327436f28508f8b0bb1c5cc59807cc75d1e586ab19f218f7db175169",
+    "original_frames": 8,
+    "sampled": [
+      0,
+      2,
+      5,
+      7
+    ],
+    "count": 4
+  },
+  {
+    "id": 95,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0095/Idle-Anim.png",
+    "source_sha256": "905c8e04bef0f755573db9daf33457a8ac288721301ef366641b6aa1f4a9ac9d",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 96,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0096/Idle-Anim.png",
+    "source_sha256": "5dbee2a08c6f0e552b3afd050a5fdea404fb996f35f9cefcaf1658cdc0c87b02",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 97,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0097/Idle-Anim.png",
+    "source_sha256": "251c8d1aa4b5525289ddf7545aa75a1da7776068db352fc3aa5dc9f2080c432f",
+    "original_frames": 8,
+    "sampled": [
+      0,
+      2,
+      5,
+      7
+    ],
+    "count": 4
+  },
+  {
+    "id": 98,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0098/Idle-Anim.png",
+    "source_sha256": "81fb9e38e7589c49aa1b0ee2e058f0e9960427337cb604d53d1a5f6df36d4f1f",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 99,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0099/Idle-Anim.png",
+    "source_sha256": "2fe125fc778c58fbbdb486f307b0238e8c3f12ce109ad0454a396774f3add391",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 100,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0100/Idle-Anim.png",
+    "source_sha256": "2de296b57c639916d81517ccb2aaf17d5e6c47f5986d4f65b7c62d97e72583a3",
+    "original_frames": 5,
+    "sampled": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "count": 4
+  },
+  {
+    "id": 101,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0101/Idle-Anim.png",
+    "source_sha256": "024e0bc04f7721ae57d73ac51bc82e9ccc58b76f3e87b3bcb5b20384ad662d86",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 102,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0102/Idle-Anim.png",
+    "source_sha256": "0eef8530fdc97a63170508be9229a133cb158c42f48dd287b3a6b44a6619281c",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 103,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0103/Idle-Anim.png",
+    "source_sha256": "0b1e5dd1ac9a5ca034da05fb3eea71c274194e195fff67075a878e7fbacda311",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 104,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0104/Idle-Anim.png",
+    "source_sha256": "1769019adbc20efd8eb0bbf52a9ca603a1c1c4d5c60d11022b05b842995f1241",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 105,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0105/Idle-Anim.png",
+    "source_sha256": "1806d8d5bdf8a1e37e12c89e9d99c6144df9905f356936dd110b67dd0507fb9e",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 106,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0106/Idle-Anim.png",
+    "source_sha256": "6e1070f031272f74e3596b891fd322005c0133fb6ae865c0f964c70bec6caa8b",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 107,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0107/Idle-Anim.png",
+    "source_sha256": "a1481722c8c18b6130a6ef47b14ee9bdab7b3911c028a1ab66dd5eaafc24a439",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 108,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0108/Idle-Anim.png",
+    "source_sha256": "80698a36c277c591021d0f7b89ddc8755f42af7f1d0e1456054ceae3d87746d7",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 109,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0109/Idle-Anim.png",
+    "source_sha256": "b11fbe4593a34466c751696f564acb29b73124b74c39a4d8fc8eef7c833c6c0b",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 110,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0110/Idle-Anim.png",
+    "source_sha256": "e81909bae60bd6e44a9104e4e7ea8e65d8beaed885eb4361b4aa49d5628fcb08",
+    "original_frames": 11,
+    "sampled": [
+      0,
+      3,
       7,
-      17,
-      26
+      10
+    ],
+    "count": 4
+  },
+  {
+    "id": 111,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0111/Idle-Anim.png",
+    "source_sha256": "eb78232ea5258cef7c4ef3572bb80ffa5e585e33ea335c4296c76ec8f86e3cb3",
+    "original_frames": 3,
+    "sampled": [
+      0,
+      1,
+      2
+    ],
+    "count": 3
+  },
+  {
+    "id": 112,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0112/Idle-Anim.png",
+    "source_sha256": "61e4008ab8a6a89ab2cc940b1bce67df35fc562f93c3a622375e050807fccc19",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 113,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0113/Idle-Anim.png",
+    "source_sha256": "3fcf061e0997ba65e6d8f661d67a9a412b7252599537faa3cc19663d9302ce1c",
+    "original_frames": 6,
+    "sampled": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 114,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0114/Idle-Anim.png",
+    "source_sha256": "bf23aacb56ab8596824b65d746f5e1d52231f868aa91dd9ec2d5c03f6fd9fbc3",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 115,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0115/Idle-Anim.png",
+    "source_sha256": "1773278ac9bbc1d0748668360d69ad9784abe59179ed4b3d56ced0f4e550dc30",
+    "original_frames": 5,
+    "sampled": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "count": 4
+  },
+  {
+    "id": 116,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0116/Idle-Anim.png",
+    "source_sha256": "8ef8cbcde8a410957c4ec01660e3c48e345a3c9f2502917127aecfe2bba354e1",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 117,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0117/Idle-Anim.png",
+    "source_sha256": "e988a7cb349903703d0dfd8e2670ef0023e04db320e40317012069ced762a421",
+    "original_frames": 8,
+    "sampled": [
+      0,
+      2,
+      5,
+      7
+    ],
+    "count": 4
+  },
+  {
+    "id": 118,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0118/Idle-Anim.png",
+    "source_sha256": "09d0347c34a27ab5846375dc3d6acc11516c217034b2af60244be343977e693c",
+    "original_frames": 15,
+    "sampled": [
+      0,
+      5,
+      9,
+      14
+    ],
+    "count": 4
+  },
+  {
+    "id": 119,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0119/Idle-Anim.png",
+    "source_sha256": "12051078ea1534082a0fcf8f545f3489bf0445484d3cca190c254ce0be5063a3",
+    "original_frames": 15,
+    "sampled": [
+      0,
+      5,
+      9,
+      14
+    ],
+    "count": 4
+  },
+  {
+    "id": 120,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0120/Idle-Anim.png",
+    "source_sha256": "4047f2d78c5695b7c800c4496acec6641a80e0b65b01d0d0631fb23f906dcb56",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 121,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0121/Idle-Anim.png",
+    "source_sha256": "3a88a772a7f54e9e8e26282ac9c8f36037ce53a473ada858bbc847ff03c633cb",
+    "original_frames": 8,
+    "sampled": [
+      0,
+      2,
+      5,
+      7
+    ],
+    "count": 4
+  },
+  {
+    "id": 122,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0122/Idle-Anim.png",
+    "source_sha256": "0796c63b8d2a9cda1f75078b56bae86277972a0bb36d664b656c1216f4797646",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 123,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0123/Idle-Anim.png",
+    "source_sha256": "19c9a0e548f5f137ec1021d9ab7b94526d2db082d06ed3f307e13acd67cbb365",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 124,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0124/Idle-Anim.png",
+    "source_sha256": "cf20eafc229ac50d46a6848ec0ca92536279fca7dbc2263d1211d9f2c48a99fd",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 125,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0125/Idle-Anim.png",
+    "source_sha256": "fcf52d580d4fb59cb359919a6a66261f0f048bec42b177038c198491d255119d",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 126,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0126/Idle-Anim.png",
+    "source_sha256": "06cb1decb128834e272139dd733e3f0651d9c226606c8de0d6032500e5299a33",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 127,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0127/Idle-Anim.png",
+    "source_sha256": "5698db809229c9f3ed6b9dbdd2951e35ef377c92dd460f579d49474c6fff999a",
+    "original_frames": 5,
+    "sampled": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "count": 4
+  },
+  {
+    "id": 128,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0128/Idle-Anim.png",
+    "source_sha256": "e7273153dd23e640ff4cb8a0819c1fb31c0a705de2c6d60c9e8375fb4ab9dd58",
+    "original_frames": 5,
+    "sampled": [
+      0,
+      1,
+      3,
+      4
     ],
     "count": 4
   },
   {
     "id": 129,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/129.gif",
-    "original_frames": 60,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0129/Idle-Anim.png",
+    "source_sha256": "5575fb5e43f2ad7b061fa3b821871e3ac15ec3c1f3ef491a2826de6f41fba4da",
+    "original_frames": 4,
     "sampled": [
       0,
-      6,
-      15,
-      24
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 130,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0130/Idle-Anim.png",
+    "source_sha256": "53ee10e93d4fb40741a179d84d09273232039a213b6e6226b844247a17f1f427",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
     ],
     "count": 4
   },
   {
     "id": 131,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/131.gif",
-    "original_frames": 40,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0131/Idle-Anim.png",
+    "source_sha256": "ee0f45de0b35013b8e4584107fc2e83606bca65eaed067abafb10771f3f4ec48",
+    "original_frames": 4,
     "sampled": [
       0,
-      3,
-      8,
-      34
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 132,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0132/Idle-Anim.png",
+    "source_sha256": "e868b5e33aba7afc3b2f6f5f3645f9360a0af801dcb43e8ceae0a445908811dc",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 133,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0133/Idle-Anim.png",
+    "source_sha256": "1dec7d7524844f35a8f7c8c0574d9741edad6cb319a980a5097a825a58bbe4de",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 134,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0134/Idle-Anim.png",
+    "source_sha256": "c4479a9ebeafce94a8741b94d68847d5232e41d025881704b4d8f4a8a396276f",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 135,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0135/Idle-Anim.png",
+    "source_sha256": "e03e8fd92eeb370c46d468b4cd20ea732b5dd4f6dc6e67df007f8279dfd513d4",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 136,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0136/Idle-Anim.png",
+    "source_sha256": "7887bd324a5df3e5e92964b6523f2fa3784ae871382ca5d2f790cac7513e03ac",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 137,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0137/Idle-Anim.png",
+    "source_sha256": "9a17e672d0f7085da3fd7b11f7a2c139531edcfabfc5a7fd7a22ea495f1a9c0b",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 138,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0138/Idle-Anim.png",
+    "source_sha256": "5234fa0ba30615cc1cccbd199d892b37be9401705138b7fd6f02ac2ad3aaabf5",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 139,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0139/Idle-Anim.png",
+    "source_sha256": "d4c8158c2517e485f158f0d6892e6d6883582f8fc17e20b6f63fdac4850f523e",
+    "original_frames": 2,
+    "sampled": [
+      0,
+      1
+    ],
+    "count": 2
+  },
+  {
+    "id": 140,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0140/Idle-Anim.png",
+    "source_sha256": "2bbd6560c62aaf6afab8372ae3cd001fb3293ad0416678a806b6407685f29cfc",
+    "original_frames": 3,
+    "sampled": [
+      0,
+      1,
+      2
+    ],
+    "count": 3
+  },
+  {
+    "id": 141,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0141/Idle-Anim.png",
+    "source_sha256": "8391887b0befd8a42126d20a39ed1cdc69e0962240a83d784f253dabce74b1d4",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 142,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0142/Idle-Anim.png",
+    "source_sha256": "09b827c98d35ab4de4707b2a953e737b3368db4b7946492fed55ab42bf581510",
+    "original_frames": 8,
+    "sampled": [
+      0,
+      2,
+      5,
+      7
     ],
     "count": 4
   },
   {
     "id": 143,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/143.gif",
-    "original_frames": 90,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0143/Idle-Anim.png",
+    "source_sha256": "b692c89bc7c10a648fb6f72b0cf0ce9e0f84fec54dfa389709893323314e1b39",
+    "original_frames": 6,
     "sampled": [
       0,
-      13,
-      64,
-      77
+      2,
+      3,
+      5
+    ],
+    "count": 4
+  },
+  {
+    "id": 144,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0144/Idle-Anim.png",
+    "source_sha256": "14b0ad8cb151d32b2f0cd518b1904181fae4fa85d3058ae3f6763537025bac5e",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 145,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0145/Idle-Anim.png",
+    "source_sha256": "6e5df7ace5c8d492de5a900c0f0963ce07763d48885e47c1731232025b5598d2",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 146,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0146/Idle-Anim.png",
+    "source_sha256": "1023d555131e72e4347d9d864bf1e94b209f0b99f9d1597da272aee99e79cd71",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
     ],
     "count": 4
   },
   {
     "id": 147,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/147.gif",
-    "original_frames": 29,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0147/Idle-Anim.png",
+    "source_sha256": "921ea20d272b802c577d89f395b49d18b0d6edbc8ae141d7a3eec7738fa33b19",
+    "original_frames": 4,
     "sampled": [
       0,
+      1,
+      2,
+      3
+    ],
+    "count": 4
+  },
+  {
+    "id": 148,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0148/Walk-Anim.png",
+    "source_sha256": "2e51bdec537524d12c392eda7aaa6d8eec1e6afe1e5deb959447f8807c12dd64",
+    "original_frames": 7,
+    "sampled": [
+      0,
+      2,
       4,
-      8,
-      11
+      6
+    ],
+    "count": 4
+  },
+  {
+    "id": 149,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0149/Idle-Anim.png",
+    "source_sha256": "83b0d9d108d844c8cc2db0190ca4e36e0fdd491b5014c3bf31bc36b0424ba0c2",
+    "original_frames": 7,
+    "sampled": [
+      0,
+      2,
+      4,
+      6
+    ],
+    "count": 4
+  },
+  {
+    "id": 150,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0150/Idle-Anim.png",
+    "source_sha256": "b6c1a0062cf569db60ddd40066a061cb29d3e80e19619f66a2a1d36a5e8c6dfb",
+    "original_frames": 8,
+    "sampled": [
+      0,
+      2,
+      5,
+      7
+    ],
+    "count": 4
+  },
+  {
+    "id": 151,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0151/Idle-Anim.png",
+    "source_sha256": "ab407cf217daf4a830e2812722faa15edd6a34de84e3908a30750ffc45118f33",
+    "original_frames": 4,
+    "sampled": [
+      0,
+      1,
+      2,
+      3
     ],
     "count": 4
   },
   {
     "id": 152,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/152.gif",
-    "source_sha256": "04d0ceab2d1054cf29f1c1d41932b27d6ef4bcbd66026f355fdcf1db91986319",
-    "original_frames": 36,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0152/Idle-Anim.png",
+    "source_sha256": "3c635e816208e7191b555f0ffe46d4f978a75e2be9222fe14c1c8914be08cd26",
+    "original_frames": 6,
     "sampled": [
       0,
-      6,
-      22,
-      29
+      2,
+      3,
+      5
     ],
     "count": 4
   },
   {
     "id": 153,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/153.gif",
-    "source_sha256": "c49b80b81ede29b1136938926ea95191b1fa56c0860a39a7b4d31c0886a9ca2b",
-    "original_frames": 61,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0153/Idle-Anim.png",
+    "source_sha256": "c03c402653000b6131cabfcf4bf69a8f6410f3c548d333a04ae57e1e15774bde",
+    "original_frames": 4,
     "sampled": [
       0,
-      15,
-      28,
-      46
+      1,
+      2,
+      3
     ],
     "count": 4
   },
   {
     "id": 154,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/154.gif",
-    "source_sha256": "38a4a7d61886826877bd228ea8bea5e3a889b6eb94e62df806f3faa2017868fc",
-    "original_frames": 64,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0154/Idle-Anim.png",
+    "source_sha256": "5be5127c0a34f7a2c2461e8e202850f663799a1c9faf16af5ac6ef4a15fd925f",
+    "original_frames": 4,
     "sampled": [
       0,
-      16,
-      32,
-      48
+      1,
+      2,
+      3
     ],
     "count": 4
   },
   {
     "id": 155,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/155.gif",
-    "source_sha256": "ad71ef0d25c7bea54d5aee2c8e33c1b33681cd3f6acd579c2a95873298baf0c4",
-    "original_frames": 84,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0155/Idle-Anim.png",
+    "source_sha256": "e2f0f2d2dab0d9d415fa357ca89f0f2fefb18c39ef75355c3a593692d078335f",
+    "original_frames": 2,
     "sampled": [
       0,
-      7,
-      19,
-      54
+      1
     ],
-    "count": 4
+    "count": 2
   },
   {
     "id": 156,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/156.gif",
-    "source_sha256": "f7d7b1f54a66da070ba66ccaae6aea1bc40abdefe758de0596d27742df1b2046",
-    "original_frames": 61,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0156/Idle-Anim.png",
+    "source_sha256": "92024f7c0265faa2b26cd156806ccbde241e79491906d904161b223846dc3a30",
+    "original_frames": 5,
     "sampled": [
       0,
-      15,
-      31,
-      46
+      1,
+      3,
+      4
     ],
     "count": 4
   },
   {
     "id": 157,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/157.gif",
-    "source_sha256": "fc3dabf200a324cb92277ae158239a2c87515634d6643038def80dbd28d1aaec",
-    "original_frames": 85,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0157/Idle-Anim.png",
+    "source_sha256": "1a1e58c7f731d997b9596545ed02b48eda027bd375546a9da333f9c5cbc7a316",
+    "original_frames": 4,
     "sampled": [
       0,
-      8,
-      53,
-      61
+      1,
+      2,
+      3
     ],
     "count": 4
   },
   {
     "id": 158,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/158.gif",
-    "source_sha256": "06f9a86879f45a01f041c98fbb4d48fd41f8fc3de43868c89253c9899e41cf69",
-    "original_frames": 54,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0158/Idle-Anim.png",
+    "source_sha256": "d8630f045d6f98c967c350b717de88380e0167832f69e810fb44a29f3c35e6b8",
+    "original_frames": 7,
     "sampled": [
       0,
-      7,
-      41,
-      47
+      2,
+      4,
+      6
     ],
     "count": 4
   },
   {
     "id": 159,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/159.gif",
-    "source_sha256": "81d82a43ffb3659cadfdfa38d5909c42ad063835f1a2fed9d1d4256d27d1d8e0",
-    "original_frames": 90,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0159/Idle-Anim.png",
+    "source_sha256": "c5f04dc038d2d1b4f9045bcfa49043d9c46535c4a75107c7ed580458247c5515",
+    "original_frames": 2,
     "sampled": [
       0,
-      10,
-      23,
-      43
+      1
     ],
-    "count": 4
+    "count": 2
   },
   {
     "id": 160,
-    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/8491ffde1b247e4de574d4bb8e24b7bd9fa876fa/sprites/pokemon/versions/generation-v/black-white/animated/160.gif",
-    "source_sha256": "94cad283beef49e8c61ab23d77d51c1f376e621ef09bb9ed558cfeaf9fc62061",
-    "original_frames": 71,
+    "source": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/4702f10d888d19e804c5986a91170dfc92ae01b8/sprite/0160/Idle-Anim.png",
+    "source_sha256": "0de49226cd123d8ef3d6a141487cda9f07ff40a5a07f5f0029e6212039cb2cda",
+    "original_frames": 6,
     "sampled": [
       0,
-      18,
-      36,
-      53
+      2,
+      3,
+      5
     ],
     "count": 4
   }

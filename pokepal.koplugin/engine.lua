@@ -1,18 +1,7 @@
 -- PokePal game rules. Pure Lua 5.1; no device, network, or timer dependency.
 local E = {}
-E.species = {
- [1]={"Bulbasaur",2,60}, [2]={"Ivysaur",3,180}, [3]={"Venusaur"},
- [4]={"Charmander",5,300}, [5]={"Charmeleon",6,700}, [6]={"Charizard"},
- [7]={"Squirtle",8,60}, [8]={"Wartortle",9,180}, [9]={"Blastoise"},
- [25]={"Pikachu",26,120}, [26]={"Raichu"},
- [133]={"Eevee",134,120}, [134]={"Vaporeon"}, [135]={"Jolteon"}, [136]={"Flareon"},
- [152]={"Chikorita",153,300}, [153]={"Bayleef",154,620}, [154]={"Meganium"},
- [155]={"Cyndaquil",156,260}, [156]={"Quilava",157,700}, [157]={"Typhlosion"},
- [158]={"Totodile",159,340}, [159]={"Croconaw",160,580}, [160]={"Feraligatr"},
- [10]={"Caterpie"}, [16]={"Pidgey"}, [19]={"Rattata"}, [35]={"Clefairy"},
- [39]={"Jigglypuff"}, [41]={"Zubat"}, [54]={"Psyduck"}, [74]={"Geodude"},
- [129]={"Magikarp"}, [131]={"Lapras"}, [143]={"Snorlax"}, [147]={"Dratini"},
-}
+local source=debug.getinfo(1,"S").source:sub(2):match("^(.*)/")
+E.species = dofile(source.."/species.lua")
 E.starters = {1,4,7,25,133,152,155,158}
 E.evolution_branches = {[133]={134,135,136}}
 E.evolution_stones = {[134]="Water stone",[135]="Thunder stone",[136]="Fire stone"}
@@ -40,6 +29,17 @@ E.routes = {
  {name="Coast", seconds=7200, energy=20, berries=5, xp=22, pool={54,129,131,147}},
  {name="Moon Cave", seconds=14400, energy=28, berries=8, xp=35, pool={35,41,74,147}},
 }
+-- Keep old route IDs and durations so expeditions from older saves finish normally.
+for _,route in ipairs(E.routes) do route.pool={} end
+for id=1,160 do
+ local types=E.species[id].types
+ local route=(types:find("Water") or types:find("Ice")) and 2
+  or (types:find("Rock") or types:find("Ground") or types:find("Ghost") or types:find("Psychic")) and 3 or 1
+ table.insert(E.routes[route].pool,id)
+end
+function E.kantoCount(s)
+ local n=0;for id=1,151 do if s.seen[tostring(id)] then n=n+1 end end;return n
+end
 local function clamp(n, lo, hi) return math.max(lo, math.min(hi,n)) end
 function E.name(id) return E.species[id] and E.species[id][1] or "Egg" end
 function E.level(s) return math.min(100,1+math.floor(s.xp/20)) end
@@ -62,17 +62,29 @@ function E.evolutionLine(id)
 end
 function E.mood(s,now)
  if s.trip>0 then return now>=s.due and "Home from an adventure" or "Exploring the world" end
- if s.resting then return "Dreaming by the warm campfire" end
+ if s.resting then return "Taking a nap" end
  if s.food<40 then return "A little hungry" end
  if s.energy<20 then return "Ready for a nap" end
  if s.dirt>70 then return "Could use a little clean" end
  if s.joy<40 then return "Would love to play" end
- if s.bond>=60 then return "Your very best friend" end
+ if s.bond>=60 then return "Glad to see you" end
  return "Happy to be with you"
 end
 function E.moves(s)
  local root=E.evolutionLine(s.species)[1]
- local names=E.move_sets[s.species] or E.move_sets[root] or {"Tackle"}
+ local by_type={
+  Normal={"Tackle","Quick Attack","Swift","Take Down"}, Fire={"Scratch","Ember","Flame Wheel","Flamethrower"},
+  Water={"Tackle","Water Gun","Bubble Beam","Hydro Pump"}, Grass={"Tackle","Vine Whip","Razor Leaf","Solar Beam"},
+  Electric={"Thunder Shock","Quick Attack","Thunderbolt","Thunder"}, Ice={"Tackle","Icy Wind","Aurora Beam","Blizzard"},
+  Fighting={"Low Kick","Karate Chop","Brick Break","Close Combat"}, Poison={"Poison Sting","Acid","Sludge","Sludge Bomb"},
+  Ground={"Mud-Slap","Dig","Mud Shot","Earthquake"}, Flying={"Peck","Gust","Wing Attack","Air Slash"},
+  Psychic={"Confusion","Psybeam","Zen Headbutt","Psychic"}, Bug={"Bug Bite","String Shot","Pin Missile","Bug Buzz"},
+  Rock={"Rock Throw","Rollout","Rock Slide","Stone Edge"}, Ghost={"Lick","Night Shade","Shadow Punch","Shadow Ball"},
+  Dragon={"Twister","Dragon Breath","Dragon Claw","Dragon Pulse"}, Steel={"Metal Claw","Metal Sound","Iron Head","Flash Cannon"},
+  Fairy={"Disarming Voice","Fairy Wind","Draining Kiss","Moonblast"},
+ }
+ local kind=E.species[s.species] and E.species[s.species].types:match("^%a+") or "Normal"
+ local names=E.move_sets[s.species] or E.move_sets[root] or by_type[kind] or by_type.Normal
  local levels={1,7,20,36};local moves={}
  for i,name in ipairs(names) do moves[i]={name=name,level=levels[i]} end
  return moves
@@ -105,6 +117,13 @@ function E.valid(s)
  if #s.log>24 then return false end
  for _,v in ipairs(s.log) do if type(v)~="string" or #v>200 then return false end end
  if s.animation~="gentle" and s.animation~="eco" and s.animation~="off" then return false end
+ if s.partners~=nil then
+  if type(s.partners)~="table" then return false end
+  for id,p in pairs(s.partners) do
+   if type(id)~="string" or not E.species[tonumber(id)] or not s.seen[id] or type(p)~="table" then return false end
+   for _,k in ipairs({"xp","bond"}) do local n=p[k];if type(n)~="number" or n~=n or n<0 or n>(k=="bond" and 100 or 1e12) then return false end end
+  end
+ end
  return type(s.resting)=="boolean"
 end
 function E.note(s,text,now)
@@ -169,7 +188,10 @@ function E.act(s,action,arg,now)
  elseif action=="collect" then
   if s.trip==0 then return "Pick a trail to explore." end
   if now<s.due then return "Still exploring. Come back in "..math.ceil((s.due-now)/60).." min." end
-  local r=E.routes[s.trip];local id=r.pool[rng(s,#r.pool)]
+  local r=E.routes[s.trip];local pool={}
+  for _,id in ipairs(r.pool) do if not s.seen[tostring(id)] then pool[#pool+1]=id end end
+  if #pool==0 then pool=r.pool end
+  local id=pool[rng(s,#pool)]
   local fresh=not s.seen[tostring(id)];s.seen[tostring(id)]=true
   s.berries=math.min(999,s.berries+r.berries);s.xp=s.xp+r.xp;s.bond=clamp(s.bond+4,0,100)
   s.trips=s.trips+1;s.trip=0;s.due=0
@@ -181,17 +203,24 @@ function E.act(s,action,arg,now)
   return done(s.resting and "Nap time! Rest continues while you read." or "Awake and ready for a little adventure.","rest")
  end
  if s.resting then return "Your partner is napping. Tap Wake up first." end
- if action=="feed" then
+ if action=="partner" then
+  if not E.species[arg] or not s.seen[tostring(arg)] then return "Meet this Pokemon on a trail first." end
+  if arg==s.species then return E.name(arg).." is already with you." end
+  s.partners=s.partners or {};s.partners[tostring(s.species)]={xp=s.xp,bond=s.bond}
+  local p=s.partners[tostring(arg)] or {xp=0,bond=0}
+  s.species=arg;s.xp=p.xp;s.bond=p.bond
+  return done(E.name(arg).." joins you. Your other friends keep their progress.","hello")
+ elseif action=="feed" then
   if s.berries<1 then return "No berries. Explore or check the berry basket." end
   if s.food>=95 then return "Already full! Save that berry for later." end
   s.berries=s.berries-1;s.food=clamp(s.food+24,0,100);s.bond=clamp(s.bond+2,0,100);s.care=s.care+1
-  return done("Crunch! A berry makes everything better.","feed")
+  return done("Berry eaten.","feed")
  elseif action=="play" then
   local allowed,why=E.canPlay(s,now);if not allowed then return why end
   local perfect=arg=="perfect"
   s.played=now;s.energy=s.energy-10;s.joy=clamp(s.joy+20,0,100);s.bond=clamp(s.bond+4,0,100);s.xp=s.xp+5;s.care=s.care+1
   if perfect then s.xp=s.xp+3 end
-  return done(perfect and "Perfect berry trail! +8 XP, +4 bond." or "A lovely game together! +5 XP, +4 bond.","play")
+  return done(perfect and "Perfect berry trail! +8 XP, +4 bond." or "Good try. +5 XP, +4 bond.","play")
  elseif action=="train" then
   if now-s.trained<3600 then return "Training ready in "..math.ceil((3600-now+s.trained)/60).." min." end
   if s.energy<18 or s.food<30 then return "Training needs 18 energy and 30 fullness." end
@@ -203,7 +232,7 @@ function E.act(s,action,arg,now)
  elseif action=="clean" then
   if s.dirt<15 then return "Already squeaky clean." end
   s.dirt=0;s.joy=clamp(s.joy+8,0,100);s.bond=clamp(s.bond+2,0,100);s.care=s.care+1;s.cleaned=now
-  return done("A tidy nest and a very happy Pokemon.","clean")
+  return done("Nest cleaned.","clean")
  elseif action=="trip" then
   local r=E.routes[arg];if not r then return "Choose a trail." end
   if s.energy<r.energy then return "This trail needs "..r.energy.." energy." end
@@ -216,9 +245,12 @@ function E.act(s,action,arg,now)
   local id=arg or (#choices==1 and choices[1]);local allowed=false
   for _,choice in ipairs(choices) do if choice==id then allowed=true end end
   if not allowed then return "Choose an evolution from your partner's profile." end
+  s.partners=s.partners or {};s.partners[tostring(s.species)]={xp=s.xp,bond=s.bond}
+  local previous=s.partners[tostring(id)]
+  if previous then s.xp=math.max(s.xp,previous.xp);s.bond=math.max(s.bond,previous.bond) end
   s.species=id;s.seen[tostring(id)]=true
   return done("Your partner evolved into "..E.name(id).."!","evolve")
  end
- return "Ready for a quiet adventure."
+ return "Ready when you are."
 end
 return E

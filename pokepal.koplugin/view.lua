@@ -20,6 +20,7 @@ end
 function View:init()
  self.art=dofile(self.path.."/art.lua");self.frames=dofile(self.path.."/assets/frames.lua")
  self.poses=dofile(self.path.."/assets/poses.lua")
+ self.sprites=dofile(self.path.."/assets/sprites.lua")
  self.screen="home";self.frame=1;self.buttons={};self.images={};self.action_count=0;self.starter_index=1
  self.message=self.engine.act(self.state,"check",nil,os.time())
  self.key_events.Back={{"Back"}};self.key_events.Close={{"Esc"}};self:geometry()
@@ -44,7 +45,11 @@ end
 function View:region(x,y,w,h)
  return Geom:new{x=self.ox+round(x*self.scale),y=self.oy+round(y*self.scale),w=round(w*self.scale),h=round(h*self.scale)}
 end
-function View:stageRegion() return self:region(116,202,370,212) end
+function View:stageRegion()
+ if self.screen=="entry" then return self:region(120,184,360,300) end
+ return self:region(116,202,370,212)
+end
+function View:animationSpecies() return self.screen=="entry" and self.detail_id or self.state.species end
 function View:rect(bb,x,y,w,h,color)
  local r=self:region(x,y,w,h);bb:paintRect(r.x,r.y,r.w,r.h,color or BLACK)
 end
@@ -85,9 +90,10 @@ function View:sprite(bb,id,x,y,size,frame,pose)
  frame=math.min(frame or 1,pose and pose_list[pose] or self.frames[id] or 1)
  local key=id.."-"..(pose or "normal").."-"..frame.."-"..round(size*self.scale);local img=self.images[key]
  if not img then
-  local file=self.path.."/assets/"..id.."-"..(pose and pose.."-" or "")..frame..".png"
-  local raw=RenderImage:renderImageFile(file,false)
-  assert(raw,"Missing PokePal sprite: "..file)
+  local file=id.."-"..(pose and pose.."-" or "")..frame..".png"
+  local data=self.sprites.read(self.path.."/assets",file)
+  local raw=RenderImage:renderImageData(data,#data,false)
+  assert(raw,"Cannot decode PokePal sprite: "..file)
   local pixels=round(size*self.scale);local scaled=raw
   if raw:getWidth()~=pixels or raw:getHeight()~=pixels then scaled=raw:scale(pixels,pixels);raw:free() end
   img=ImageWidget:new{image=scaled,image_disposable=true,alpha=true,width=pixels,height=pixels,scale_for_dpi=false}
@@ -100,9 +106,11 @@ function View:stopAnimation()
  UIManager:unschedule(self.tick);self.animating=false;self.frame=1;self.effect=nil;self.previous_species=nil
 end
 function View:poseFor(effect)
- if not self.poses[self.state.species] then return nil end
+ local id=self:animationSpecies()
+ if not self.poses[id] then return nil end
+ if self.screen=="entry" then return self.preview_pose or "idle" end
  if effect=="rest" or effect=="ambient_sleep" then return self.state.resting and "sleep" or "idle" end
- if effect=="feed" then return self.poses[self.state.species].eat and "eat" or "idle" end
+ if effect=="feed" then return self.poses[self:animationSpecies()].eat and "eat" or "idle" end
  if effect=="train" then return "attack" end
  if effect=="play" then return "walk" end
  return self.state.resting and "sleep" or "idle"
@@ -112,7 +120,7 @@ function View:animate(effect,previous)
  if not effect or self.state.animation=="off" or self.suspended or Device.screen_saver_mode then return end
  self.effect=effect;self.previous_species=previous;self.animating=true;self.step=1;self.frame=1
  local pose=self:poseFor(effect)
- local count=pose and self.poses[self.state.species][pose] or self.frames[self.state.species] or 1
+ local count=pose and self.poses[self:animationSpecies()][pose] or self.frames[self:animationSpecies()] or 1
  self.sequence={}
  if self.state.animation=="eco" then self.sequence={1,math.max(1,math.ceil(count/2))};self.interval=0.8
  else for i=1,count do self.sequence[#self.sequence+1]=i end;self.interval=0.45 end
@@ -137,6 +145,7 @@ function View:paintTo(bb,x,y)
  elseif self.screen=="home" then self:paintHome(bb)
  elseif self.screen=="explore" then self:paintExplore(bb)
  elseif self.screen=="journal" then self:paintJournal(bb)
+ elseif self.screen=="entry" then self:paintEntry(bb)
  elseif self.screen=="history" then self:paintHistory(bb)
  elseif self.screen=="profile" then self:paintProfile(bb)
  elseif self.screen=="badges" then self:paintBadges(bb)
@@ -176,7 +185,7 @@ function View:landscape(bb)
 end
 function View:paintHome(bb)
  local s=self.state;local now=os.time()
- self.art.text(self,bb,self.engine.name(s.species),32,94,3);self:text(bb,"Lv "..self.engine.level(s),438,94,25,130,true,true)
+ self:text(bb,self.engine.name(s.species),32,94,27,395,true);self:text(bb,"Lv "..self.engine.level(s),438,94,25,130,true,true)
  self:text(bb,self.engine.mood(s,now),32,124,17,536,false,true);self:landscape(bb)
  if s.trip>0 and now<s.due and not self.animating then
   self.art.icon(self,bb,"boot",270,258,6);self:text(bb,self.engine.routes[s.trip].name,169,345,20,263,true,true)
@@ -220,7 +229,7 @@ function View:title(bb,title,subtitle)
  self:text(bb,title,32,101,29,536,true);if subtitle then self:text(bb,subtitle,32,145,17,536) end
 end
 function View:paintExplore(bb)
- self:title(bb,"Expeditions","Adventures finish while your Kindle sleeps.");local s=self.state
+ self:title(bb,"Expeditions","Trails favour Pokemon you have not met yet.");local s=self.state
  if s.trip>0 then
   local left=s.due-os.time();local r=self.engine.routes[s.trip];self:sprite(bb,s.species,186,220,228,1)
   self:text(bb,r.name,32,469,27,536,true,true)
@@ -230,7 +239,7 @@ function View:paintExplore(bb)
   for i,r in ipairs(self.engine.routes) do
    local y=199+(i-1)*153;self:button(bb,r.name.." / "..r.seconds/60 .." min",32,y,536,57,"trip",i,"boot")
    self:text(bb,r.energy.." energy   +"..r.berries.." berries   +"..r.xp.." XP",43,y+71,18,513)
-   self:text(bb,i==1 and "A gentle stroll. Grassland friends await." or i==2 and "Salty air, quiet waves, water Pokemon." or "A longer trail beneath the mountain.",43,y+101,16,513)
+   self:text(bb,i==1 and "Grass, Bug, Fire, Electric and other land Pokemon." or i==2 and "Water and Ice Pokemon live along this trail." or "Rock, Ground, Ghost and Psychic Pokemon.",43,y+101,16,513)
   end
  end
  self:backButton(bb)
@@ -238,16 +247,32 @@ end
 function View:paintJournal(bb)
  local ids={};for id,v in pairs(self.state.seen) do if v then ids[#ids+1]=tonumber(id) end end;table.sort(ids)
  local pages=math.max(1,math.ceil(#ids/6));self.page=math.min(self.page or 1,pages)
- self:title(bb,"Field journal",#ids.." Pokemon discovered on your journey")
+ self:title(bb,"Field journal",self.engine.kantoCount(self.state).." / 151 Kanto   |   "..#ids.." friends met   |   Tap a Pokemon")
  for pos=(self.page-1)*6+1,math.min(self.page*6,#ids) do
   local i=pos-(self.page-1)*6-1;local x=32+(i%3)*182;local y=194+math.floor(i/3)*187
   self:sprite(bb,ids[pos],x+20,y,132,1);self:text(bb,self.engine.name(ids[pos]),x,y+139,17,172,false,true)
+  self.buttons[#self.buttons+1]={x=x,y=y,w=172,h=176,action="entry",arg=ids[pos]}
  end
  self:button(bb,"Previous",32,597,170,43,"page",-1,nil,self.page==1)
  self:text(bb,self.page.." / "..pages,217,609,20,166,false,true)
  self:button(bb,"Next",398,597,170,43,"page",1,nil,self.page==pages)
  self:button(bb,"Activity",32,659,262,43,"nav","history","book")
  self:button(bb,"Badges",306,659,262,43,"nav","badges","badge");self:backButton(bb)
+end
+function View:paintEntry(bb)
+ local id=self.detail_id;local name=self.engine.name(id)
+ self:title(bb,string.format("#%03d  %s",id,name),self.engine.species[id].types)
+ self:sprite(bb,id,174,196,252,self.frame,self.preview_pose or "idle")
+ local poses={{"Idle","idle"},{"Sleep","sleep"},{"Walk","walk"},{"Attack","attack"},{"Eat","eat"}}
+ for i,p in ipairs(poses) do
+  local available=self.poses[id] and self.poses[id][p[2]]
+  self:button(bb,p[1],32+(i-1)*109,476,100,46,"preview",p[2],nil,not available,self.preview_pose==p[2])
+ end
+ local p=id==self.state.species and self.state or (self.state.partners and self.state.partners[tostring(id)]) or {xp=0,bond=0}
+ self:text(bb,p.xp.." XP   /   Bond "..math.floor(p.bond).."   /   Tap a pose to preview",32,546,17,536,false,true)
+ self:button(bb,id==self.state.species and "Your current partner" or "Choose "..name,32,594,536,52,"partner",id,"heart",id==self.state.species or self.state.trip>0 or self.state.resting)
+ self:text(bb,"Each Pokemon keeps its XP and bond when you switch.",32,665,17,536,false,true)
+ self:button(bb,"Back to journal",32,717,536,44,"nav","journal")
 end
 function View:paintHistory(bb)
  local entries=self.state.log
@@ -274,7 +299,7 @@ function View:paintProfile(bb)
   local x=(600-(#line*182-10))/2+(i-1)*182;self:sprite(bb,id,x+16,207,140,1)
   self:text(bb,self.engine.name(id),x,355,18,172,id==s.species,true)
   local previous=i>1 and self.engine.species[line[i-1]]
-  local requirement=previous and "Lv "..(1+math.ceil(previous[3]/20)).." + 30 bond" or "Your first friend"
+  local requirement=previous and "Lv "..(1+math.ceil(previous[3]/20)).." + 30 bond" or "First form"
   self:text(bb,requirement,x,389,14,172,false,true)
   if id==s.species then self:rect(bb,x+30,422,112,3) end
  end
@@ -337,7 +362,7 @@ end
 function View:paintMore(bb)
  self:title(bb,"Settings","Animation plays briefly while the screen is on.")
  for i,b in ipairs({{"Gentle","gentle"},{"Eco","eco"},{"Off","off"}}) do self:button(bb,b[1],32+(i-1)*182,199,172,48,"animation",b[2],nil,false,self.state.animation==b[2]) end
- self:text(bb,"Gentle: up to 8 frames. Eco: 2 frames. Off: still.",32,267,17,536)
+ self:text(bb,"Gentle: up to 4 frames. Eco: 2 frames. Off: still.",32,267,17,536)
  self:button(bb,"Refresh screen - clear ghosting",32,323,536,48,"refresh",nil,"clean")
  self:button(bb,"How to care for your partner",32,391,536,48,"nav","help","book")
  self:button(bb,"Evolution and partner profile",32,459,536,48,"nav","profile","clean")
@@ -364,6 +389,8 @@ function View:onTap(_,ges)
    self:freeImages();UIManager:setDirty(self,"ui")
   elseif b.action=="nav" then
    if b.arg=="home" then self.message=self.engine.act(self.state,"check",nil,os.time()) end;self:go(b.arg)
+  elseif b.action=="entry" then self:go("entry");self.detail_id=b.arg;self.preview_pose="idle"
+  elseif b.action=="preview" then self.preview_pose=b.arg;self:animate("preview");UIManager:setDirty(self,"ui",self:stageRegion())
   elseif b.action=="hello" then self:animate("hello");UIManager:setDirty(self,"ui",self:stageRegion())
   elseif b.action=="startplay" then self:startPlay()
   elseif b.action=="hidepath" then self.play_phase="pick";UIManager:setDirty(self,"ui")

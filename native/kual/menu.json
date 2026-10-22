@@ -1,0 +1,5 @@
+{
+  "items": [{"name": "PokePal", "priority": 0, "items": [
+    {"name": "Play PokePal", "action": "sh ./launch.sh", "exitmenu": true}
+  ]}]
+}

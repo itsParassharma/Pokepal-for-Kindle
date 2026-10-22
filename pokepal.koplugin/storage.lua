@@ -11,7 +11,11 @@ function S.encode(s)
  lines[#lines+1]="resting="..tostring(s.resting)
  lines[#lines+1]="animation="..s.animation
  local ids={};for id,v in pairs(s.seen) do if v then ids[#ids+1]=tonumber(id) end end;table.sort(ids)
- for _,id in ipairs(ids) do lines[#lines+1]="seen="..id end
+ for _,id in ipairs(ids) do
+  lines[#lines+1]="seen="..id
+  local p=s.partners and s.partners[tostring(id)]
+  if p then lines[#lines+1]="partner="..id..","..string.format("%.12g",p.xp)..","..string.format("%.12g",p.bond) end
+ end
  local badges={};for badge,v in pairs(s.badges) do if v then badges[#badges+1]=badge end end;table.sort(badges)
  for _,b in ipairs(badges) do lines[#lines+1]="badge="..b end
  for _,v in ipairs(s.log) do lines[#lines+1]="log="..v:gsub("[\r\n]"," ") end
@@ -32,6 +36,12 @@ function S.decode(data,engine)
   elseif k=="animation" then s.animation=v
   elseif k=="seen" then
    local id=tonumber(v);if not id or not engine.species[id] then return nil end;s.seen[tostring(id)]=true
+  elseif k=="partner" then
+   local id,xp,bond=v:match("^(%d+),([%d.e+%-]+),([%d.e+%-]+)$")
+   if not id or not engine.species[tonumber(id)] then return nil end
+   id=tostring(tonumber(id));s.partners=s.partners or {}
+   if s.partners[id] then return nil end
+   s.partners[id]={xp=tonumber(xp),bond=tonumber(bond)}
   elseif k=="badge" then if #v>40 then return nil end;s.badges[v]=true
   elseif k=="log" then if #v>200 or #s.log>=24 then return nil end;s.log[#s.log+1]=v
   else return nil end

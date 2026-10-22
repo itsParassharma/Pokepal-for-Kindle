@@ -1,50 +1,75 @@
 # PokePal for Kindle
 
-PokePal is a small Tamagotchi style game for KOReader on a jailbroken Kindle. Choose Bulbasaur, Charmander, Squirtle, Pikachu, Eevee, Chikorita, Cyndaquil or Totodile. Feed your partner, play a three-bush memory game, practise moves, or send it on an expedition. With enough XP and bond, evolve it from its partner profile. Eevee can become Vaporeon, Jolteon or Flareon.
+A Pokémon pet you can check on between chapters. Pick a starter, feed it, play a memory game, and send it out to find more Pokémon while you read.
 
-The screen stays still most of the time. Charmander has short idle, sleeping, walking, and attack animations; they stop when the Kindle sleeps. Care and expeditions use elapsed time when you next open the game, so there is no background polling or wake alarm..
+The full Kanto roster is here: Bulbasaur through Mew, plus the nine Johto starter forms. Once you meet a Pokémon, you can choose it from the journal. Each one keeps its XP and bond when you switch.
 
-![A brief idle animation](docs/idle-preview.gif) ![A brief sleeping animation](docs/sleep-preview.gif)
+![PokePal on the home screen](docs/kindle-preview.png)
 
-![Choose a partner, including Chikorita](docs/starter-picker.png)
+## Download
 
-## Install
+[Get the release](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/tag/v0.4.0).
 
-You need a working [KOReader](https://github.com/koreader/koreader) installation. KUAL can start KOReader, but PokePal itself lives in KOReader's menu.
+| Download | What you need |
+| --- | --- |
+| **PokePal-v0.4.0-kual-preview.zip** | A jailbroken touchscreen Kindle with KUAL. KOReader is not needed. |
+| **PokePal-v0.4.0-koreader.zip** | KOReader installed on your Kindle. |
 
-1. Download [PokePal-v0.3.0-kindle.zip](dist/PokePal-v0.3.0-kindle.zip?raw=true).
-2. Connect the Kindle by USB. Open the ZIP and merge its `koreader` folder into the top level of the Kindle drive. The resulting file should be `koreader/plugins/pokepal.koplugin/main.lua`.
-3. Safely eject the Kindle and restart KOReader.
-4. In KOReader, open **Tools → More tools → PokePal – Pokemon companion**. If it is missing, check **Tools → More tools → Plugin management** and restart KOReader.
+The standalone KUAL build is a **preview**, initially targeting ARMv7 touchscreen Kindles such as the 2021 Paperwhite. It builds and passes desktop checks, but has not been tested on a physical Kindle. Touch alignment, screen refresh and sleep handling still need that check. Older button-only Kindles are not supported.
 
-The longer [install and play guide](pokepal.koplugin/INSTALL.txt) covers controls, evolution, saves, and troubleshooting. Existing 0.1 and 0.2 saves remain readable and keep their current partner. The picker appears for a new adventure. Your save lives in KOReader's settings directory as `pokepal.dat`; back it up before changing devices. To start again with another partner, close KOReader and rename both `pokepal.dat` and `pokepal.dat.old` to backup names first. This begins separate progress; it does not transfer the old partner's progress.
+## Install from KUAL
 
-## In the game
+1. Unzip the **kual-preview** download.
+2. Connect your Kindle by USB. Copy the `extensions` folder to the top level of the Kindle drive, merging folders if asked.
+3. Safely eject, then open **KUAL → PokePal → Play PokePal**.
 
-- **Care:** feed, clean, rest, and wake your partner. The Play, Train, and Basket buttons show their cooldowns.
-- **Partners:** browse eight starters, confirm your choice, and see the correct evolution family and requirements in Profile.
-- **Play and train:** finish the berry-trail memory game or practise moves to earn XP and bond.
-- **Explore:** choose an offline trail, then collect its berries, XP, and Pokémon sighting later.
-- **Keep track:** browse the field journal, badges, and 24 recent activities.
-- **Choose the pace:** Eco animation is the default for new saves; Gentle and Off are in Settings.
+You should have `extensions/pokepal/pokepal` on the Kindle. Copy the whole folder: the game, sprites, fonts and launcher are all included. There is no separate WAD to find.
 
-The game is forgiving about time away. Your partner does not die, and nothing needs to run while the Kindle is asleep.
+Exit returns to Kindle Home. Going to sleep saves and closes PokePal; open it from KUAL again to carry on. Keep `extensions/pokepal/data/` when updating.
 
-## Source and testing
+## Install in KOReader
 
-The KOReader plugin is in [`pokepal.koplugin`](pokepal.koplugin). It is plain Lua plus grayscale sprite frames; it needs no network connection after installation. The ZIP in [`dist`](dist) is ready to copy to a Kindle.
+Unzip the **koreader** download and copy its `koreader` folder to the top level of the Kindle drive. Restart KOReader, then open **Tools → More tools → PokePal**.
 
-To run the desktop checks, install Python 3, then run:
+Existing 0.1–0.3 saves still work. Back up `pokepal.dat` and `pokepal.dat.old` in KOReader's settings folder first. The editions have separate saves. To move to KUAL, close both editions and copy those files into `extensions/pokepal/data/` before starting it there.
+
+## Playing
+
+- Start with Bulbasaur, Charmander, Squirtle, Pikachu, Eevee, Chikorita, Cyndaquil or Totodile.
+- Feed, clean, nap, play the three-bush memory game, or practise moves.
+- Explore three trails. They choose Pokémon you haven't met, then repeat encounters once you've found everyone on that trail.
+- Tap a journal entry to see its types, preview its poses, or make it your partner.
+- Evolve from the partner profile. Eevee has three Kanto choices.
+
+Food, energy, berries and cooldowns are shared when you switch. XP and bond stay with each Pokémon. Finish a trip or wake your partner before switching. Progression and practice moves use PokePal's own rules.
+
+Nothing runs while the game is closed, and your partner won't die if you forget to check in. Expeditions use elapsed time when you next open the game. Battery use has not been measured on a Kindle.
+
+## Animations
+
+All 160 Pokémon have idle, sleep, walk and attack poses. There are eating poses for 33; the others use idle when fed. Persian and Arcanine have still idle poses in the source sheets, but their other actions animate.
+
+These are short, front-facing samples for e-ink, not every direction and animation from a Pokémon game. **Eco** uses two frames, **Gentle** uses up to four, and **Off** keeps the picture still. Nothing animates between actions.
+
+The previews here are desktop renders of the game, not footage of a Kindle.
+
+## Building and checking
+
+The shared game and UI are in `pokepal.koplugin/`. The standalone host in `native/` uses Lua and [FBInk](https://github.com/NiLuJe/FBInk), with its own drawing and touch input. It does not start or load KOReader.
 
 ```sh
 python -m pip install -r requirements-dev.txt
 python tests/test_and_render.py
+python tools/build_native.py --zig /path/to/zig --deps /path/to/build-cache
+python tools/package_release.py --deps /path/to/build-cache
 ```
 
-These checks cover game rules, save recovery, animation scheduling, and several screen sizes using mocked KOReader APIs. They do not replace a test on the Kindle. The images above are renders of the game's view code with desktop fonts, not photographs of the device.
+The native build uses Zig 0.13.0 and pinned dependencies. See [native/README.md](native/README.md) for build details and device checks, and [INSTALL.txt](pokepal.koplugin/INSTALL.txt) for controls and saves.
 
-After the checks pass, `python tools/package_release.py` rebuilds the Kindle ZIP and SHA-256 file from the plugin folder. To reproduce the nine Johto species' assets, download their pinned GIF URLs from `assets/sources.json` in the plugin, then run `python tools/import_johto_sprites.py /path/to/gifs`. Neither tool is needed on the Kindle.
+## Credits
 
-## Art and license
+This is an unofficial fan project. Pokémon belongs to its respective owners.
 
-This is an unofficial fan project. The game code and original UI drawings are MIT licensed under [`LICENSE-CODE.txt`](pokepal.koplugin/LICENSE-CODE.txt). Pokémon names and sprites belong to their respective rights holders. The Charmander line uses adapted PMDCollab pose sheets; other Pokémon use sampled Gen V sprites. Sources, artist records, and applicable sprite terms are in [`CREDITS.txt`](pokepal.koplugin/CREDITS.txt) and the included sprite license files. The code license does not cover those assets.
+Sprites come from [PMDCollab's SpriteCollab](https://github.com/PMDCollab/SpriteCollab). Artist credits, source revisions and conversion details are included with the game. Keep those credits with copies of the assets; sprite terms are separate from code licenses.
+
+The shared game is MIT licensed. The standalone host is GPL-3.0-or-later and links FBInk; its corresponding source is included in the release. See [CREDITS.txt](pokepal.koplugin/CREDITS.txt).
