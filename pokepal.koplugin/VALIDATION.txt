@@ -1,22 +1,11 @@
-POKEPAL 0.4.0 - DESKTOP VALIDATION
+POKEPAL 1.0.4
 
-Game/storage: 35 checks, including old saves, damaged-save recovery,
-all 160 reachable species, discovery before repeat encounters, and
-separate XP/bond when switching partners.
-UI lifecycle: 20 checks with mocked KOReader APIs.
-Layout: 48 screen/size combinations and 416 starter/profile/care layouts.
-Journal: all 160 entry layouts and 640 core-pose button actions checked.
-Sprites: 583 normal frames and 2,349 action frames, all 96x96 grayscale
-with transparency. Pose motion is checked against source records.
-Idle, Sleep, Walk, Attack: 160 species. Eat: 33 species.
-Persian and Arcanine have still Idle poses.
-All shipped Lua modules compile.
+The test suite checks game actions, old saves, damaged-save recovery,
+all 160 reachable species, partner progress, UI lifecycle and layouts.
+Every species has five moving animations and all 800 pose buttons
+are exercised through the actual touch dispatcher.
+Generated motion is identified in assets/pose-sources.json.
 
-Standalone: Windows native rendering/save/suspend smoke test passes.
-ARMv7 executable built with Zig 0.13.0 and bundled musl/Lua/FBInk.
-ELF header identifies ARM; no dynamic interpreter dependency.
-KUAL launch script passes POSIX shell syntax checking.
-
-No physical Kindle was connected. Device, firmware, touch, ghosting,
-sleep, wake and battery performance are unverified. The KUAL download
-is a preview. See native/README.md in the source for device checks.
+The standalone renderer, save reload and suspend smoke tests run on
+Windows. The ARM executable is built and checked separately.
+Physical device checks are described in native/README.md.

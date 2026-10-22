@@ -35,7 +35,7 @@ def main():
     with zipfile.ZipFile(plugin,'w') as z:
         for path,relative in files(PLUGIN):add(z,path,'koreader/plugins/pokepal.koplugin/'+relative)
     archives.append(plugin)
-    standalone=out/f'PokePal-v{VERSION}-kual-preview.zip'
+    standalone=out/f'PokePal-v{VERSION}-kual.zip'
     binary=REPO/'native/build/pokepal'
     assert binary.is_file(),'Build the native host first.'
     with zipfile.ZipFile(standalone,'w') as z:

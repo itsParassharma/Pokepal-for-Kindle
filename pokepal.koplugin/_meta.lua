@@ -1,5 +1,5 @@
 return {
  fullname = "PokePal",
- description = "A Pokemon pet for your Kindle. Feed it, explore, and meet all 151 Kanto Pokemon.",
- version = "0.4.0",
+ description = "A Pokemon pet for your Kindle, with 160 partners to meet.",
+ version = "1.0.4",
 }

@@ -122,7 +122,7 @@ function View:animate(effect,previous)
  local pose=self:poseFor(effect)
  local count=pose and self.poses[self:animationSpecies()][pose] or self.frames[self:animationSpecies()] or 1
  self.sequence={}
- if self.state.animation=="eco" then self.sequence={1,math.max(1,math.ceil(count/2))};self.interval=0.8
+ if self.state.animation=="eco" then self.sequence={1,math.min(count,math.floor(count/2)+1)};self.interval=0.8
  else for i=1,count do self.sequence[#self.sequence+1]=i end;self.interval=0.45 end
  UIManager:scheduleIn(self.interval,self.tick)
 end

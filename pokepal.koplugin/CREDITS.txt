@@ -9,8 +9,10 @@ Revision: 4702f10d888d19e804c5986a91170dfc92ae01b8
 The package includes all 151 Kanto Pokemon and nine Johto starter forms.
 Front-facing Idle, Sleep, Walk and Attack sheets were cropped as a group,
 scaled with nearest-neighbour sampling and converted to four-level grayscale.
-Eat is included for 33 species. Animations use at most four sampled frames.
-Persian and Arcanine have still Idle poses.
+All species include five moving poses. Missing eating poses use PokePal's
+berry and chewing motion, derived from the credited idle sprites. Still
+idle sprites use added breathing motion. These additions are recorded in
+the source manifest. Animations use at most four frames.
 
 assets/pose-sources.json records sheet URLs, SHA-256, metadata, selected
 frames, motion and per-species credit files. assets/credits/ contains the

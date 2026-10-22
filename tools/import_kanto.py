@@ -14,7 +14,7 @@ import time
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
-from PIL import Image, ImageChops
+from PIL import Image, ImageChops, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1] / 'pokepal.koplugin'
 PMD = '4702f10d888d19e804c5986a91170dfc92ae01b8'
@@ -78,6 +78,34 @@ def species_data():
     (ROOT/'species.lua').write_text('\n'.join(rows)+'\n',encoding='utf-8')
     return names
 
+def complete_motion(frames, eating=False):
+    """Add PokePal motion where an upstream pose is absent or still."""
+    result=[]
+    for step in range(4):
+        source=frames[step%len(frames)]
+        box=source.getchannel('A').getbbox()
+        body=source.crop(box);w,h=body.size
+        squeeze=(0,1,2,1)[step]
+        body=body.resize((w,max(1,h-squeeze)),Image.Resampling.NEAREST)
+        tile=Image.new('LA',(96,96),(255,0))
+        tile.paste(body,(box[0],box[3]-body.height))
+        if eating:
+            # A berry approaches, then two bite marks appear before the crumbs.
+            x=max(4,box[0]-8)+step*2;y=min(78,box[1]+h//2)
+            draw=ImageDraw.Draw(tile)
+            if step<3:
+                draw.rectangle((x+1,y,x+5,y+6),fill=(0,255))
+                draw.rectangle((x,y+1,x+6,y+4),fill=(0,255))
+                draw.rectangle((x+2,y+1,x+4,y+4),fill=(170,255))
+                draw.rectangle((x+3,y-2,x+5,y-1),fill=(85,255))
+                if step>=1:draw.rectangle((x+4,y,x+6,y+2),fill=(255,0))
+                if step==2:draw.rectangle((x+2,y+3,x+6,y+5),fill=(255,0))
+            else:
+                draw.point((x,y+5),fill=(0,255));draw.point((x+4,y+8),fill=(85,255))
+        result.append(tile)
+    assert len({f.tobytes() for f in result})>1
+    return result
+
 def import_species(id):
     base=f'sprite/{id:04d}/'
     xml,xml_url=fetch('PMDCollab/SpriteCollab',PMD,base+'AnimData.xml')
@@ -87,8 +115,10 @@ def import_species(id):
     animations={a.findtext('Name'):a for a in ET.fromstring(xml).findall('Anims/Anim')}
     records=[]; poses={}
     for pose in ('Idle','Sleep','Walk','Attack','Eat'):
-        if pose not in animations: continue
-        actual=pose; visited=set()
+        missing=pose not in animations
+        actual='Idle' if missing and pose=='Eat' else pose
+        if actual not in animations: raise ValueError(f'Missing pose {id} {pose}')
+        visited=set()
         while animations[actual].findtext('CopyOf'):
             if actual in visited: raise ValueError(f'Animation alias cycle {id} {pose}')
             visited.add(actual);actual=animations[actual].findtext('CopyOf')
@@ -113,14 +143,20 @@ def import_species(id):
             tile=Image.new('LA',(96,96),(255,0))
             tile.paste(Image.merge('LA',(gray,fr.getchannel('A'))),((96-size[0])//2,90-size[1]))
             converted.append(tile)
-        # Some upstream poses are intentionally still. Record this instead of inventing movement.
+        generated=None
+        if missing:
+            converted=complete_motion(converted,eating=True)
+            generated='PokePal eating motion and berry, derived from Idle'
+        elif len({x.tobytes() for x in converted})==1:
+            converted=complete_motion(converted)
+            generated='PokePal breathing motion, derived from a still source pose'
         motion=len({x.tobytes() for x in converted})>1
         for frame,tile in enumerate(converted,1):
             tile.save(ROOT/'assets'/f'{id}-{pose.lower()}-{frame}.png',optimize=True)
             if pose=='Idle': tile.save(ROOT/'assets'/f'{id}-{frame}.png',optimize=True)
         poses[pose.lower()]=len(converted)
-        records.append({'species':id,'pose':pose,'sheet_pose':actual,'source':url,'source_sha256':hashlib.sha256(data).hexdigest(),'metadata':xml_url,'frames':selected,'original_frames':count,'count':len(converted),'motion':motion,'direction':'front','credits':f'credits/{id:03d}.txt'})
-    if not all(p in poses for p in ('idle','sleep','walk','attack')): raise ValueError(f'Missing core poses {id}: {poses}')
+        records.append({'species':id,'pose':pose,'sheet_pose':actual,'source':url,'source_sha256':hashlib.sha256(data).hexdigest(),'metadata':xml_url,'frames':selected,'original_frames':count,'count':len(converted),'motion':motion,'generated':generated,'direction':'front','credits':f'credits/{id:03d}.txt'})
+    if not all(p in poses for p in ('idle','sleep','walk','attack','eat')): raise ValueError(f'Missing poses {id}: {poses}')
     return id,poses,records
 
 if __name__=='__main__':
@@ -135,7 +171,7 @@ if __name__=='__main__':
         rows.append(f' [{id}]={{'+','.join(f'{p}={n}' for p,n in poses.items())+'},')
         normal.append(f' [{id}]={poses["idle"]},');records+=items
         item=next(i for i in items if i['pose']=='Idle')
-        sources.append({'id':id,'source':item['source'],'source_sha256':item['source_sha256'],'original_frames':item['original_frames'],'sampled':item['frames'],'count':item['count']})
+        sources.append({'id':id,'source':item['source'],'source_sha256':item['source_sha256'],'original_frames':item['original_frames'],'sampled':item['frames'],'count':item['count'],'generated':item['generated']})
     (ROOT/'assets'/'poses.lua').write_text('\n'.join(rows+['}'])+'\n')
     (ROOT/'assets'/'frames.lua').write_text('\n'.join(normal+['}'])+'\n')
     (ROOT/'assets'/'pose-sources.json').write_text(json.dumps(records,indent=2)+'\n')

@@ -1,85 +1,36 @@
-POKEPAL 0.4.0
+POKEPAL 1.0.4
 
-KUAL EDITION (STANDALONE PREVIEW)
+KUAL
+Needs a jailbroken touchscreen Kindle with KUAL installed.
 
-You need a jailbroken touchscreen Kindle and KUAL. KOReader is not needed.
-Copy the ZIP's extensions folder to the top level of the Kindle drive.
-The executable should be at extensions/pokepal/pokepal.
-Safely eject, then open KUAL > PokePal > Play PokePal.
+1. Unzip PokePal-v1.0.4-kual.zip.
+2. Copy extensions onto your Kindle drive, next to documents.
+   Merge folders if asked.
+3. Eject, then open KUAL > PokePal > Play PokePal.
 
-This ARMv7 build initially targets the 2021 Paperwhite in portrait mode.
-It has not been tested on a physical Kindle. Older button-only Kindles
-are not supported. A bundled C/Lua runtime avoids relying on the
-firmware's floating-point libc ABI; it does not prove device compatibility.
+KOReader is not required for this version.
 
-Exit saves and returns to Kindle Home. Going to sleep saves and closes
-PokePal. Open it from KUAL to resume.
-Saves: extensions/pokepal/data/pokepal.dat and pokepal.dat.old.
-Errors: extensions/pokepal/data/launch.log.
-Keep data when updating. To remove the app, exit first, back up data,
-then remove extensions/pokepal by USB.
+KOREADER
+Needs KOReader installed on your Kindle.
 
-KOREADER EDITION
+1. Unzip PokePal-v1.0.4-koreader.zip.
+2. Copy koreader onto your Kindle drive. Merge with the existing folder.
+3. Restart KOReader. Open Tools > More tools > PokePal.
 
-Install KOReader separately. Copy the ZIP's koreader folder to the top
-level of the Kindle drive. Merge folders; don't replace your installation.
-The plugin belongs at koreader/plugins/pokepal.koplugin/main.lua.
-Restart KOReader, then open Tools > More tools > PokePal.
-If missing, check Plugin management and restart again.
-Official downloads: https://github.com/koreader/koreader/releases
+SAVES
+Back up your save before updating.
+KUAL: keep extensions/pokepal/data.
+KOReader: keep pokepal.dat and pokepal.dat.old in its settings folder.
 
-Older saves still load. Back up pokepal.dat and pokepal.dat.old in
-KOReader's settings folder before updating. To move progress to KUAL,
-close both editions and copy those files into extensions/pokepal/data/.
-They remain separate saves after that.
+To move from KOReader to KUAL, close both apps and copy those two save
+files into extensions/pokepal/data. The copies stay separate afterward.
 
-PLAYING
+HELP
+Missing from KUAL? Check extensions/pokepal/menu.json is on your Kindle.
+Missing from KOReader? Check koreader/plugins/pokepal.koplugin/main.lua,
+then enable PokePal in Plugin management and restart.
+KUAL startup errors are logged in extensions/pokepal/data/launch.log.
+Device notes: native/README.md in the source download.
 
-Choose one of eight starters. Tap your partner for a short animation.
-Feed spends one berry and restores 24 food. Basket gives five berries
-every 24 hours. Play is a three-step memory game, ready every 30 minutes.
-A perfect path gives 8 XP; a missed step gives 5 XP. Training gives 12 XP
-once an hour and costs 18 energy and 8 food. Moves and unlocks are
-PokePal rules, not main-series battle learnsets.
-
-Rest restores energy faster. Wake your partner before active play.
-Clean tidies the nest when it is dirty.
-
-Explore keeps track of time with the game closed:
-  Meadow: 30 minutes, 12 energy, 3 berries, 12 XP.
-  Coast: 2 hours, 20 energy, 5 berries, 22 XP.
-  Moon Cave: 4 hours, 28 energy, 8 berries, 35 XP.
-Collect the result afterward. Each trail chooses unseen Pokemon while
-it has any left. All 151 Kanto Pokemon and nine Johto starter forms
-can be found across the three trails.
-
-Tap a Pokemon in Journal to view types and poses, or choose it as your
-partner. Each species keeps its XP and bond. Food, energy, berries, dirt
-and cooldowns are shared; switching does not refill them. You cannot
-switch during a trip or a nap.
-
-Profile shows evolution requirements: the listed XP and at least
-30 bond. Eevee has three Kanto choices. No trades or purchased stones
-are needed. Earlier forms remain available in the journal.
-
-ANIMATION
-
-All 160 species have Idle, Sleep, Walk and Attack. 33 also have Eat.
-Unavailable poses are disabled in the journal. Feeding uses Idle if Eat
-is absent. Persian and Arcanine have still Idle poses in the source.
-Eco uses two frames; Gentle uses up to four; Off disables animation.
-Only front-facing frames are included. Nothing animates between actions.
-Use More > Refresh screen if ghosting builds up.
-
-SAVES AND TROUBLESHOOTING
-
-The previous valid save is kept as pokepal.dat.old. If the main save is
-damaged, PokePal tries that copy. If both are unreadable, it stops and
-leaves them in place. Back them up before trying a repair.
-
-If KUAL cannot start the app, confirm the whole extension was copied,
-then read data/launch.log. For touch problems, include the exact model
-and firmware from Settings > Device Options > Device Info in your report.
-Physical touch, sleep and battery checks are still pending.
-
-Your partner does not die while you are away. No Wi-Fi is needed to play.
+Tap a journal entry to switch partners or view animations.
+More > Refresh screen clears a ghosted screen.
