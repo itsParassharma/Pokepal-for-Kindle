@@ -2,7 +2,25 @@
 
 Open PokePal once before you start reading. Return after a session to collect one berry and 3 XP for every 15 recorded minutes. Minutes from both readers add together, and unfinished quarters of an hour carry over. XP goes to your current partner, even while it is resting or exploring. Evolution still needs enough XP and bond.
 
-Use **More > Reading rewards** to see recorded time, check which sources are available or turn rewards off. Free daily berries are unchanged.
+Open **More > Reading rewards** to see recorded time, check which sources are available or turn rewards off. The daily berry basket is on the home screen.
+
+PokePal opens on your pet. **More > Reading rewards > Last visit** shows the minutes, rewards, expedition progress and egg progress collected on this visit. The recap may cover several reading sessions and stays available while PokePal is open.
+
+## Weekly goals
+
+Pick 60, 120 or 180 minutes under **More > Reading rewards > Weekly goal**. Reaching the target adds 5 berries and 10 XP once that week. You can change the target without losing progress or collecting a second bonus. There are no streaks or missed-day penalties.
+
+Weeks start on Monday using the Kindle's clock. Minutes count in the week you collect them, since the trackers do not provide reliable dates for every reading session. Starting a goal does not count earlier reading. Turning reading rewards off pauses goal progress too.
+
+## Trips and eggs
+
+Expeditions default to **On a timer**, which uses elapsed time. Choose **Explore > As you read** for a reading trip. Meadow takes 30 recorded minutes, Coast takes 120 and Moon Cave takes 240. Each keeps its usual energy cost, berries, XP and encounters. Trips already in progress keep their original timing.
+
+New trips have three stops: a berry patch at 25%, footprints at 50% and a campsite at 75%. They give 1 berry, 3 XP and up to 8 energy, respectively. Each stop pays once, including after reopening. Older trips finish with their original rewards.
+
+An egg costs three berries and hatches after 120 recorded minutes. You can carry one at a time, including while resting or exploring. The egg's Pokémon is chosen when you pick it up and saved, with first forms you have not met favoured. Tap **Hatch your egg** when it is ready. The hatchling joins your journal; your current partner and its progress stay with you.
+
+Only minutes recorded after starting the trip or picking up the egg count. The same minutes advance both and still earn the usual reading rewards. Turning rewards off pauses both reading goals. Extra minutes do not carry into the next egg or trip, but still count toward berries and XP. Nothing hatches or finishes a reading trip just because time has passed.
 
 ## Kindle's built-in reader
 
@@ -24,9 +42,13 @@ Time is saved after at least a minute accumulates and when reading pauses or clo
 
 Both editions use `/mnt/us/pokepal/`. `pokepal.dat` contains the game and credited counters; `pokepal.dat.reading` contains the KOReader total. Each has a previous snapshot ending in `.old`. Back up this folder as a unit.
 
-On first launch, PokePal copies the most recently used legacy save it finds. Original files remain in place. If KOReader lives in a custom folder, open its PokePal edition first to migrate that save. Separate old games are not merged. Install 1.0.5 in both readers before switching between them.
+On first launch, PokePal copies the most recently used legacy save it finds. Original files remain in place. If KOReader lives in a custom folder, open its PokePal edition first to migrate that save. Separate old games are not merged. Use matching versions in both readers before switching between them. Older builds cannot read saves containing eggs or reading trips, so back up the whole save folder before updating.
 
 A process lock prevents both game windows from writing the save at once. Damaged saves are recovered from their previous snapshot or left alone if neither copy is readable. Book names, text and annotations are not written to the reward ledger; it keeps filename hashes and counters. Nothing is uploaded.
+
+**More > Backups** saves the game and KOReader counter in one file, `pokepal.dat.backup`. Before a restore, the current pair is kept in `pokepal.dat.before-restore`. Preview either one before confirming. A damaged backup can fall back to its previous complete copy, which is labelled in the preview list.
+
+Restoring uses `pokepal.dat.restore` as a temporary record. If a write is interrupted, PokePal finishes the restore before loading a game on the next launch. KOReader leaves its pending reading time alone until that recovery finishes. If recovery cannot finish, the game stays closed and the files are kept. A backup on the Kindle does not protect against losing the device; copy the whole `pokepal` folder elsewhere too.
 
 ## Compatibility and validation
 

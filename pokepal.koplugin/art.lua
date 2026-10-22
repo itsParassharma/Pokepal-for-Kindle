@@ -1,6 +1,7 @@
 -- Native pixel drawings stay crisp at any screen size.
 local A={}
 A.icons={
+ egg={".....######.....","....#......#....","...#........#...","..#....##....#..","..#...####...#..",".#.....##.....#.",".#............#.","#..##..........#","#.####.........#","#..##.....##...#","#........####..#","#.........##...#",".#............#.",".#...##.......#.","..#..........#..","...##......##...",".....######....."},
  berry={"......##......",".....##.......","....#..###....","..##.##..##...",".##.......##..",".#..#......#..",".#.........#..",".##.......##..","..##.....##...","...#######...."},
  heart={".###...###.","#####.#####","###########",".#########.","..#######..","...#####...","....###....",".....#....."},
  flame={"......#.....",".....##.....","....###..#..","..#.######..",".##########.",".##########.",".####..####.","..##....##..","...##..##...","....####...."},
@@ -39,6 +40,106 @@ end
 function A.text(view,bb,text,x,y,pixel,color)
  text=text:upper();for i=1,#text do local glyph=A.glyphs[text:sub(i,i)]
   if glyph then A.draw(view,bb,glyph,x+(i-1)*6*pixel,y,pixel,color) end
+ end
+end
+function A.scene(v,bb,id,night,white,gray,light)
+ local function rect(x,y,w,h,c) v:rect(bb,x,y,w,h,c) end
+ local function icon(name,x,y,p,c) A.icon(v,bb,name,x,y,p,c) end
+ v:outline(bb,32,153,536,265);rect(33,154,534,263,white)
+ if id==6 then
+  rect(33,154,534,190,light);rect(33,344,534,73,white)
+  for _,x in ipairs({57,455}) do
+   v:outline(bb,x,184,88,140,gray)
+   for row=0,2 do
+    rect(x,225+row*44,88,3,gray)
+    for book=0,4 do rect(x+8+book*15,194+row*44,9,31,book%2==0 and gray or white) end
+   end
+  end
+  v:outline(bb,244,176,112,80,gray);rect(297,177,4,78,gray);rect(245,213,110,4,gray)
+  if night then icon("moon",263,184,2,gray) else icon("cloud",255,185,2,gray) end
+  rect(33,343,534,2,gray);rect(64,377,472,2,light);rect(90,408,422,2,light)
+ elseif id==3 then
+  rect(33,154,534,263,light)
+  for _,p in ipairs({{33,58,58},{91,37,32},{128,40,48},{445,45,48},{490,36,32},{526,41,65}}) do
+   rect(p[1],154,p[2],p[3],gray);rect(p[1]+8,154+p[3],p[2]-16,13,gray)
+  end
+  for _,x in ipairs({65,116,458,508}) do
+   rect(x,320,18,50,gray);rect(x+4,308,10,12,gray);rect(x-6,347,30,23,gray)
+   rect(x+4,321,3,28,white)
+  end
+  rect(33,377,534,40,white);rect(33,376,534,2,gray)
+  icon("clean",203,183,2,gray);icon("clean",369,201,2,gray)
+ else
+  if night then
+   icon("moon",491,174,3)
+   for _,p in ipairs({{86,191},{157,177},{391,189},{454,220}}) do rect(p[1],p[2],3,3) end
+  else
+   rect(493,175,25,25,gray);rect(485,183,41,9,gray)
+   icon("cloud",69,179,3,gray);icon("cloud",371,168,3,light)
+  end
+  if id==2 then
+   rect(33,274,534,102,light);rect(33,274,534,2,gray)
+   for row=0,2 do for col=0,5 do rect(45+col*87+(row%2)*12,295+row*26,44,2,gray) end end
+   rect(33,376,534,41,white);rect(33,374,534,2,gray)
+   for _,x in ipairs({64,104,483,527}) do rect(x,397,6,3,gray) end
+   icon("clean",91,383,2,gray)
+  elseif id==5 then
+   for _,x in ipairs({45,378}) do
+    for row=0,7 do rect(x+60-row*7,242+row*8,16+row*14,8,light) end
+   end
+   rect(33,310,534,107,white);rect(33,330,534,2,light)
+   for _,p in ipairs({{64,274},{464,261},{515,290}}) do icon("tree",p[1],p[2],3,gray);rect(p[1]+9,p[2]+14,15,3,white) end
+   for _,p in ipairs({{92,235},{159,221},{419,233},{534,248}}) do icon("clean",p[1],p[2],1,gray) end
+   for _,x in ipairs({116,472}) do rect(x,388,16,3,light);rect(x+9,403,12,3,light) end
+  else
+   rect(33,294,534,123,light);rect(33,289,89,5,light);rect(96,282,94,12,light)
+   rect(363,283,112,11,light);rect(469,288,98,6,light);rect(33,344,534,2,gray)
+   if id==4 then
+    for _,p in ipairs({{43,206,5},{102,232,4},{428,224,4},{490,204,5}}) do icon("tree",p[1],p[2],p[3],gray) end
+    rect(182,360,236,57,white);rect(212,345,176,15,white)
+   else
+    for _,p in ipairs({{57,261,3},{119,274,2},{459,253,3},{514,272,2}}) do icon("tree",p[1],p[2],p[3],gray) end
+   end
+   for _,p in ipairs({{61,385},{94,399},{494,384},{530,401}}) do rect(p[1],p[2],2,7,gray);rect(p[1]-3,p[2]+2,3,2,gray) end
+  end
+ end
+end
+function A.egg(v,bb,x,y,p,progress,white)
+ for row,line in ipairs(A.icons.egg) do
+  local first=line:find("#");local last=#line-line:reverse():find("#")+1
+  v:rect(bb,x+(first-1)*p,y+(row-1)*p,(last-first+1)*p,p,white)
+ end
+ A.icon(v,bb,"egg",x,y,p)
+ if progress>=0.5 then
+  v:rect(bb,x+5*p,y+6*p,p,3*p);v:rect(bb,x+6*p,y+8*p,2*p,p);v:rect(bb,x+7*p,y+9*p,p,3*p)
+ end
+ if progress>=0.75 then
+  v:rect(bb,x+10*p,y+3*p,p,3*p);v:rect(bb,x+9*p,y+5*p,p,2*p)
+ end
+end
+function A.decorate(v,bb,decor,white,gray,light)
+ if not decor then return end
+ if decor[1] then
+  v:rect(bb,184,391,68,20,gray);v:rect(bb,190,387,56,24,gray)
+  v:rect(bb,194,390,48,14,white);v:rect(bb,202,395,32,3,light)
+ end
+ if decor[2] then
+  v:rect(bb,508,368,24,32,gray);v:rect(bb,505,365,30,6)
+  v:rect(bb,518,334,4,31);v:rect(bb,503,340,15,9,gray);v:rect(bb,522,330,17,10,gray)
+  v:rect(bb,509,349,9,7,gray);v:rect(bb,522,344,13,7,gray)
+ end
+ if decor[3] then
+  v:rect(bb,478,398,26,4);v:rect(bb,489,295,4,103)
+  for row=0,5 do v:rect(bb,480-row,274+row*3,20+row*2,3,gray) end
+  v:rect(bb,476,292,30,3)
+ end
+ if decor[4] then
+  v:rect(bb,49,311,60,84,gray);v:rect(bb,53,315,52,76,white)
+  for row=0,1 do
+   v:rect(bb,53,348+row*39,52,4,gray)
+   for book=0,3 do v:rect(bb,58+book*11,319+row*39,7,29,book%2==0 and gray or light) end
+  end
+  v:rect(bb,51,395,6,7,gray);v:rect(bb,101,395,6,7,gray)
  end
 end
 return A

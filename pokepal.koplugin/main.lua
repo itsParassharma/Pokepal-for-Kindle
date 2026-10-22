@@ -14,6 +14,9 @@ function PokePal:init()
  self.clock=self.timer.new()
  self.savepath,self.path_error=self.storage.location(DataStorage:getSettingsDir().."/pokepal.dat",self.fs)
  if self.savepath then self.counterpath=self.savepath..".reading" end
+ if self.savepath then
+  self.backups=dofile(self.path.."/backups.lua").new(self.savepath,self.engine,self.reading,self.fs,ffiUtil.fsyncOpenedFile,ffiUtil.fsyncDirectory)
+ end
  self.View=dofile(self.path.."/view.lua")
  self.ui.menu:registerToMainMenu(self)
 end
@@ -26,27 +29,30 @@ function PokePal:openPet()
  self:pauseReading()
  local notice
  self.session,notice=self.storage.open(self.savepath,{DataStorage:getSettingsDir().."/pokepal.dat",
-  "/mnt/us/extensions/pokepal/data/pokepal.dat"},self.engine,self.fs)
+  "/mnt/us/extensions/pokepal/data/pokepal.dat"},self.engine,self.fs,function() return self.backups:recover() end)
  if not self.session then
   UIManager:show(InfoMessage:new{text="PokePal: "..notice});self:resumeReading()
   return
  end
  self.state=self.session.state or self.engine.new(os.time());notice=self.session.notice
- local reward=self:syncReading()
+ self:flushReading()
+ self.recap=nil
+ self:syncReading()
  self.engine.advance(self.state,os.time())
  if not self:save() then
   UIManager:show(InfoMessage:new{text="PokePal could not save. Check free space on the Kindle."})
   self:onPetClosed();return
  end
  self.view=self.View:new{owner=self,engine=self.engine,state=self.state,path=self.path}
- if reward or notice then self.view.message=reward or notice end
+ if notice then self.view.message=notice end
  UIManager:show(self.view,"full")
- if self.state.species~=0 and (self.state.trip==0 or os.time()>=self.state.due) then
+ if self.view.screen=="home" and self.state.species~=0 and self.engine.tripLeft(self.state,os.time())==0 then
   self.view:animate(self.state.resting and "ambient_sleep" or "ambient")
  end
 end
 function PokePal:flushReading()
  if not self.counterpath then return end
+ if self.fs.mode(self.savepath..".restore") then self.reading_error="Reopen PokePal to finish restoring.";return end
  local pending=self.clock.pending
  local unlock,err=self.fs.lock(self.counterpath..".session")
  if not unlock then self.reading_error=err;return end
@@ -89,7 +95,9 @@ function PokePal:syncReading()
  local counters,status=self.reading.scan("/mnt/us/documents",self.fs)
  local ko,err=self.reading.counter(self.counterpath)
  self.reading_status={status,(err or self.reading_error) and "KOReader: could not save reading time" or "KOReader: automatic tracking on"}
- return self.reading.collect(self.state,self.engine,counters,ko,os.time())
+ local message,recap=self.reading.collect(self.state,self.engine,counters,ko,os.time())
+ if recap then self.recap=recap end
+ return message
 end
 function PokePal:toggleReading()
  self:syncReading();self.state.reading.enabled=not self.state.reading.enabled
@@ -100,12 +108,11 @@ function PokePal:onPetClosed()
  self:resumeReading()
 end
 function PokePal:save()
+ if self.backups and self.backups.blocked then return nil,"Reopen PokePal to finish restoring." end
  if self.savepath and self.state then
   local ok,err=self.storage.save(self.savepath,self.state,self.engine,ffiUtil.fsyncOpenedFile,ffiUtil.fsyncDirectory)
-  if not ok then
-   if self.view then self.view.message="Save failed. Exit and check free storage." end
-   return nil,err
-  end
+  self.save_error=not ok
+  if not ok then return nil,err end
  end
  return true
 end

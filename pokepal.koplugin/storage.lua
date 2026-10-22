@@ -10,9 +10,18 @@ function S.encode(s)
  for _,k in ipairs(numeric) do lines[#lines+1]=k.."="..string.format("%.12g",s[k]) end
  lines[#lines+1]="resting="..tostring(s.resting)
  lines[#lines+1]="animation="..s.animation
+ for _,key in ipairs({"trail","background","finds"}) do
+  if s[key]~=nil then lines[#lines+1]=key.."="..string.format("%.0f",s[key]) end
+ end
+ if s.egg then lines[#lines+1]="egg="..s.egg.id..","..string.format("%.0f",s.egg.start) end
+ if s.week then
+  lines[#lines+1]=string.format("week=%.0f,%.0f,%.0f,%s",s.week.target,s.week.start,s.week.seconds,tostring(s.week.claimed))
+ end
+ for id=1,4 do if s.decor and s.decor[id]~=nil then lines[#lines+1]="decor="..id..","..tostring(s.decor[id]) end end
  local ids={};for id,v in pairs(s.seen) do if v then ids[#ids+1]=tonumber(id) end end;table.sort(ids)
  for _,id in ipairs(ids) do
   lines[#lines+1]="seen="..id
+  if s.nicknames and s.nicknames[tostring(id)] then lines[#lines+1]="nickname="..id..","..s.nicknames[tostring(id)] end
   local p=s.partners and s.partners[tostring(id)]
   if p then lines[#lines+1]="partner="..id..","..string.format("%.12g",p.xp)..","..string.format("%.12g",p.bond) end
  end
@@ -35,10 +44,23 @@ function S.decode(data,engine)
  for line in data:gmatch("[^\n]+") do
   local k,v=line:match("^([a-z]+)=(.*)$")
   if not k then return nil end
-  if numbers[k] or k=="resting" or k=="animation" then
+  if numbers[k] or k=="resting" or k=="animation" or k=="trail" or k=="background" or k=="egg" or k=="week" or k=="finds" then
    if used[k] then return nil end;used[k]=true
   end
   if numbers[k] then s[k]=tonumber(v)
+  elseif k=="trail" or k=="background" or k=="finds" then
+   if not v:match("^%d+$") then return nil end;s[k]=tonumber(v)
+  elseif k=="egg" then
+   local id,start=v:match("^(%d+),(%d+)$");if not id then return nil end
+   s.egg={id=tonumber(id),start=tonumber(start)}
+  elseif k=="week" then
+   local target,start,seconds,claimed=v:match("^(%d+),(%d+),(%d+),(%a+)$")
+   if claimed~="true" and claimed~="false" then return nil end
+   s.week={target=tonumber(target),start=tonumber(start),seconds=tonumber(seconds),claimed=claimed=="true"}
+  elseif k=="decor" then
+   local id,placed=v:match("^(%d+),(%a+)$");id=tonumber(id)
+   if not id or (placed~="true" and placed~="false") then return nil end
+   s.decor=s.decor or {};if s.decor[id]~=nil then return nil end;s.decor[id]=placed=="true"
   elseif k=="resting" then if v~="true" and v~="false" then return nil end;s.resting=v=="true"
   elseif k=="animation" then s.animation=v
   elseif k=="seen" then
@@ -49,6 +71,10 @@ function S.decode(data,engine)
    id=tostring(tonumber(id));s.partners=s.partners or {}
    if s.partners[id] then return nil end
    s.partners[id]={xp=tonumber(xp),bond=tonumber(bond)}
+  elseif k=="nickname" then
+   local id,name=v:match("^(%d+),(.+)$");if not id then return nil end
+   id=tostring(tonumber(id));s.nicknames=s.nicknames or {}
+   if s.nicknames[id] then return nil end;s.nicknames[id]=name
   elseif k=="reading" then
    if s.reading then return nil end
    local enabled,seconds,carry,at,ko,ready=v:match("^(%a+),(%d+),(%d+),(%d+),(%d+),(%a+)$")
@@ -107,9 +133,12 @@ function S.location(fallback,fs)
  end
  return fallback
 end
-function S.open(path,legacy,engine,fs)
+function S.open(path,legacy,engine,fs,recover)
  local unlock,err=fs.lock(path..".session")
  if not unlock then return nil,err end
+ if recover then
+  local ok;ok,err=recover();if not ok then unlock();return nil,err end
+ end
  local state,notice=S.load(path,engine)
  if not state and (notice or fs.mode(path) or fs.mode(path..".old")) then
   unlock();return nil,notice or "Could not read the save; existing files were left unchanged."

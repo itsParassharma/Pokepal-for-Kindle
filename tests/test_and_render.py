@@ -31,6 +31,9 @@ def listdir(path):
 g.host_fs=fs;g.host_listdir=listdir
 lua.execute((REPO/'tests'/'test_engine.lua').read_text())
 lua.execute((REPO/'tests'/'test_reading.lua').read_text())
+lua.execute((REPO/'tests'/'test_adventures.lua').read_text())
+lua.execute((REPO/'tests'/'test_companion.lua').read_text())
+lua.execute((REPO/'tests'/'test_backups.lua').read_text())
 
 sprite_index=json.loads((ROOT/'assets/sprite-index.json').read_text())
 def read_sprite(name):
@@ -153,6 +156,19 @@ check('eco uses both frames of a two-frame sleep pose',function()
 end)
 check('animation off queues nothing',function() v.state.animation='off';v:animate('play');assert(#U.queue==0) end)
 check('navigation cancels callbacks',function() v.state.animation='gentle';v:animate('play');v:go('journal');assert(#U.queue==0) end)
+check('navigation refreshes and saves elapsed trips and weekly goals once',function()
+ local real_time=os.time;local clock=1800000000;os.time=function() return clock end
+ local v=newView(4);dofile(BASE..'/reading.lua').init(v.state)
+ E.act(v.state,'trip',1,clock);E.act(v.state,'goal',3600,clock)
+ v.state.week.seconds=120;local week=v.state.week.start
+ clock=clock+900;v:go('explore')
+ assert(v.state.finds==2 and v.state.berries==7 and v.state.xp==3 and v.owner.saved==1)
+ v:go('home');assert(v.state.finds==2 and v.owner.saved==1)
+ clock=week+8*86400;v:go('weekly')
+ assert(v.state.week.seconds==0 and v.state.week.start>week and v.owner.saved==2)
+ local last=v.state.last;clock=clock-86400;v:go('home');assert(v.state.last==last and v.owner.saved==2)
+ v:leave();os.time=real_time
+end)
 check('suspend stops callbacks and saves once',function()
  v:animate('train');local before=v.owner.saved or 0;v:onSuspend();v:onSuspend()
  assert(#U.queue==0 and v.suspended and v.owner.saved==before+1)
@@ -168,8 +184,49 @@ check('exit cancels callbacks and detaches view',function()
  v:animate('play');v:leave();assert(#U.queue==0 and v.closed and not v.owner.view)
 end)
 check('touch controls dispatch at scaled coordinates',function()
- v=newView(25);v.state.animation='off';v:paintTo(bb,0,0)
- v:onTap(nil,{pos={x=70,y=612}});assert(v.state.berries==5)
+ for _,size in ipairs({{600,800},{1072,1448},{800,600}}) do
+  D.w=size[1];D.h=size[2];v=newView(25);v.state.animation='off'
+  tapButton(v,'feed',nil);assert(v.state.berries==5 and v.screen=='home');v:leave()
+ end
+ D.w=600;D.h=800
+end)
+check('home keeps the original pet controls and reading stays under More',function()
+ v=newView(4);v:paintTo(bb,0,0);local count=0
+ local actions={}
+ for _,b in ipairs(v.buttons) do
+  if b.y>=596 then count=count+1;actions[b.action=='nav' and b.arg or b.action]=true end
+ end
+ assert(count==9)
+ for _,action in ipairs({'feed','startplay','train','rest','explore','journal','clean','gift','more'}) do assert(actions[action],action) end
+ assert(not actions.reading and not actions.egg)
+ for _,screen in ipairs({'train','profile','explore','journal','more'}) do
+  tapButton(v,'nav',screen);assert(v.screen==screen);tapButton(v,'nav','home')
+ end
+ v:go('more');v:paintTo(bb,0,0);actions={}
+ for _,b in ipairs(v.buttons) do actions[b.action=='nav' and b.arg or b.action]=true end
+ for _,action in ipairs({'clean','gift','help','reading'}) do assert(actions[action],action) end
+ tapButton(v,'nav','reading');tapButton(v,'nav','egg');assert(v.screen=='egg')
+ v:go('home');v.state.resting=true;tapButton(v,'startplay',nil)
+ assert(v.screen=='home' and v.message:find('Wake up',1,true));v:leave()
+end)
+check('an away partner stays away when the scene or berry basket is tapped',function()
+ v=newView(4);dofile(BASE..'/reading.lua').init(v.state);v:act('readingtrip',1);U:drain()
+ v:paintTo(bb,0,0);v:onTap(nil,{pos={x=300,y=300}})
+ assert(v.screen=='explore' and #U.queue==0)
+ v:go('home');v:animate('hello');assert(not v.animating and #U.queue==0)
+ v.state.gift=os.time()-86400;v:go('more');tapButton(v,'gift',nil)
+ assert(v.state.berries==11 and not v.animating and #U.queue==0)
+ v:go('entry');v.detail_id=4;v.preview_pose='idle';v:animate('preview')
+ assert(U:drain()==2);v:leave()
+end)
+check('save failures persist across navigation and clear after a successful retry',function()
+ local P=dofile(BASE..'/main.lua');local reader=P:new{path=BASE,ui={menu={registerToMainMenu=function() end}}}
+ reader.savepath=TESTDIR..'/ui-save-error.dat';reader.counterpath=reader.savepath..'.reading';reader.backups.path=reader.savepath
+ reader:openPet();reader.view:stopAnimation();if reader.state.species==0 then reader.view:act('choose',4) end
+ local save=reader.storage.save;reader.storage.save=function() return nil,'Disk full' end
+ reader.view:go('more');tapButton(reader.view,'animation','off');assert(reader.save_error)
+ reader.view:go('home');reader.view:onSuspend();reader.view:onResume();assert(reader.save_error)
+ reader.storage.save=save;assert(reader:save() and not reader.save_error);reader.view:leave()
 end)
 check('starter browsing wraps and confirms every available partner',function()
  for index,id in ipairs(E.starters) do
@@ -276,6 +333,94 @@ check('failed KOReader counter promotion retains time for retry without duplicat
  R.saveCounter=real_save;reader:flushReading();assert(reader.clock.pending==0 and R.counter(reader.counterpath)==before+60)
  reader:flushReading();assert(R.counter(reader.counterpath)==before+60)
 end)
+check('reading trips and timer trips dispatch from the mode picker',function()
+ for _,mode in ipairs({'reading','timed'}) do
+  v=newView(4);dofile(BASE..'/reading.lua').init(v.state);v.state.animation='off';v:go('explore')
+  tapButton(v,'tripmode',mode);tapButton(v,mode=='reading' and 'readingtrip' or 'trip',1)
+  assert(v.state.trip==1 and (v.state.trail~=nil)==(mode=='reading'))
+  v:go('explore');tapButton(v,'collect',nil);assert(v.state.trips==0)
+  if mode=='reading' then E.readingReward(v.state,1800,os.time()) else v.state.due=os.time() end
+  v:go('explore');tapButton(v,'collect',nil);assert(v.state.trips==1)
+  v:leave()
+ end
+end)
+check('expeditions default to timed trips without requiring reading rewards',function()
+ v=newView(4);dofile(BASE..'/reading.lua').init(v.state);v.state.reading.enabled=false
+ v:go('explore');tapButton(v,'trip',1)
+ assert(v.state.trip==1 and v.state.trail==nil);v:leave()
+end)
+check('egg controls hatch into a preview and cannot claim twice',function()
+ v=newView(4);dofile(BASE..'/reading.lua').init(v.state);v:go('egg');tapButton(v,'egg',nil)
+ local id=v.state.egg.id;v:go('egg');assert(tapButton(v,'hatch',nil).disabled and v.state.egg)
+ E.readingReward(v.state,7200,os.time());tapButton(v,'hatch',nil)
+ assert(v.screen=='entry' and v.detail_id==id and v.state.species==4 and not v.state.egg)
+ assert(U:drain()==2);tapButton(v,'nav','journal');assert(not v.hatched)
+ v:go('egg');v:paintTo(bb,0,0)
+ for _,b in ipairs(v.buttons) do assert(b.action~='hatch') end
+ v:leave()
+end)
+check('background picker saves immediately without an animation timer',function()
+ v=newView(4);v:go('more');tapButton(v,'nav','backgrounds')
+ local saved=v.owner.saved or 0
+ for i=1,#E.backgrounds do
+  tapButton(v,'background',i);assert(v.state.background==i and v.screen=='backgrounds' and #U.queue==0)
+ end
+ assert(v.owner.saved==saved+6);v:leave()
+end)
+check('opening shows the pet and keeps reading recaps in their own menu',function()
+ local P=dofile(BASE..'/main.lua');local reader=P:new{path=BASE,ui={menu={registerToMainMenu=function() end}}}
+ reader:openPet();reader.view:leave()
+ reader.clock.pending=900;reader:openPet();assert(reader.view.screen=='home' and reader.recap.seconds==900)
+ assert(not reader.view.message:find('Reading:',1,true))
+ tapButton(reader.view,'nav','more');tapButton(reader.view,'nav','reading');tapButton(reader.view,'nav','recap')
+ assert(reader.view.screen=='recap' and #U.queue==0);tapButton(reader.view,'nav','home');reader.view:leave()
+ reader:openPet();assert(reader.view.screen=='home' and not reader.recap);reader.view:leave()
+end)
+check('weekly picker and decoration shop preserve progress and purchases',function()
+ v=newView(4);dofile(BASE..'/reading.lua').init(v.state);v:go('reading');tapButton(v,'nav','weekly')
+ tapButton(v,'goal',3600);E.readingReward(v.state,1800,os.time());tapButton(v,'goal',7200);assert(v.state.week.seconds==1800)
+ v.state.berries=20;v:go('more');tapButton(v,'nav','decorations');tapButton(v,'decorate',2)
+ assert(v.state.decor[2] and v.state.berries==12 and v.screen=='decorations')
+ tapButton(v,'decorate',2);tapButton(v,'decorate',2);assert(v.state.berries==12 and v.state.decor[2]);v:leave()
+end)
+check('nickname keyboard cancels edits, limits input and saves the chosen name',function()
+ v=newView(4);v:go('profile');tapButton(v,'nav','nickname');tapButton(v,'nickkey','E')
+ tapButton(v,'nickcase',nil);for letter in ('mber'):gmatch('.') do tapButton(v,'nickkey',letter) end
+ tapButton(v,'nav','profile');assert(E.displayName(v.state)=='Charmander')
+ tapButton(v,'nav','nickname');for i=1,14 do tapButton(v,'nickkey','W') end;assert(#v.nickname_text==12)
+ tapButton(v,'nickdelete',nil);assert(#v.nickname_text==11)
+ tapButton(v,'nicksave',nil);assert(E.displayName(v.state)==string.rep('W',11) and v.screen=='profile')
+ tapButton(v,'nav','nickname');tapButton(v,'nickclear',nil);tapButton(v,'nicksave',nil)
+ assert(E.displayName(v.state)=='Charmander');v:leave()
+end)
+check('home egg is a touch target and keeps its progress through navigation',function()
+ v=newView(4);dofile(BASE..'/reading.lua').init(v.state);E.act(v.state,'egg',nil,os.time())
+ E.readingReward(v.state,5400,os.time());v:paintTo(bb,0,0)
+ v:onTap(nil,{pos={x=440,y=375}});assert(v.screen=='egg' and E.eggLeft(v.state)==1800);v:leave()
+end)
+check('backup preview can be cancelled and restore preserves a way back',function()
+ v=newView(4);dofile(BASE..'/reading.lua').init(v.state)
+ local path=TESTDIR..'/ui-backup.dat';local R=dofile(BASE..'/reading.lua');assert(R.saveCounter(path..'.reading',0))
+ v.owner.backups=dofile(BASE..'/backups.lua').new(path,E,R,dofile(BASE..'/filesystem.lua'))
+ v:go('more');tapButton(v,'nav','backups');assert(tapButton(v,'previewbackup','backup').disabled)
+ tapButton(v,'makebackup',nil);v.state.berries=19
+ tapButton(v,'previewbackup','backup');assert(v.screen=='restore' and v.state.berries==19)
+ tapButton(v,'nav','backups');assert(v.state.berries==19)
+ tapButton(v,'previewbackup','backup');tapButton(v,'restorebackup',nil)
+ assert(v.screen=='home' and v.state.berries==6 and v.owner.backups:preview('before-restore').state.berries==19);v:leave()
+end)
+check('unfinished restore blocks gameplay, writes and tracking until recovery',function()
+ local P=dofile(BASE..'/main.lua');local reader=P:new{path=BASE,ui={menu={registerToMainMenu=function() end}}}
+ reader:openPet();reader.view:stopAnimation();reader.backups.blocked=true
+ local f=assert(io.open(reader.savepath..'.restore','wb'));f:write('interrupted restore');f:close()
+ local R=reader.reading;local before=R.counter(reader.counterpath);reader.clock.pending=60;reader:flushReading()
+ assert(reader.clock.pending==60 and R.counter(reader.counterpath)==before and not reader:save())
+ reader.view:go('backups');reader.view:paintTo(bb,0,0)
+ for _,b in ipairs(reader.view.buttons) do assert(b.action=='exit') end
+ local berries=reader.state.berries;reader.view:act('feed');assert(reader.state.berries==berries)
+ reader.view:onBack();assert(not reader.view)
+ os.remove(reader.savepath..'.restore');reader.backups.blocked=false;reader.clock.pending=0
+end)
 print('UI LIFECYCLE: '..checks..' checks passed (mock KOReader device APIs)')
 ''')
 
@@ -284,9 +429,10 @@ def paint(v,w=600,h=800):
 
 # Layout smoke tests execute every actual view at representative portrait/landscape sizes.
 for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
- for screen in ['welcome','home','sleep','explore','journal','history','more','profile','badges','play','train','help','reading']:
+ for screen in ['welcome','home','sleep','explore','journal','history','more','profile','badges','play','train','help','reading','egg','backgrounds','weekly','recap','decorations','nickname','backups']:
   v=g.newView(None if screen=='welcome' else 4)
   v.screen='home' if screen in ('welcome','sleep') else screen
+  if screen=='nickname':v.go(v,'nickname')
   if screen=='sleep':v.state.resting=True
   if screen=='play':v.startPlay(v)
   if screen=='journal':
@@ -294,9 +440,77 @@ for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
   if screen=='history':
    for i in range(24):g.E.note(v.state,f'Moment {i+1}',int(v.state.last))
   im=paint(v,w,h)
+  if screen=='home':
+   for label in ('Food ','Joy ','Energy ','Hygiene ','Bond '):assert any(text.startswith(label) for text in painted_text),label
+   assert not any('min read' in text or 'next berry' in text for text in painted_text)
   if (w,h)==(600,800):im.save(OUT/f'layout-{screen}.png')
   v.freeImages(v)
-print('LAYOUT: 52 screen/size combinations painted within bounds (desktop renderer)')
+print('LAYOUT: 80 screen/size combinations painted within bounds (desktop renderer)')
+
+# A save failure remains visible on every page, including pages with their own messages.
+for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
+ v=g.newView(4);v.owner.save_error=True
+ for screen in ('home','reading','profile','more','decorations','backgrounds','weekly','backups'):
+  v.go(v,screen);paint(v,w,h)
+  assert any(text.startswith('Not saved.') for text in painted_text),screen
+  assert not truncated,(screen,truncated)
+ v.freeImages(v)
+print('SAVE WARNINGS: visible without clipped text on 32 page/size combinations')
+
+# Reading goals at empty, growing, paused and ready states, including old timed trips.
+init_reading=lua.eval("function(s) return dofile(BASE..'/reading.lua').init(s) end")
+for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
+ for scenario in ('egg-empty','egg-growing','egg-ready','egg-paused','trip-reading','trip-ready','trip-paused','trip-timed'):
+  v=g.newView(4);init_reading(v.state);now=int(v.state.last)
+  if scenario.startswith('egg'):
+   if scenario!='egg-empty':
+    g.E.act(v.state,'egg',None,now);g.E.readingReward(v.state,7200 if scenario=='egg-ready' else 3600,now)
+   v.screen='egg'
+  else:
+   g.E.act(v.state,'trip' if scenario=='trip-timed' else 'readingtrip',1,now)
+   g.E.readingReward(v.state,1800 if scenario=='trip-ready' else 900,now);v.screen='explore'
+  if scenario.endswith('paused'):v.state.reading.enabled=False
+  im=paint(v,w,h);assert not truncated,(scenario,truncated)
+  if (w,h)==(600,800):im.save(OUT/f'{scenario}.png')
+  v.screen='home';paint(v,w,h);assert not truncated,(scenario,'home',truncated);v.freeImages(v)
+ for background in range(1,7):
+  for night in (False,True):
+   v=g.newView(4);v.state.background=background
+   lua.execute("real_date=os.date;os.date=function(format,t) if format=='%H' then return '"+('22' if night else '12')+"' end;return real_date(format,t) end")
+   im=paint(v,w,h);assert not truncated,(background,night,truncated)
+   if (w,h)==(600,800):im.save(OUT/f"background-{background}-{'night' if night else 'day'}.png")
+   lua.execute('os.date=real_date');v.freeImages(v)
+print('ADVENTURE LAYOUTS: 64 goal/home states and 48 day/night backgrounds checked')
+
+for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
+ v=g.newView(4);init_reading(v.state);now=int(v.state.last);v.state.berries=80
+ for item in range(1,5):g.E.act(v.state,'decorate',item,now)
+ g.E.act(v.state,'egg',None,now);g.E.act(v.state,'readingtrip',3,now);g.E.act(v.state,'goal',3600,now)
+ _,v.owner.recap=g.E.readingReward(v.state,3600,now)
+ for screen in ('recap','weekly','decorations'):
+  v.go(v,screen);im=paint(v,w,h);assert not truncated,(screen,truncated)
+  if (w,h)==(600,800):im.save(OUT/f'companion-{screen}.png')
+ v.go(v,'nickname');v.nickname_text='W'*12;im=paint(v,w,h);assert not truncated,('nickname',truncated)
+ if (w,h)==(600,800):
+  v.nickname_text='Ember';paint(v,w,h).save(OUT/'companion-nickname.png')
+ v.restore_preview=lua.table_from({'state':v.state,'at':now,'ko':0,'slot':'backup'});v.go(v,'restore')
+ im=paint(v,w,h);assert not truncated,('restore',truncated)
+ if (w,h)==(600,800):im.save(OUT/'companion-restore.png')
+ v.state.trip=0;v.state.trail=None;v.state.finds=None;v.state.background=6;v.go(v,'home')
+ im=paint(v,w,h);assert not truncated,('decorated home',truncated)
+ if (w,h)==(600,800):im.save(OUT/'companion-home.png')
+ v.state.xp=270;v.state.bond=24;v.go(v,'profile');im=paint(v,w,h);assert not truncated,('evolution',truncated)
+ if (w,h)==(600,800):im.save(OUT/'companion-evolution.png')
+ R=lua.execute("return dofile(BASE..'/reading.lua')");F=lua.execute("return dofile(BASE..'/filesystem.lua')")
+ B=lua.execute("return dofile(BASE..'/backups.lua')")
+ v.owner.backups=B.new(g.TESTDIR+f'/render-backup-{w}.dat',g.E,R,F)
+ ok,error=v.owner.backups.create(v.owner.backups,v.state);assert ok,error
+ preview=v.owner.backups.preview(v.owner.backups,'backup');v.state.xp+=1
+ ok,error=v.owner.backups.restore(v.owner.backups,v.state,preview);assert ok,error
+ v.go(v,'backups');im=paint(v,w,h);assert not truncated,('backups',truncated)
+ if (w,h)==(600,800):im.save(OUT/'companion-backups.png')
+ v.freeImages(v)
+print('COMPANION LAYOUTS: 32 recap, goal, decor, keyboard, backup, restore, home and evolution layouts checked')
 
 # Assert visible species, lineage and text, not just that drawing does not crash.
 families=[(1,2,3),(4,5,6),(7,8,9),(25,26),(133,),

@@ -99,7 +99,7 @@ function R.scan(root,fs)
 end
 function R.init(s)
  s.reading=s.reading or {enabled=true,seconds=0,carry=0,kindle_at=0,kindle={},ko=0,ko_ready=false}
- s.version=2
+ s.version=math.max(s.version,2)
  return s.reading
 end
 function R.collect(s,engine,counters,ko,now)

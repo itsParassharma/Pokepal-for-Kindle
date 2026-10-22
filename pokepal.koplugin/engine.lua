@@ -29,6 +29,12 @@ E.routes = {
  {name="Coast", seconds=7200, energy=20, berries=5, xp=22, pool={54,129,131,147}},
  {name="Moon Cave", seconds=14400, energy=28, berries=8, xp=35, pool={35,41,74,147}},
 }
+E.backgrounds={"Meadow","Coast","Moon Cave","Forest","Snowfield","Reading nook"}
+E.egg_seconds=7200
+E.egg_cost=3
+E.weekly_targets={3600,7200,10800}
+E.decorations={{name="Cushion",cost=5},{name="Plant",cost=8},{name="Lamp",cost=10},{name="Bookshelf",cost=12}}
+E.discoveries={{name="Berry patch",detail="Find 1 berry"},{name="Footprints",detail="Follow a new trail for 3 XP"},{name="Campsite",detail="Rest for 8 energy"}}
 -- Keep old route IDs and durations so expeditions from older saves finish normally.
 for _,route in ipairs(E.routes) do route.pool={} end
 for id=1,160 do
@@ -41,7 +47,27 @@ function E.kantoCount(s)
  local n=0;for id=1,151 do if s.seen[tostring(id)] then n=n+1 end end;return n
 end
 local function clamp(n, lo, hi) return math.max(lo, math.min(hi,n)) end
+local function integer(n,max) return type(n)=="number" and n==n and n>=0 and n<=max and n%1==0 end
 function E.name(id) return E.species[id] and E.species[id][1] or "Egg" end
+function E.displayName(s,id)
+ id=id or s.species
+ return s.nicknames and s.nicknames[tostring(id)] or E.name(id)
+end
+function E.validNickname(name)
+ return type(name)=="string" and #name>0 and #name<=12 and name:match("^[A-Za-z0-9 '%-]+$")
+  and name:match("^%S") and name:match("%S$")
+end
+function E.reaction(s)
+ local name=E.displayName(s)
+ if s.resting then return name.." is curled up for a nap." end
+ if s.food<40 then return name.." keeps looking at the berry basket." end
+ if s.energy<20 then return name.." lets out a long yawn." end
+ if s.dirt>70 then return name.." has tracked mud into the nest." end
+ if s.joy<40 then return name.." nudges a ball toward you." end
+ if s.bond>=80 then return name.." settles in beside you." end
+ if s.bond>=30 then return name.." perks up when you come back." end
+ return name.." looks happy to see you."
+end
 function E.level(s) return math.min(100,1+math.floor(s.xp/20)) end
 function E.evolutionChoices(id)
  if E.evolution_branches[id] then return E.evolution_branches[id] end
@@ -61,7 +87,7 @@ function E.evolutionLine(id)
  return line
 end
 function E.mood(s,now)
- if s.trip>0 then return now>=s.due and "Home from an adventure" or "Exploring the world" end
+ if s.trip>0 then return E.tripLeft(s,now)==0 and "Home from an adventure" or "Exploring the world" end
  if s.resting then return "Taking a nap" end
  if s.food<40 then return "A little hungry" end
  if s.energy<20 then return "Ready for a nap" end
@@ -104,7 +130,7 @@ function E.new(now)
   seed=now % 2147483646 + 1, resting=false, care=0, started=now}
 end
 function E.valid(s)
- if type(s)~="table" or (s.version~=1 and s.version~=2) then return false end
+ if type(s)~="table" or (s.version~=1 and s.version~=2 and s.version~=3) then return false end
  for _,k in ipairs({"species","food","joy","energy","bond","xp","berries","last","gift","trained","played","cleaned","dirt","trip","due","trips","seed","care","started"}) do
   local n=s[k]; if type(n)~="number" or n~=n or n<0 or n>1e12 then return false end
  end
@@ -137,7 +163,72 @@ function E.valid(s)
     or type(n)~="number" or n~=n or n<0 or n>1e12 or n%1~=0 then return false end
   end
  end
+ local function readingStart(n)
+  return type(n)=="number" and n==n and n>=0 and n%1==0 and s.reading and n<=s.reading.seconds
+ end
+ if s.trail~=nil and (s.trip==0 or s.due~=0 or not readingStart(s.trail)) then return false end
+ if s.egg~=nil then
+  if type(s.egg)~="table" or not E.species[s.egg.id] or parentOf(s.egg.id) or not readingStart(s.egg.start) then return false end
+ end
+ if s.background~=nil and not E.backgrounds[s.background] then return false end
+ if s.week~=nil then
+  local w=s.week
+  if type(w)~="table" or (w.target~=3600 and w.target~=7200 and w.target~=10800)
+   or not integer(w.start,1e12) or not integer(w.seconds,1e12) or type(w.claimed)~="boolean" then return false end
+ end
+ if s.decor~=nil then
+  if type(s.decor)~="table" then return false end
+  for id,placed in pairs(s.decor) do if not E.decorations[id] or type(placed)~="boolean" then return false end end
+ end
+ if s.finds~=nil and (s.trip==0 or not integer(s.finds,3)) then return false end
+ if s.nicknames~=nil then
+  if type(s.nicknames)~="table" then return false end
+  for id,name in pairs(s.nicknames) do
+   if type(id)~="string" or not E.species[tonumber(id)] or not s.seen[id] or not E.validNickname(name) then return false end
+  end
+ end
  return type(s.resting)=="boolean"
+end
+function E.weekStart(now)
+ local d=os.date("*t",now)
+ return os.time{year=d.year,month=d.month,day=d.day-(d.wday+5)%7,hour=0,min=0,sec=0}
+end
+function E.updateWeek(s,now)
+ if s.week then
+  local start=E.weekStart(now)
+  if start>s.week.start then s.week.start=start;s.week.seconds=0;s.week.claimed=false end
+ end
+end
+function E.weekReward(s,now)
+ local w=s.week
+ if not w or w.claimed or w.seconds<w.target or s.species==0 then return end
+ w.claimed=true
+ local berries=math.min(5,999-s.berries);local xp=math.min(10,1e12-s.xp)
+ s.berries=s.berries+berries;s.xp=s.xp+xp
+ E.note(s,"Weekly goal met! +"..berries.." berries, +"..xp.." XP.",now)
+end
+function E.tripLeft(s,now)
+ if s.trip==0 then return 0 end
+ if s.trail~=nil then return math.max(0,E.routes[s.trip].seconds-(s.reading.seconds-s.trail)) end
+ return clamp(s.due-now,0,E.routes[s.trip].seconds)
+end
+function E.eggLeft(s)
+ if not s.egg then return E.egg_seconds end
+ return math.max(0,E.egg_seconds-(s.reading.seconds-s.egg.start))
+end
+function E.discover(s,now)
+ if s.trip==0 or s.finds==nil then return end
+ local total=E.routes[s.trip].seconds
+ local reached=math.min(3,math.floor(4*(total-E.tripLeft(s,now))/total))
+ local events={}
+ while s.finds<reached do
+  s.finds=s.finds+1;local id=s.finds;local item=E.discoveries[id];local reward
+  if id==1 then local n=math.min(1,999-s.berries);s.berries=s.berries+n;reward="+"..n.." berry."
+  elseif id==2 then local n=math.min(3,1e12-s.xp);s.xp=s.xp+n;reward="+"..n.." XP."
+  else local n=math.min(8,100-s.energy);s.energy=s.energy+n;reward="+"..math.floor(n).." energy." end
+  E.note(s,item.name..": "..reward,now);events[#events+1]=item.name
+ end
+ if #events>0 then E.badges(s,now);return events end
 end
 function E.note(s,text,now)
  if now then text=os.date("%d %b %H:%M",now).." | "..text end
@@ -146,8 +237,9 @@ function E.note(s,text,now)
  return text
 end
 function E.advance(s,now)
+ E.updateWeek(s,now)
  -- Keep a high-water mark if the clock moves backwards. No duplicated rewards.
- if now<=s.last then return end
+ if now<=s.last then E.discover(s,now);return end
  local hours=math.min((now-s.last)/3600,72)
  if s.species~=0 then
   s.food=clamp(s.food-hours*(s.resting and 1 or 2),15,100)
@@ -156,6 +248,7 @@ function E.advance(s,now)
   s.dirt=clamp(s.dirt+hours*1.3,0,100)
  end
  s.last=now
+ E.discover(s,now)
 end
 local function rng(s,n)
  s.seed=(s.seed*48271)%2147483647
@@ -178,14 +271,26 @@ function E.readingReward(s,seconds,now)
  local r=s.reading;if not r or not r.enabled then return nil end
  if type(seconds)~="number" or seconds~=seconds or seconds<0 or seconds>1e12 then return nil end
  seconds=math.floor(seconds)
+ E.updateWeek(s,now)
+ local old_berries,old_xp=s.berries,s.xp
+ local trip_before=s.trip>0 and E.routes[s.trip].seconds-E.tripLeft(s,s.trail~=nil and now or s.last) or 0
+ local egg_before=s.egg and E.egg_seconds-E.eggLeft(s) or 0
  r.seconds=math.min(1e12,r.seconds+seconds);r.carry=math.min(1e12,r.carry+seconds)
  if s.species==0 then return nil end
- local rewards=math.floor(r.carry/900);if rewards==0 then return nil end
+ local rewards=math.floor(r.carry/900)
  r.carry=r.carry%900
  local berries=math.min(rewards,999-s.berries)
  s.berries=s.berries+berries;s.xp=math.min(1e12,s.xp+rewards*3)
- local message="Reading: +"..berries..(berries==1 and " berry" or " berries")..", +"..(rewards*3).." XP."
- E.note(s,message,now);E.badges(s,now);return message
+ local claimed=s.week and s.week.claimed
+ if s.week then s.week.seconds=math.min(1e12,s.week.seconds+seconds);E.weekReward(s,now) end
+ local events=E.discover(s,now)
+ local earned_berries,earned_xp=s.berries-old_berries,s.xp-old_xp
+ local recap=seconds>0 and {seconds=seconds,berries=earned_berries,xp=earned_xp,events=events,weekly=s.week and s.week.claimed and not claimed,
+  route=s.trip,trip_before=trip_before,trip_after=s.trip>0 and E.routes[s.trip].seconds-E.tripLeft(s,now) or 0,
+  egg=s.egg~=nil,egg_before=egg_before,egg_after=s.egg and E.egg_seconds-E.eggLeft(s) or 0} or nil
+ if earned_berries==0 and earned_xp==0 then return nil,recap end
+ local message="Reading: +"..earned_berries..(earned_berries==1 and " berry" or " berries")..", +"..earned_xp.." XP."
+ E.note(s,message,now);E.badges(s,now);return message,recap
 end
 function E.act(s,action,arg,now)
  E.advance(s,now)
@@ -203,25 +308,71 @@ function E.act(s,action,arg,now)
   if arg=="gentle" or arg=="eco" or arg=="off" then s.animation=arg end
   return "Animation: "..s.animation
  end
+ if action=="background" then
+  if E.backgrounds[arg] then s.background=arg;s.version=3 end
+  return "Background: "..E.backgrounds[s.background or 1]
+ end
  if s.species==0 then return "Choose your first partner." end
- if action=="check" then
-  if s.trip>0 and now>=s.due then return "Your partner is back! Tap Explore to collect." end
-  if s.resting then return "Resting peacefully. Energy recovers while you read." end
-  return E.name(s.species)..(s.food<40 and " would love a berry." or " is happy to see you.")
+ if action=="nickname" then
+  if type(arg)~="string" then return "Choose a nickname of up to 12 characters." end
+  local name=arg:gsub("^%s+",""):gsub("%s+$","")
+  if name~="" and not E.validNickname(name) then return "Use up to 12 letters, numbers or spaces." end
+  s.nicknames=s.nicknames or {};s.nicknames[tostring(s.species)]=name~="" and name or nil;s.version=3
+  return done(name~="" and "You named your partner "..name.."." or "Back to "..E.name(s.species)..".")
+ elseif action=="decorate" then
+  local item=E.decorations[arg];if not item then return "Choose something for your space." end
+  s.decor=s.decor or {}
+  if s.decor[arg]==nil then
+   if s.berries<item.cost then return "You need "..item.cost.." berries for the "..item.name:lower().."." end
+   s.berries=s.berries-item.cost;s.decor[arg]=true;s.version=3
+   return done("A new "..item.name:lower().." for your space.")
+  end
+  s.decor[arg]=not s.decor[arg]
+  return s.decor[arg] and item.name.." placed." or item.name.." tucked away."
+ elseif action=="goal" then
+  if arg~=3600 and arg~=7200 and arg~=10800 then return "Choose 60, 120 or 180 minutes." end
+  s.week=s.week or {start=E.weekStart(now),seconds=0,claimed=false};s.week.target=arg;s.version=3
+  E.weekReward(s,now)
+  return done("Weekly goal: "..arg/60 .." minutes. Pick up your book when you feel like it.")
+ elseif action=="check" then
+  if s.egg and E.eggLeft(s)==0 then return "Your egg is ready! Tap it to meet your new friend." end
+  if s.trip>0 and E.tripLeft(s,now)==0 then return "Your partner is back! Tap Explore to collect." end
+  if s.trip>0 then return E.displayName(s).." is exploring "..E.routes[s.trip].name.."." end
+  return E.reaction(s)
  elseif action=="gift" then
   if now-s.gift<86400 then return "The berry basket refills every 24 hours." end
   s.gift=now;s.berries=math.min(999,s.berries+5)
   return done("The berry basket has 5 fresh berries!","feed")
+ elseif action=="egg" then
+  if s.egg then return "You already have an egg to look after." end
+  if not s.reading or not s.reading.enabled then return "Turn on reading rewards to raise an egg." end
+  if s.berries<E.egg_cost then return "An egg costs "..E.egg_cost.." berries." end
+  local pool,all={},{}
+  for id=1,160 do
+   if not parentOf(id) then
+    all[#all+1]=id;if not s.seen[tostring(id)] then pool[#pool+1]=id end
+   end
+  end
+  if #pool==0 then pool=all end
+  s.egg={id=pool[rng(s,#pool)],start=s.reading.seconds};s.version=3;s.berries=s.berries-E.egg_cost
+  return done("An egg for your next chapters. Read for 120 minutes to hatch it.")
+ elseif action=="hatch" then
+  if not s.egg then return "Pick up an egg first." end
+  if E.eggLeft(s)>0 then return "Your egg needs "..math.ceil(E.eggLeft(s)/60).." more reading minutes." end
+  local id=s.egg.id;s.seen[tostring(id)]=true;s.egg=nil
+  return done(E.name(id).." hatched! Find your new friend in the journal.")
  elseif action=="collect" then
   if s.trip==0 then return "Pick a trail to explore." end
-  if now<s.due then return "Still exploring. Come back in "..math.ceil((s.due-now)/60).." min." end
+  local left=E.tripLeft(s,now)
+  if left>0 then return s.trail~=nil and "Read for "..math.ceil(left/60).." more minutes to finish this trail."
+   or "Still exploring. Come back in "..math.ceil(left/60).." min." end
   local r=E.routes[s.trip];local pool={}
   for _,id in ipairs(r.pool) do if not s.seen[tostring(id)] then pool[#pool+1]=id end end
   if #pool==0 then pool=r.pool end
   local id=pool[rng(s,#pool)]
   local fresh=not s.seen[tostring(id)];s.seen[tostring(id)]=true
   s.berries=math.min(999,s.berries+r.berries);s.xp=s.xp+r.xp;s.bond=clamp(s.bond+4,0,100)
-  s.trips=s.trips+1;s.trip=0;s.due=0
+  s.trips=s.trips+1;s.trip=0;s.due=0;s.trail=nil;s.finds=nil
   return done((fresh and "New: " or "Met ")..E.name(id).."! +"..r.berries.." berries, +"..r.xp.." XP.","explore")
  end
  if s.trip>0 then return "Your partner is exploring. Tap Explore for details." end
@@ -260,11 +411,16 @@ function E.act(s,action,arg,now)
   if s.dirt<15 then return "Already squeaky clean." end
   s.dirt=0;s.joy=clamp(s.joy+8,0,100);s.bond=clamp(s.bond+2,0,100);s.care=s.care+1;s.cleaned=now
   return done("Nest cleaned.","clean")
- elseif action=="trip" then
+ elseif action=="trip" or action=="readingtrip" then
   local r=E.routes[arg];if not r then return "Choose a trail." end
+  if action=="readingtrip" and (not s.reading or not s.reading.enabled) then return "Turn on reading rewards to start a reading trail." end
   if s.energy<r.energy then return "This trail needs "..r.energy.." energy." end
   if s.food<30 then return "Feed your partner before setting off." end
-  s.energy=s.energy-r.energy;s.trip=arg;s.due=now+r.seconds
+  s.energy=s.energy-r.energy;s.trip=arg;s.due=now+r.seconds;s.finds=0;s.version=3
+  if action=="readingtrip" then
+   s.trail=s.reading.seconds;s.due=0;s.version=3
+   return done("Off to "..r.name.."! Read for "..r.seconds/60 .." minutes to finish.","explore")
+  end
   return done("Off to "..r.name.."! Return in "..r.seconds/60 .." min.","explore")
  elseif action=="evolve" then
   if not E.ready(s) then return "Evolution needs enough XP and at least 30 bond." end
@@ -275,6 +431,9 @@ function E.act(s,action,arg,now)
   s.partners=s.partners or {};s.partners[tostring(s.species)]={xp=s.xp,bond=s.bond}
   local previous=s.partners[tostring(id)]
   if previous then s.xp=math.max(s.xp,previous.xp);s.bond=math.max(s.bond,previous.bond) end
+  if s.nicknames and s.nicknames[tostring(s.species)] and not s.nicknames[tostring(id)] then
+   s.nicknames[tostring(id)]=s.nicknames[tostring(s.species)]
+  end
   s.species=id;s.seen[tostring(id)]=true
   return done("Your partner evolved into "..E.name(id).."!","evolve")
  end

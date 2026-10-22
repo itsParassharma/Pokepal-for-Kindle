@@ -12,6 +12,10 @@ local View=InputContainer:extend{covers_fullscreen=true,modal=true}
 local BLACK,WHITE,GRAY,LIGHT=BB.COLOR_BLACK,BB.COLOR_WHITE,BB.Color8(170),BB.Color8(238)
 local function round(n) return math.floor(n+0.5) end
 local function minutes(n) return math.max(0,math.ceil(n/60)) end
+local function savedDate(at)
+ local ok,date=pcall(os.date,"%d %b %Y, %H:%M",at)
+ return ok and date or "Date unavailable"
+end
 local function readyLabel(label,remaining)
  if remaining<=0 then return label end
  if remaining>=3600 then return label.." "..math.ceil(remaining/3600).."h" end
@@ -84,6 +88,10 @@ function View:button(bb,label,x,y,w,h,action,arg,icon,disabled,selected)
  else self:text(bb,label,x+6,y+round((h-21)/2),18,w-12,selected,true) end
  self.buttons[#self.buttons+1]={x=x,y=y,w=w,h=h,action=action,arg=arg,disabled=disabled}
 end
+function View:progress(bb,x,y,w,value,total)
+ self:outline(bb,x,y,w,12,GRAY)
+ self:rect(bb,x+2,y+2,math.floor((w-4)*math.max(0,math.min(1,value/total))),8)
+end
 function View:sprite(bb,id,x,y,size,frame,pose)
  local pose_list=self.poses[id]
  if pose and (not pose_list or not pose_list[pose]) then pose=pose_list and "idle" or nil end
@@ -118,6 +126,7 @@ end
 function View:animate(effect,previous)
  self:stopAnimation()
  if not effect or self.state.animation=="off" or self.suspended or Device.screen_saver_mode then return end
+ if self.screen=="home" and self.engine.tripLeft(self.state,os.time())>0 and effect~="explore" then return end
  self.effect=effect;self.previous_species=previous;self.animating=true;self.step=1;self.frame=1
  local pose=self:poseFor(effect)
  local count=pose and self.poses[self:animationSpecies()][pose] or self.frames[self:animationSpecies()] or 1
@@ -127,12 +136,23 @@ function View:animate(effect,previous)
  UIManager:scheduleIn(self.interval,self.tick)
 end
 function View:go(screen)
- self:stopAnimation();self:freeImages();self.screen=screen;self.page=1;UIManager:setDirty(self,"ui")
+ self:stopAnimation();self:freeImages();self.screen=screen;self.page=1;self.hatched=nil;UIManager:setDirty(self,"ui")
+ local now=os.time()
+ if now>self.state.last and not (self.owner.backups and self.owner.backups.blocked) then
+  self.engine.advance(self.state,now);self.owner:save()
+ end
+ if screen=="nickname" then self.nickname_text=self.state.nicknames and self.state.nicknames[tostring(self.state.species)] or "";self.uppercase=true end
+ if screen=="backups" then self:loadBackups() end
 end
 function View:act(action,arg)
+ if self.owner.backups and self.owner.backups.blocked then return end
  local previous=self.state.species
+ local hatching=action=="hatch" and self.state.egg and self.state.egg.id
  self.message,self.next_effect=self.engine.act(self.state,action,arg,os.time())
  self.owner:save();self:freeImages();self.screen="home"
+ if hatching and not self.state.egg then
+  self.screen="entry";self.detail_id=hatching;self.preview_pose="idle";self.hatched=hatching;self.next_effect="hello"
+ end
  self:animate(self.next_effect,self.next_effect=="evolve" and previous or nil)
  self.action_count=self.action_count+1;UIManager:setDirty(self,self.action_count%12==0 and "flashui" or "ui")
 end
@@ -153,7 +173,18 @@ function View:paintTo(bb,x,y)
  elseif self.screen=="train" then self:paintTrain(bb)
  elseif self.screen=="help" then self:paintHelp(bb)
  elseif self.screen=="reading" then self:paintReading(bb)
+ elseif self.screen=="egg" then self:paintEgg(bb)
+ elseif self.screen=="backgrounds" then self:paintBackgrounds(bb)
+ elseif self.screen=="recap" then self:paintRecap(bb)
+ elseif self.screen=="weekly" then self:paintWeekly(bb)
+ elseif self.screen=="decorations" then self:paintDecorations(bb)
+ elseif self.screen=="nickname" then self:paintNickname(bb)
+ elseif self.screen=="backups" then self:paintBackups(bb)
+ elseif self.screen=="restore" then self:paintRestore(bb)
  else self:paintMore(bb) end
+ if self.owner.save_error and not (self.owner.backups and self.owner.backups.blocked) then
+  self:text(bb,"Not saved. Check free storage, then try again.",32,774,16,536,true,true)
+ end
 end
 function View:paintWelcome(bb)
  local id=self.engine.starters[self.starter_index]
@@ -165,32 +196,22 @@ function View:paintWelcome(bb)
  self:button(bb,"Next",308,602,232,48,"starter",1)
  self:button(bb,"Start with "..self.engine.name(id),60,670,480,62,"choose",id,"heart")
 end
-function View:landscape(bb)
- self:outline(bb,32,153,536,265);self:rect(bb,33,154,534,263,WHITE)
+function View:landscape(bb,background)
  local hour=tonumber(os.date("%H"));local night=hour<7 or hour>=19
- if night then
-  self.art.icon(self,bb,"moon",491,174,3)
-  for _,p in ipairs({{86,191},{157,177},{391,189},{454,220}}) do self:rect(bb,p[1],p[2],3,3) end
- else
-  self:rect(bb,493,175,25,25,GRAY);self:rect(bb,485,183,41,9,GRAY)
-  self.art.icon(self,bb,"cloud",69,179,3,LIGHT);self.art.icon(self,bb,"cloud",371,168,3,LIGHT)
- end
- self:rect(bb,33,294,534,123,LIGHT)
- self:rect(bb,33,289,89,5,LIGHT);self:rect(bb,96,282,94,12,LIGHT)
- self:rect(bb,363,283,112,11,LIGHT);self:rect(bb,469,288,98,6,LIGHT);self:rect(bb,33,344,534,2,GRAY)
- for _,p in ipairs({{57,261,3},{119,274,2},{459,253,3},{514,272,2}}) do self.art.icon(self,bb,"tree",p[1],p[2],p[3],GRAY) end
- for _,p in ipairs({{61,385},{94,399},{494,384},{530,401}}) do
-  self:rect(bb,p[1],p[2],2,7,GRAY);self:rect(bb,p[1]-3,p[2]+2,3,2,GRAY)
- end
- if self.state.dirt>=15 then self.art.icon(self,bb,"poop",122,381,2,BB.Color8(85)) end
+ self.art.scene(self,bb,background or self.state.background or 1,night,WHITE,GRAY,LIGHT)
+ self.art.decorate(self,bb,self.state.decor,WHITE,GRAY,LIGHT)
+ if self.screen=="home" and self.state.dirt>=15 then self.art.icon(self,bb,"poop",122,381,2,BB.Color8(85)) end
 end
 function View:paintHome(bb)
  local s=self.state;local now=os.time()
- self:text(bb,self.engine.name(s.species),32,94,27,395,true);self:text(bb,"Lv "..self.engine.level(s),438,94,25,130,true,true)
+ self:text(bb,self.engine.displayName(s),32,94,27,395,true);self:text(bb,"Lv "..self.engine.level(s),438,94,25,130,true,true)
  self:text(bb,self.engine.mood(s,now),32,124,17,536,false,true);self:landscape(bb)
- if s.trip>0 and now<s.due and not self.animating then
-  self.art.icon(self,bb,"boot",270,258,6);self:text(bb,self.engine.routes[s.trip].name,169,345,20,263,true,true)
-  self:text(bb,minutes(s.due-now).." min until home",169,377,17,263,false,true)
+ local left=self.engine.tripLeft(s,now)
+ if s.trip>0 and left>0 and not self.animating then
+  self:rect(bb,157,236,286,169,WHITE)
+  self.art.icon(self,bb,"boot",270,247,6);self:text(bb,self.engine.routes[s.trip].name,169,310,20,263,true,true)
+  self:text(bb,minutes(left)..(s.trail~=nil and " min of reading left" or " min until home"),169,343,17,263,false,true)
+  self:progress(bb,181,381,238,self.engine.routes[s.trip].seconds-left,self.engine.routes[s.trip].seconds)
  else
   local size=192;local id=s.species
   for i,member in ipairs(self.engine.evolutionLine(id)) do if member==id then size=176+i*16 end end
@@ -200,6 +221,10 @@ function View:paintHome(bb)
   local pose=self.animating and self:poseFor(self.effect) or self:poseFor(nil)
   self:sprite(bb,id,(600-size)/2,414-size+dy,size,self.frame,pose)
   if self.animating and self.effect~="ambient" and self.effect~="ambient_sleep" then self:paintEffect(bb) end
+ end
+ if s.egg then
+  self.art.egg(self,bb,422,353,3,1-self.engine.eggLeft(s)/self.engine.egg_seconds,WHITE)
+  self.buttons[#self.buttons+1]={x=416,y=344,w=60,h=67,action="nav",arg="egg"}
  end
  self:wrapped(bb,self.message,433)
  local stats={{"Food",s.food},{"Joy",s.joy},{"Energy",s.energy},{"Hygiene",100-s.dirt}}
@@ -211,10 +236,10 @@ function View:paintHome(bb)
  self:text(bb,self.engine.ready(s) and "Evolution is ready!" or "Bond "..math.floor(s.bond).." / 100   |   "..s.xp.." XP",32,559,17,350)
  self:button(bb,"Profile",431,547,137,36,"nav","profile")
  local buttons={{"Feed","feed",nil,"berry"},{readyLabel("Play",s.played+1800-now),"startplay",nil,"ball"},{readyLabel("Train",s.trained+3600-now),"nav","train","ball"},
-  {s.resting and "Wake" or "Rest","rest",nil,"moon"},{"Explore","nav","explore","boot"},{"Journal","nav","journal","book"},
+  {s.resting and "Wake" or "Rest","rest",nil,"moon"},{s.trip>0 and left==0 and "Collect!" or "Explore","nav","explore","boot"},{"Journal","nav","journal","book"},
   {"Clean","clean",nil,"clean"},{readyLabel("Basket",s.gift+86400-now),"gift",nil,"berry"},{"More","nav","more","settings"}}
  for i,b in ipairs(buttons) do self:button(bb,b[1],32+(i-1)%3*182,596+math.floor((i-1)/3)*57,172,48,b[2],b[3],b[4]) end
- self.buttons[#self.buttons+1]={x=168,y=211,w=264,h=204,action="hello"}
+ self.buttons[#self.buttons+1]={x=168,y=211,w=264,h=204,action=s.trip>0 and "nav" or "hello",arg=s.trip>0 and "explore" or nil}
 end
 function View:paintEffect(bb)
  local up=self.frame%2==0 and -7 or 0;local e=self.effect
@@ -230,19 +255,107 @@ function View:title(bb,title,subtitle)
  self:text(bb,title,32,101,29,536,true);if subtitle then self:text(bb,subtitle,32,145,17,536) end
 end
 function View:paintExplore(bb)
- self:title(bb,"Expeditions","Trails favour Pokemon you have not met yet.");local s=self.state
+ local s=self.state
+ self:title(bb,"Expeditions","Pick a trail and see who you meet.")
  if s.trip>0 then
-  local left=s.due-os.time();local r=self.engine.routes[s.trip];self:sprite(bb,s.species,186,220,228,1)
-  self:text(bb,r.name,32,469,27,536,true,true)
-  self:text(bb,left<=0 and "Home again! Your discoveries are ready." or "About "..minutes(left).." minutes remaining.",32,514,18,536,false,true)
-  self:button(bb,left<=0 and "Collect discoveries" or "Check expedition",62,581,476,57,"collect",nil,"boot")
- else
-  for i,r in ipairs(self.engine.routes) do
-   local y=199+(i-1)*153;self:button(bb,r.name.." / "..r.seconds/60 .." min",32,y,536,57,"trip",i,"boot")
-   self:text(bb,r.energy.." energy   +"..r.berries.." berries   +"..r.xp.." XP",43,y+71,18,513)
-   self:text(bb,i==1 and "Grass, Bug, Fire, Electric and other land Pokemon." or i==2 and "Water and Ice Pokemon live along this trail." or "Rock, Ground, Ghost and Psychic Pokemon.",43,y+101,16,513)
+  local left=self.engine.tripLeft(s,os.time());local r=self.engine.routes[s.trip]
+  self:text(bb,r.name,32,196,27,536,true,true)
+  self:text(bb,left==0 and "Your discoveries are ready." or minutes(left)..(s.trail~=nil and " reading minutes left" or " minutes until home"),32,241,20,536,false,true)
+  self:progress(bb,62,283,476,r.seconds-left,r.seconds)
+  for i,item in ipairs(s.finds~=nil and self.engine.discoveries or {}) do
+   local y=327+(i-1)*70;local found=s.finds and s.finds>=i
+   self.art.icon(self,bb,found and "badge" or "boot",46,y+5,3,found and BLACK or GRAY)
+   self:text(bb,item.name..(found and " / found" or " / "..i*25 .."%"),94,y,20,460,true)
+   self:text(bb,item.detail,94,y+30,17,460)
   end
+  if s.finds==nil then self:wrapped(bb,"Your partner is already on its way. Trail discoveries start with your next expedition.",387,19) end
+  self:wrapped(bb,s.trail~=nil and s.reading and not s.reading.enabled and "Reading rewards are paused. Turn them on in Reading."
+   or s.trail~=nil and "Keep reading your book. Check back to see what your partner finds." or "Your partner explores while the game is closed.",549,17)
+  self:button(bb,left==0 and "Collect discoveries" or "Check expedition",62,595,476,55,"collect",nil,"boot")
+  self:text(bb,"At the finish: +"..r.berries.." berries, +"..r.xp.." XP and a Pokemon",32,672,17,536,false,true)
+ else
+  local timed=self.trip_mode~="reading"
+  self:button(bb,"As you read",32,185,262,46,"tripmode","reading",nil,false,not timed)
+  self:button(bb,"On a timer",306,185,262,46,"tripmode","timed",nil,false,timed)
+  for i,r in ipairs(self.engine.routes) do
+   local y=253+(i-1)*139
+   self:button(bb,r.name.." / "..r.seconds/60 .." min",32,y,536,54,timed and "trip" or "readingtrip",i,"boot")
+   self:text(bb,r.energy.." energy   +"..r.berries.." berries   +"..r.xp.." XP",43,y+65,18,513)
+   self:text(bb,i==1 and "Grass, Bug, Fire, Electric and other land Pokemon." or i==2 and "Water and Ice Pokemon live along this trail." or "Rock, Ground, Ghost and Psychic Pokemon.",43,y+94,16,513)
+  end
+  self:text(bb,timed and "Trips finish after real time passes." or "Only new recorded reading moves you along the trail.",32,666,17,536,false,true)
  end
+ self:backButton(bb)
+end
+function View:paintEgg(bb)
+ local s=self.state;local left=self.engine.eggLeft(s);local ready=s.egg and left==0
+ self:title(bb,"One more chapter",s.egg and "An egg is keeping you company." or "A surprise friend for your reading breaks.")
+ self.art.egg(self,bb,244,218,7,s.egg and 1-left/self.engine.egg_seconds or 0,WHITE)
+ self:text(bb,ready and "Something is stirring!" or s.egg and minutes(left).." reading minutes to hatch" or "Hatches after 120 reading minutes",32,378,23,536,true,true)
+ self:progress(bb,62,427,476,s.egg and self.engine.egg_seconds-left or 0,self.engine.egg_seconds)
+ self:wrapped(bb,s.egg and "Keep reading your book, then check back on your egg." or "Pick up an egg for 3 berries. It hatches into a first-form Pokemon, with new friends favoured.",476,18)
+ if s.egg then
+  self:button(bb,ready and "Hatch your egg" or "Keep reading",62,572,476,56,"hatch",nil,nil,not ready)
+ else self:button(bb,"Pick up an egg / 3 berries",62,572,476,56,"egg") end
+ self:text(bb,s.reading and not s.reading.enabled and "Reading rewards are paused. Turn them on in Reading."
+  or "Your current partner stays with you when the egg hatches.",32,661,17,536,false,true)
+ self:backButton(bb)
+end
+function View:paintRecap(bb)
+ local r=self.owner.recap
+ self:title(bb,"Welcome back",r and "Since your last visit" or "Your next reading session will show up here.")
+ if r then
+  self:text(bb,r.seconds<60 and "Less than a minute read" or math.floor(r.seconds/60).." min read",32,205,30,536,true,true)
+  self:text(bb,"+"..r.berries.." berries    +"..r.xp.." XP",32,259,24,536,false,true)
+  if r.route>0 then
+   local total=self.engine.routes[r.route].seconds
+   self:text(bb,self.engine.routes[r.route].name,46,336,21,508,true)
+   self:text(bb,math.floor(100*r.trip_before/total).."% to "..math.floor(100*r.trip_after/total).."% of the trail",46,370,18,508)
+   self:progress(bb,46,406,508,r.trip_after,total)
+  else self:text(bb,"Pick a trail under Explore for your next chapter.",46,370,18,508) end
+  if r.egg then
+   local percent=math.floor(100*r.egg_after/self.engine.egg_seconds)
+   self:text(bb,percent==100 and "Your egg is ready to hatch!" or "Your egg is "..percent.."% of the way there",46,464,21,508,true)
+   self:progress(bb,46,508,508,r.egg_after,self.engine.egg_seconds)
+  else self:text(bb,"Eggs hatch as you read. Pick one up for 3 berries.",46,479,18,508) end
+  if r.events then self:wrapped(bb,"Found: "..table.concat(r.events,", "),550,17) end
+  self:wrapped(bb,r.weekly and "Weekly goal reached! Your bonus is included above." or "Keep reading your book. Your next visit will bring more progress.",610,18)
+ end
+ self:backButton(bb)
+end
+function View:paintWeekly(bb)
+ local w=self.state.week
+ self:title(bb,"A little reading goal","A fresh start each Monday. No streak to keep.")
+ self:text(bb,"How much would you like to read?",32,203,22,536,true,true)
+ for i,target in ipairs(self.engine.weekly_targets) do
+  self:button(bb,target/60 .." min",32+(i-1)*182,257,172,54,"goal",target,nil,false,w and w.target==target)
+ end
+ if w then
+  self:text(bb,math.floor(w.seconds/60).." / "..w.target/60 .." min this week",32,367,27,536,true,true)
+  self:progress(bb,62,423,476,w.seconds,w.target)
+  self:wrapped(bb,w.claimed and "Goal met. Your bonus has been collected." or "Reach your goal for 5 extra berries and 10 XP.",478,19)
+ else self:wrapped(bb,"Choose a goal to get started. Reach it for 5 extra berries and 10 XP.",384,20) end
+ self:wrapped(bb,"Minutes count in the week you collect them. You can change your target and keep your progress.",590,18)
+ self:backButton(bb)
+end
+function View:paintBackgrounds(bb)
+ self:title(bb,"Make yourself at home")
+ self:landscape(bb);self:sprite(bb,self.state.species,204,222,192,1,self.state.resting and "sleep" or "idle")
+ for i,name in ipairs(self.engine.backgrounds) do
+  self:button(bb,name,32+(i-1)%2*274,445+math.floor((i-1)/2)*78,262,56,"background",i,nil,false,(self.state.background or 1)==i)
+ end
+ self:text(bb,"Tap a scene to keep it as your background.",32,675,17,536,false,true)
+ self:backButton(bb)
+end
+function View:paintDecorations(bb)
+ self:title(bb,"Something for your space")
+ self:landscape(bb);self:sprite(bb,self.state.species,204,222,192,1,self.state.resting and "sleep" or "idle")
+ for id,item in ipairs(self.engine.decorations) do
+  local placed=self.state.decor and self.state.decor[id]
+  local label=placed~=nil and ((placed and "Hide " or "Place ")..item.name:lower()) or item.name.." / "..item.cost.." berries"
+  self:button(bb,label,32+(id-1)%2*274,445+math.floor((id-1)/2)*78,262,56,"decorate",id,nil,false,placed)
+ end
+ self:wrapped(bb,self.decor_message or "Buy something once, then place it in any background. Tuck it away whenever you like.",625,18)
  self:backButton(bb)
 end
 function View:paintJournal(bb)
@@ -262,7 +375,8 @@ function View:paintJournal(bb)
 end
 function View:paintEntry(bb)
  local id=self.detail_id;local name=self.engine.name(id)
- self:title(bb,string.format("#%03d  %s",id,name),self.engine.species[id].types)
+ self:title(bb,self.hatched==id and "Just hatched!" or string.format("#%03d  %s",id,name),
+  (self.hatched==id and name.."   /   " or "")..self.engine.species[id].types)
  self:sprite(bb,id,174,196,252,self.frame,self.preview_pose or "idle")
  local poses={{"Idle","idle"},{"Sleep","sleep"},{"Walk","walk"},{"Attack","attack"},{"Eat","eat"}}
  for i,p in ipairs(poses) do
@@ -295,28 +409,94 @@ end
 function View:paintProfile(bb)
  local s=self.state;local lv=self.engine.level(s)
  local line=self.engine.evolutionLine(s.species);local choices=self.engine.evolutionChoices(s.species)
- self:title(bb,"Partner",self.engine.name(s.species).."   /   Lv "..lv.."   /   Bond "..math.floor(s.bond).." / 100")
+ self:title(bb,"Partner",self.engine.displayName(s).."   /   Lv "..lv.."   /   Bond "..math.floor(s.bond).." / 100")
+ self:button(bb,"Nickname",431,97,137,40,"nav","nickname")
  for i,id in ipairs(line) do
-  local x=(600-(#line*182-10))/2+(i-1)*182;self:sprite(bb,id,x+16,207,140,1)
-  self:text(bb,self.engine.name(id),x,355,18,172,id==s.species,true)
+  local x=(600-(#line*182-10))/2+(i-1)*182;self:sprite(bb,id,x+26,183,120,1)
+  self:text(bb,self.engine.name(id),x,317,18,172,id==s.species,true)
   local previous=i>1 and self.engine.species[line[i-1]]
   local requirement=previous and "Lv "..(1+math.ceil(previous[3]/20)).." + 30 bond" or "First form"
-  self:text(bb,requirement,x,389,14,172,false,true)
-  if id==s.species then self:rect(bb,x+30,422,112,3) end
+  self:text(bb,requirement,x,350,14,172,false,true)
+  if id==s.species then self:rect(bb,x+30,378,112,3) end
  end
  local p=self.engine.species[s.species]
+ if #choices>0 then
+  self:text(bb,"XP "..s.xp.." / "..p[3],32,409,18,262,true)
+  local xp_left=math.max(0,p[3]-s.xp)
+  self:text(bb,xp_left==0 and "XP ready" or xp_left.." XP to go",306,409,17,262,false,true)
+  self:progress(bb,32,438,536,s.xp,p[3])
+  local bond_left=math.max(0,math.ceil(30-s.bond))
+  self:text(bb,"Bond "..math.floor(s.bond).." / 30",32,465,18,262,true)
+  self:text(bb,bond_left==0 and "Bond ready" or bond_left.." bond to go",306,465,17,262,false,true)
+  self:progress(bb,32,493,536,s.bond,30)
+ end
  if #choices>1 then
-  self:wrapped(bb,"Choose a stone at Lv "..(1+math.ceil(p[3]/20)).." and 30 bond. Each stone leads to a different friend.",454,18)
   for i,id in ipairs(choices) do
-   self:button(bb,self.engine.evolution_stones[id]..": "..self.engine.name(id),32,511+(i-1)*51,536,44,"evolve",id,nil,not self.engine.ready(s))
+   self:button(bb,self.engine.evolution_stones[id]..": "..self.engine.name(id),32,520+(i-1)*50,536,44,"evolve",id,nil,not self.engine.ready(s))
   end
  elseif #choices==1 then
   local id=choices[1]
-  self:wrapped(bb,"Next: "..self.engine.name(id)..". Reach Lv "..(1+math.ceil(p[3]/20)).." and 30 bond, then evolve when you are ready.",466,19)
   self:button(bb,self.engine.ready(s) and "Evolve into "..self.engine.name(id) or "Growing toward "..self.engine.name(id),32,538,536,56,"evolve",id,"clean",not self.engine.ready(s))
+  self:text(bb,"Feed, play and train together to build your bond.",32,620,17,536,false,true)
  else self:wrapped(bb,self.engine.name(s.species).." is fully evolved. Keep exploring and fill your field journal together.",465,19) end
  self:text(bb,"Together for "..math.max(0,math.floor((os.time()-s.started)/86400)).." days   /   "..s.trips.." expeditions",32,681,18,536,false,true)
  self:backButton(bb)
+end
+function View:paintNickname(bb)
+ self:title(bb,"What should we call you?","Up to 12 characters. Your partner keeps its name as it evolves.")
+ self:outline(bb,32,198,536,58)
+ self:text(bb,self.nickname_text~="" and self.nickname_text or self.engine.name(self.state.species),48,211,25,504,true,true)
+ self:text(bb,#self.nickname_text.." / 12",32,271,16,536,false,true)
+ for row,letters in ipairs({"1234567890","QWERTYUIOP","ASDFGHJKL","ZXCVBNM"}) do
+  local x=(600-(#letters*54-6))/2
+  for i=1,#letters do
+   local key=letters:sub(i,i);if not self.uppercase then key=key:lower() end
+   self:button(bb,key,x+(i-1)*54,310+(row-1)*60,48,48,"nickkey",key)
+  end
+ end
+ self:button(bb,self.uppercase and "abc" or "ABC",32,553,172,46,"nickcase")
+ self:button(bb,"Space",214,553,172,46,"nickkey"," ")
+ self:button(bb,"Delete",396,553,172,46,"nickdelete")
+ self:button(bb,"Use species name",32,628,262,50,"nickclear")
+ self:button(bb,"Save name",306,628,262,50,"nicksave")
+ self:button(bb,"Back to profile",32,717,536,44,"nav","profile")
+end
+function View:loadBackups()
+ self.backup_info={};self.backup_errors={}
+ for _,slot in ipairs({"backup","before-restore"}) do
+  if self.owner.backups then self.backup_info[slot],self.backup_errors[slot]=self.owner.backups:preview(slot)
+  else self.backup_errors[slot]="Backups are unavailable." end
+ end
+end
+function View:paintBackups(bb)
+ self:title(bb,"Keep your progress","Your game and reading records, saved together.")
+ if self.owner.backups and self.owner.backups.blocked then
+  self:wrapped(bb,"Restore stopped before it finished. Close and reopen PokePal to finish restoring.",310,22)
+  self:button(bb,"Close PokePal",32,595,536,55,"exit");return
+ end
+ if not self.backup_info then self:loadBackups() end
+ self:button(bb,"Save a backup now",32,194,536,52,"makebackup",nil,nil,not self.owner.backups)
+ for i,slot in ipairs({"backup","before-restore"}) do
+  local b=self.backup_info[slot];local y=283+(i-1)*164
+  self:text(bb,i==1 and "Saved backup" or "Before last restore",32,y,23,536,true)
+  self:text(bb,b and savedDate(b.at)..(b.previous and " / previous copy" or "") or self.backup_errors[slot],32,y+35,17,536)
+  self:button(bb,"Preview",32,y+74,536,46,"previewbackup",slot,nil,not b)
+ end
+ self:wrapped(bb,self.backup_message or "Preview a backup before restoring. Your current game is kept so you can go back.",632,18)
+ self:backButton(bb)
+end
+function View:paintRestore(bb)
+ local b=self.restore_preview
+ if not b then self:paintBackups(bb);return end
+ local s=b.state
+ self:title(bb,"Restore this backup?",savedDate(b.at))
+ self:text(bb,self.engine.displayName(s).." / Lv "..self.engine.level(s),32,202,26,536,true,true)
+ if s.species~=0 then self:sprite(bb,s.species,204,252,192,1) end
+ self:text(bb,s.berries.." berries / "..self.engine.count(s.seen).." Pokemon met",32,465,20,536,false,true)
+ self:text(bb,math.floor((s.reading and s.reading.seconds or 0)/60).." minutes read",32,504,20,536,false,true)
+ self:wrapped(bb,"Your current game will be kept under Before last restore.",553,18)
+ self:button(bb,"Restore this backup",32,618,536,55,"restorebackup")
+ self:button(bb,"Cancel",32,717,536,44,"nav","backups")
 end
 function View:paintBadges(bb)
  self:title(bb,"Achievements",self.engine.count(self.state.badges).." of 6 badges earned")
@@ -328,7 +508,7 @@ function View:paintBadges(bb)
 end
 function View:startPlay()
  self.engine.advance(self.state,os.time());local allowed,why=self.engine.canPlay(self.state,os.time())
- if not allowed then self.message=why;UIManager:setDirty(self,"ui");return end
+ if not allowed then self.message=why;self:go("home");return end
  self:go("play");self.play_phase="show";self.play_pos=1;self.play_sequence={}
  local seed=(os.time()+self.state.seed)%2147483647
  for i=1,3 do seed=(seed*48271)%2147483647;self.play_sequence[i]=seed%3+1 end
@@ -361,34 +541,42 @@ function View:paintTrain(bb)
  self:backButton(bb)
 end
 function View:paintMore(bb)
- self:title(bb,"Settings","Animation plays briefly while the screen is on.")
- for i,b in ipairs({{"Gentle","gentle"},{"Eco","eco"},{"Off","off"}}) do self:button(bb,b[1],32+(i-1)*182,199,172,48,"animation",b[2],nil,false,self.state.animation==b[2]) end
- self:text(bb,"Gentle: up to 4 frames. Eco: 2 frames. Off: still.",32,267,17,536)
- self:button(bb,"Refresh screen - clear ghosting",32,323,536,48,"refresh",nil,"clean")
- self:button(bb,"How to care for your partner",32,391,536,48,"nav","help","book")
- self:button(bb,"Evolution and partner profile",32,459,536,48,"nav","profile","clean")
- self:button(bb,"Activity",32,527,536,48,"nav","history","book")
- self:button(bb,"Reading rewards",32,595,536,48,"nav","reading","book")
+ self:title(bb,"Around the nest","A few small comforts for your partner.")
+ self:button(bb,"Clean the nest",32,191,262,50,"clean",nil,"clean")
+ self:button(bb,readyLabel("Basket",self.state.gift+86400-os.time()),306,191,262,50,"gift",nil,"berry")
+ self:button(bb,"Backgrounds",32,263,262,50,"nav","backgrounds")
+ self:button(bb,"Decorations",306,263,262,50,"nav","decorations")
+ self:text(bb,"Animation",32,339,20,536,true)
+ for i,b in ipairs({{"Gentle","gentle"},{"Eco","eco"},{"Off","off"}}) do self:button(bb,b[1],32+(i-1)*182,375,172,48,"animation",b[2],nil,false,self.state.animation==b[2]) end
+ self:text(bb,"Gentle: up to 4 frames. Eco: 2 frames. Off: still.",32,440,17,536)
+ self:button(bb,"Refresh screen - clear ghosting",32,488,536,48,"refresh",nil,"clean")
+ self:button(bb,"Care guide",32,558,262,48,"nav","help","book")
+ self:button(bb,"Activity",306,558,262,48,"nav","history","book")
+ self:button(bb,"Reading rewards",32,628,262,48,"nav","reading","book")
+ self:button(bb,"Backups",306,628,262,48,"nav","backups")
  self:backButton(bb)
 end
 function View:paintReading(bb)
  local r=self.state.reading or {enabled=true,seconds=0,carry=0}
- self:title(bb,"Read with your partner","Earn berries and XP between visits.")
- self:text(bb,"15 minutes = 1 berry + 3 XP",32,194,25,536,true,true)
- self:text(bb,math.floor(r.seconds/60).." minutes recorded",32,254,22,536,false,true)
- self:text(bb,math.ceil((900-r.carry%900)/60).." min to the next reward",32,296,20,536,false,true)
- self:button(bb,r.enabled and "Rewards: On" or "Rewards: Off",122,354,356,52,"reading",nil,"book",false,r.enabled)
+ self:title(bb,"Reading","Keep reading your book.")
+ self:text(bb,math.floor(r.seconds/60).." minutes read",32,211,28,536,true,true)
+ self:progress(bb,62,267,476,r.carry%900,900)
+ self:text(bb,math.ceil((900-r.carry%900)/60).." min to the next reward",32,304,20,536,false,true)
+ self:text(bb,"15 minutes = 1 berry + 3 XP",32,347,17,536,false,true)
+ self:button(bb,"Expeditions",32,411,262,54,"nav","explore","boot")
+ self:button(bb,self.state.egg and self.engine.eggLeft(self.state)==0 and "Hatch your egg" or "Your egg",306,411,262,54,"nav","egg")
+ self:button(bb,"Weekly goal",32,487,262,54,"nav","weekly")
+ self:button(bb,"Last visit",306,487,262,54,"nav","recap",nil,not self.owner.recap)
+ self:button(bb,r.enabled and "Rewards: On" or "Rewards: Off",122,570,356,48,"reading",nil,"book",false,r.enabled)
  local status=self.owner.reading_status or {"Kindle: checked when you open PokePal","KOReader: tracks while you read"}
- for i,line in ipairs(status) do self:text(bb,line,32,439+(i-1)*36,18,536) end
- self:wrapped(bb,"Open PokePal after reading to collect. Leftover minutes carry over.",545,18)
- self:wrapped(bb,"Time is estimated. Long pauses count for at most two minutes per page in KOReader.",610,17)
+ for i,line in ipairs(status) do self:text(bb,line,32,643+(i-1)*30,16,536) end
  self:backButton(bb)
 end
 function View:paintHelp(bb)
  self:title(bb,"Care guide","Two or three brief visits a day are enough.")
  local help={{"Feed","One berry restores 24 food. The basket refills daily."},{"Play","Follow a 3-step berry trail. Ready every 30 minutes."},
   {"Train","Practice a move each hour to earn XP and bond."},{"Rest and clean","Rest restores energy faster. Keep the little nest tidy."},
-  {"Explore","Send your friend away, then collect its discoveries."},{"Grow together","Every 20 XP is a level. Evolve from the partner profile."}}
+  {"Read and explore","Reading moves your trip along and helps your egg hatch."},{"Grow together","Every 20 XP is a level. Evolve from the partner profile."}}
  for i,h in ipairs(help) do local y=190+(i-1)*78;self:text(bb,h[1],32,y,20,536,true);self:text(bb,h[2],32,y+31,16,536) end
  self:backButton(bb)
 end
@@ -397,23 +585,46 @@ function View:onTap(_,ges)
  local x=(ges.pos.x-self.ox)/self.scale;local y=(ges.pos.y-self.oy)/self.scale
  for _,b in ipairs(self.buttons) do if x>=b.x and x<b.x+b.w and y>=b.y and y<b.y+b.h then
   if b.action=="exit" then self:leave()
+  elseif self.owner.backups and self.owner.backups.blocked then return true
   elseif b.disabled then return true
   elseif b.action=="starter" then
    self.starter_index=(self.starter_index-1+b.arg)%#self.engine.starters+1
    self:freeImages();UIManager:setDirty(self,"ui")
   elseif b.action=="nav" then
-   if b.arg=="home" then self.message=self.engine.act(self.state,"check",nil,os.time()) end;self:go(b.arg)
+   self:go(b.arg);if b.arg=="home" then self.message=self.engine.act(self.state,"check",nil,os.time()) end
   elseif b.action=="entry" then self:go("entry");self.detail_id=b.arg;self.preview_pose="idle"
   elseif b.action=="preview" then self.preview_pose=b.arg;self:animate("preview");UIManager:setDirty(self,"ui",self:stageRegion())
-  elseif b.action=="hello" then self:animate("hello");UIManager:setDirty(self,"ui",self:stageRegion())
+  elseif b.action=="hello" then self.message=self.engine.act(self.state,"check",nil,os.time());self:animate("hello");UIManager:setDirty(self,"ui")
   elseif b.action=="startplay" then self:startPlay()
   elseif b.action=="hidepath" then self.play_phase="pick";UIManager:setDirty(self,"ui")
   elseif b.action=="pickbush" then self:pickBush(b.arg)
   elseif b.action=="refresh" then self:stopAnimation();UIManager:setDirty(self,"full")
+  elseif b.action=="tripmode" then self.trip_mode=b.arg;UIManager:setDirty(self,"ui")
+  elseif b.action=="decorate" then
+   self.decor_message=self.engine.act(self.state,"decorate",b.arg,os.time());self.owner:save();UIManager:setDirty(self,"ui")
+  elseif b.action=="nickkey" then
+   if #self.nickname_text<12 then self.nickname_text=self.nickname_text..b.arg end;UIManager:setDirty(self,"ui")
+  elseif b.action=="nickcase" then self.uppercase=not self.uppercase;UIManager:setDirty(self,"ui")
+  elseif b.action=="nickdelete" then self.nickname_text=self.nickname_text:sub(1,-2);UIManager:setDirty(self,"ui")
+  elseif b.action=="nickclear" then self.nickname_text="";UIManager:setDirty(self,"ui")
+  elseif b.action=="nicksave" then
+   self.message=self.engine.act(self.state,"nickname",self.nickname_text,os.time());self.owner:save();self:go("profile")
+  elseif b.action=="makebackup" then
+   local ok,err=self.owner.backups:create(self.state)
+   if ok then self.owner.save_error=nil end
+   self.backup_message=ok and "Backup saved." or tostring(err or "Could not save the backup.")
+   self:loadBackups();UIManager:setDirty(self,"ui")
+  elseif b.action=="previewbackup" then
+   self.restore_preview=self.backup_info[b.arg];self:go("restore")
+  elseif b.action=="restorebackup" then
+   local ok,err=self.owner.backups:restore(self.state,self.restore_preview)
+   if ok then
+    self.owner.save_error=nil;self.owner.recap=nil;self.restore_preview=nil;self.message="Backup restored. Your previous game was kept.";self:go("home")
+   else self.backup_message=tostring(err or "Could not restore the backup.");self:go("backups") end
   elseif b.action=="page" then
    local count=self.screen=="history" and #self.state.log or self.engine.count(self.state.seen)
    self:freeImages();self.page=math.max(1,math.min(math.max(1,math.ceil(count/6)),self.page+b.arg));UIManager:setDirty(self,"ui")
-  elseif b.action=="animation" then self.engine.act(self.state,"animation",b.arg,os.time());self.owner:save();UIManager:setDirty(self,"ui")
+  elseif b.action=="animation" or b.action=="background" or b.action=="goal" then self.engine.act(self.state,b.action,b.arg,os.time());self.owner:save();UIManager:setDirty(self,"ui")
   elseif b.action=="reading" then
    if self.owner.toggleReading then self.owner:toggleReading() end
    UIManager:setDirty(self,"ui")
@@ -423,12 +634,16 @@ function View:onTap(_,ges)
  return true
 end
 function View:onSwipe() return true end
-function View:onBack() if self.screen=="home" then self:leave() else self:go("home") end;return true end
+function View:onBack()
+ if self.screen=="home" or (self.owner.backups and self.owner.backups.blocked) then self:leave() else self:go("home") end
+ return true
+end
 function View:onClose() self:leave();return true end
 function View:leave()
  if self.closed then return end
  self:stopAnimation();self.closed=true;local ok=self.owner:save();UIManager:close(self,"full")
- if not ok then UIManager:show(require("ui/widget/infomessage"):new{text="PokePal could not save. Check free space on the Kindle before playing again."}) end
+ if not ok then UIManager:show(require("ui/widget/infomessage"):new{text=self.owner.backups and self.owner.backups.blocked
+  and "Reopen PokePal to finish restoring your backup." or "PokePal could not save. Check free space on the Kindle before playing again."}) end
 end
 function View:onCloseWidget()
  self:stopAnimation();self.closed=true;self:freeImages();self.owner.view=nil

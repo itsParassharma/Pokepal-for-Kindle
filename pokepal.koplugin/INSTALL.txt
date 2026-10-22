@@ -1,9 +1,9 @@
-POKEPAL 1.0.5
+POKEPAL 1.0.6
 
 KUAL
 Needs a jailbroken touchscreen Kindle with KUAL installed.
 
-1. Unzip PokePal-v1.0.5-kual.zip.
+1. Unzip PokePal-v1.0.6-kual.zip.
 2. Copy extensions onto your Kindle drive, next to documents.
    Merge folders if asked.
 3. Eject, then open KUAL > PokePal > Play PokePal.
@@ -13,7 +13,7 @@ KOReader is not required for this version.
 KOREADER
 Needs KOReader installed on your Kindle.
 
-1. Unzip PokePal-v1.0.5-koreader.zip.
+1. Unzip PokePal-v1.0.6-koreader.zip.
 2. Copy koreader onto your Kindle drive. Merge with the existing folder.
 3. Restart KOReader. Open Tools > More tools > PokePal.
 
@@ -36,6 +36,27 @@ KOReader needs this plugin enabled; Reading statistics can stay off.
 Sleep and time spent in PokePal do not count. KOReader counts at most
 two minutes per page and skips turns faster than five seconds.
 More > Reading rewards shows progress and lets you turn rewards off.
+
+AROUND THE NEST
+Explore > As you read starts a trail that advances with recorded reading.
+Timed trips are the default and don't need reading rewards.
+More > Reading rewards > Your egg has eggs for 3 berries. Read for 120 minutes, then tap
+Hatch your egg. It joins the journal and keeps your current partner.
+The same minutes advance your egg, trail and regular reading rewards.
+Home keeps your pet, care stats, bond and XP together.
+Feed, play, train, rest, clean and collect daily berries from home.
+More holds reading rewards, backgrounds, decorations and backups.
+Decorations cost berries once and can be placed or hidden in any background.
+Profile > Nickname lets you name your partner. The name stays when it evolves.
+More > Reading rewards > Weekly goal offers 60, 120 or 180 minutes. Reach it for 5 berries
+and 10 XP. Weeks start on Monday and count minutes collected that week.
+Last visit in the reading menu shows your rewards, trail and egg progress.
+More > Backups saves your game and reading records together. Tap Preview
+before restoring. Your current game is kept under Before last restore.
+If a restore stops midway, close and reopen PokePal to finish it.
+Copy the pokepal folder to your computer to keep a backup off the Kindle.
+Use matching builds in both readers. Back up the whole pokepal folder
+before updating; older builds cannot read the new save fields.
 
 HELP
 Missing from KUAL? Check extensions/pokepal/menu.json is on your Kindle.

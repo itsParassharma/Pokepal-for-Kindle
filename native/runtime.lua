@@ -44,16 +44,18 @@ local F=dofile('game/filesystem.lua')
 local R=dofile('game/reading.lua')
 local V=dofile('game/view.lua')
 local savepath=assert(S.location('data/pokepal.dat',F))
-local session,err=S.open(savepath,{'data/pokepal.dat','/mnt/us/koreader/settings/pokepal.dat'},E,F)
+local backups=dofile('game/backups.lua').new(savepath,E,R,F,host_sync_file,host_sync_directory)
+local session,err=S.open(savepath,{'data/pokepal.dat','/mnt/us/koreader/settings/pokepal.dat'},E,F,function() return backups:recover() end)
 if not session then error(err) end
 local state=session.state or E.new(os.time());local notice=session.notice
-local owner={savepath=savepath}
+local owner={savepath=savepath,backups=backups}
 function owner:onPetClosed() if session then session.close();session=nil end end
 function owner:save()
+ if backups.blocked then return nil,'Reopen PokePal to finish restoring.' end
  local ok,err=S.save(savepath,state,E,host_sync_file,host_sync_directory)
+ self.save_error=not ok
  if not ok then
   io.stderr:write('Save failed: '..tostring(err)..'\n')
-  if self.view then self.view.message='Save failed. Check the free space on your Kindle.' end
  end
  return ok,err
 end
@@ -63,16 +65,18 @@ function owner:syncReading()
  local f=io.open(savepath..'.reading','rb');if f then f:close() end
  self.reading_status={status,problem and 'KOReader: reading data unavailable'
   or (f and 'KOReader: reading time available' or 'KOReader: open PokePal there once')}
- return R.collect(state,E,counters,ko,os.time())
+ local message,recap=R.collect(state,E,counters,ko,os.time())
+ if recap then self.recap=recap end
+ return message
 end
 function owner:toggleReading()
  self:syncReading();state.reading.enabled=not state.reading.enabled;return self:save()
 end
-local reward=owner:syncReading()
-local saved,problem=owner:save();if not saved then owner:onPetClosed();error(problem) end
+owner:syncReading()
 E.advance(state,os.time())
+local saved,problem=owner:save();if not saved then owner:onPetClosed();error(problem) end
 local view=V:new{state=state,engine=E,owner=owner,path='game'};owner.view=view
-if reward or notice then view.message=reward or notice end
+if notice then view.message=notice end
 local bb={paintRect=function(_,...) host_rect(...) end}
 function app_paint()
  view:paintTo(bb,0,0)
@@ -95,4 +99,4 @@ end
 function app_close() view:onSuspend();view:leave() end
 -- Used by the native smoke test, with the same view and save path as the device build.
 app={view=view,engine=E,storage=S,ui=U,state=state,owner=owner}
-if state.species~=0 then view:animate(state.resting and 'ambient_sleep' or 'ambient') end
+if view.screen=='home' and state.species~=0 and E.tripLeft(state,os.time())==0 then view:animate(state.resting and 'ambient_sleep' or 'ambient') end

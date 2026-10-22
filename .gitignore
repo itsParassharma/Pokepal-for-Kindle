@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 tests/rendered/
+dist/
 *.dat
 *.dat.old
 *.tmp
