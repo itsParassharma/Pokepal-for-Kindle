@@ -6,7 +6,7 @@ Reading expeditions would be the best next addition. PokePal already has three r
 | --- | --- | --- |
 | Reading expeditions | Your partner covers a little more ground after each reading session. | Store the reading total when a trip starts, then use its increase for progress. Keep current route rewards. |
 | Eggs that hatch as you read | A surprise partner after a few hours of reading. | One egg slot, a clear progress bar and a saved hatch result so reopening cannot reroll it. Reuse the existing Pokémon roster. |
-| A weekly reading goal | A small bonus for a goal you choose, with no penalty for missed days. | A weekly total and one claimed-reward flag. Award it on the next visit, without notifications or background timers. |
+| A weekly reading goal | A small bonus for a goal you choose, with no penalty for missed days. | Count minutes collected that week and store one claimed-reward flag. Exact dates of past reading sessions would need more data. |
 | Backup and restore buttons | Recover progress without hunting for save files. | Back up the game and reading counter together. Preview the partner and date before restoring, and keep the replaced save. |
 | A finished-book journal | Remember books you finished with each partner. | Reliable book identifiers and a completion event, with a manual confirmation when unavailable. |
 
