@@ -43,6 +43,8 @@ function View:geometry()
  local w,h=Device.screen:getWidth(),Device.screen:getHeight()
  self.dimen=Geom:new{x=0,y=0,w=w,h=h};self.scale=math.min(w/600,h/800)
  self.ox=round((w-600*self.scale)/2);self.oy=round((h-800*self.scale)/2)
+ -- Font:getFace scales again in KOReader. Our layout already uses screen pixels.
+ self.font_scale=Device.screen.scaleBySize and 600/Device.screen:scaleBySize(600)
  self.ges_events.Tap={GestureRange:new{ges="tap",range=self.dimen}}
  self.ges_events.Swipe={GestureRange:new{ges="swipe",range=self.dimen}}
 end
@@ -61,19 +63,26 @@ function View:outline(bb,x,y,w,h,color)
  self:rect(bb,x,y,w,1,color);self:rect(bb,x,y+h-1,w,1,color)
  self:rect(bb,x,y,1,h,color);self:rect(bb,x+w-1,y,1,h,color)
 end
-function View:text(bb,text,x,y,size,width,bold,center)
+function View:fontFace(size,bold)
+ local pixels=math.max(9,round(size*self.scale))
+ -- KOReader rounds up; aim halfway inside the target pixel to avoid rounding twice.
+ local size_arg=self.font_scale and (pixels-0.5)*self.font_scale or pixels
+ return Font:getFace(bold and "tfont" or "cfont",size_arg)
+end
+function View:text(bb,text,x,y,size,width,bold,center,height)
  if self.engine.companion.option(self.state,"large_text") and size<20 then size=math.min(21,size+2) end
  if self.engine.companion.option(self.state,"high_contrast") then bold=true end
- local t=TextWidget:new{text=tostring(text),face=Font:getFace(bold and "tfont" or "cfont",math.max(9,round(size*self.scale))),bold=bold,max_width=round((width or 536)*self.scale),padding=0}
+ local t=TextWidget:new{text=tostring(text),face=self:fontFace(size,bold),bold=bold,max_width=round((width or 536)*self.scale),padding=0}
  local r=self:region(x,y,0,0)
  if center then r.x=r.x+round(((width or 536)*self.scale-t:getSize().w)/2) end
+ if height then r.y=r.y+round((round(height*self.scale)-t:getSize().h)/2) end
  t:paintTo(bb,r.x,r.y);t:free()
 end
 function View:wrapped(bb,text,y,size)
  local measure=size or 17
  if self.engine.companion.option(self.state,"large_text") and measure<20 then measure=math.min(21,measure+2) end
  local bold=self.engine.companion.option(self.state,"high_contrast")
- local face=Font:getFace(bold and "tfont" or "cfont",math.max(9,round(measure*self.scale)))
+ local face=self:fontFace(measure,bold)
  local line,rows="",{}
  for word in text:gmatch("%S+") do
   local trial=line=="" and word or line.." "..word
@@ -90,8 +99,8 @@ function View:button(bb,label,x,y,w,h,action,arg,icon,disabled,selected)
  self:outline(bb,x,y,w,h,disabled and GRAY or BLACK)
  if icon then
   self.art.icon(self,bb,icon,x+12,y+round((h-20)/2),2,disabled and GRAY or BLACK)
-  self:text(bb,label,x+40,y+round((h-21)/2),18,w-46,false,true)
- else self:text(bb,label,x+6,y+round((h-21)/2),18,w-12,selected,true) end
+  self:text(bb,label,x+40,y,18,w-44,false,true,h)
+ else self:text(bb,label,x+6,y,18,w-12,selected,true,h) end
  self.buttons[#self.buttons+1]={x=x,y=y,w=w,h=h,action=action,arg=arg,disabled=disabled}
 end
 function View:progress(bb,x,y,w,value,total)

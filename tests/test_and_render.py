@@ -44,10 +44,14 @@ def read_sprite(name):
  assert len(data)==length
  return Image.open(io.BytesIO(data))
 
-canvas=None;draw=None;bounds=[];truncated=[];painted_text=[];painted_sprites=[]
+canvas=None;draw=None;bounds=[];truncated=[];painted_text=[];painted_sprites=[];painted_text_boxes=[]
 def font(size,bold=False):
  choices=(['C:/Windows/Fonts/arialbd.ttf','/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'] if bold
           else ['C:/Windows/Fonts/arial.ttf','/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'])
+ if os.environ.get('POKEPAL_TEST_FONT_DIR'):
+  path=pathlib.Path(os.environ['POKEPAL_TEST_FONT_DIR'])/('NotoSans-Bold.ttf' if bold else 'NotoSans-Regular.ttf')
+  assert path.is_file(),f'Missing test font: {path}'
+  choices.insert(0,str(path))
  for path in choices:
   if pathlib.Path(path).is_file():return ImageFont.truetype(path,int(size))
  return ImageFont.load_default(size=int(size))
@@ -60,10 +64,12 @@ def get_text(t,sz,bold,maxw):
   truncated.append(original);t=t[:-2]+'...'
  return t,f
 def text_size(t,sz,bold,maxw):
- t,f=get_text(t,sz,bold,maxw);return round(draw.textlength(t,font=f)),int(sz*1.2)
+ t,f=get_text(t,sz,bold,maxw);return round(draw.textlength(t,font=f)),sum(f.getmetrics())
 def render_text(t,x,y,sz,bold,maxw):
  painted_text.append(t)
- t,f=get_text(t,sz,bold,maxw);draw.text((round(x),round(y)),t,font=f,fill=0,anchor='lt')
+ t,f=get_text(t,sz,bold,maxw)
+ painted_text_boxes.append((t,x,y,round(draw.textlength(t,font=f)),sum(f.getmetrics()),sz))
+ draw.text((round(x),round(y)),t,font=f,fill=0,anchor='la')
 def rect(x,y,w,h,col):
  x,y,w,h=map(round,(x,y,w,h))
  if w and h:
@@ -84,7 +90,9 @@ package.preload["ui/widget/container/inputcontainer"]=function() return Input en
 package.preload["ui/widget/container/widgetcontainer"]=function() return W end
 package.preload["ui/geometry"]=function() return W end
 package.preload["ui/gesturerange"]=function() return W end
-package.preload["ui/font"]=function() return {getFace=function(_,name,size) return {size=size} end} end
+package.preload["ui/font"]=function()
+ return {getFace=function(_,name,size) return {size=require('device').screen:scaleBySize(size)} end}
+end
 local T=W:extend{}
 function T:getSize() local w,h=text_size(self.text,self.face.size,self.bold,self.max_width);return {w=w,h=h} end
 function T:paintTo(bb,x,y) render_text(self.text,x,y,self.face.size,self.bold,self.max_width) end
@@ -106,7 +114,16 @@ package.preload["ui/renderimage"]=function()
 end
 package.preload["ffi/blitbuffer"]=function() return {COLOR_WHITE=255,COLOR_BLACK=0,Color8=function(n) return n end} end
 D={w=600,h=800}
-package.preload["device"]=function() return {screen_saver_mode=false,screen={getWidth=function() return D.w end,getHeight=function() return D.h end}} end
+package.preload["device"]=function()
+ local screen={getWidth=function() return D.w end,getHeight=function() return D.h end}
+ -- KOReader's Font:getFace calls this, including the user's DPI override.
+ -- koreader-base/ffi/framebuffer.lua, scaleBySize (3244ca3f7c36).
+ function screen:scaleBySize(px)
+  local scale=math.min(self:getWidth(),self:getHeight())/600
+  return math.ceil(px*(scale+(D.dpi and D.dpi/160 or scale))/2)
+ end
+ return {screen_saver_mode=false,screen=screen}
+end
 U={queue={},dirty={},show_count=0}
 function U:scheduleIn(seconds,f) self.queue[#self.queue+1]={seconds=seconds,f=f} end
 function U:unschedule(f) for i=#self.queue,1,-1 do if self.queue[i].f==f then table.remove(self.queue,i) end end end
@@ -138,8 +155,8 @@ function tapButton(view,action,arg)
 end
 ''')
 def start(w=600,h=800):
- global canvas,draw,bounds,truncated,painted_text,painted_sprites
- canvas=Image.new('L',(w,h),255);draw=ImageDraw.Draw(canvas);bounds=[];truncated=[];painted_text=[];painted_sprites=[]
+ global canvas,draw,bounds,truncated,painted_text,painted_sprites,painted_text_boxes
+ canvas=Image.new('L',(w,h),255);draw=ImageDraw.Draw(canvas);bounds=[];truncated=[];painted_text=[];painted_sprites=[];painted_text_boxes=[]
  g.D.w=w;g.D.h=h
 start()
 lua.execute(r'''
@@ -430,6 +447,32 @@ lua.execute((REPO/'tests'/'test_new_ui.lua').read_text())
 def paint(v,w=600,h=800):
  start(w,h);v.geometry(v);v.paintTo(v,g.bb,0,0);assert not bounds,bounds;return canvas.copy()
 
+# The reported Pikachu screen must fit at Kindle resolutions and custom DPI.
+text_layouts=0
+for w,h in [(1072,1448),(600,800),(758,1024),(1264,1680),(1440,1920),(800,600)]:
+ for dpi in (None,160,300,450):
+  for large in (False,True):
+   g.D.dpi=dpi;v=g.newView(25)
+   if large:
+    g.E.act(v.state,'preference','large_text',int(v.state.last))
+    g.E.act(v.state,'preference','high_contrast',int(v.state.last))
+   im=paint(v,w,h)
+   if (w,h,dpi,large)==(1072,1448,None,False):im.save(OUT/'text-scaling-pikachu.png')
+   assert not truncated,(w,h,dpi,large,truncated)
+   for text,x,y,tw,th,sz in painted_text_boxes:
+    if text=='Pikachu':assert sz==max(9,int(27*v.scale+0.5)),(w,h,dpi,sz)
+   for _,button in v.buttons.items():
+    if button.action in ('hello','nav') and button.arg in (None,'egg'):continue
+    r=v.region(v,button.x,button.y,button.w,button.h)
+    labels=[box for box in painted_text_boxes if r.x<=box[1]+box[3]/2<r.x+r.w and r.y<=box[2]+box[4]/2<r.y+r.h]
+    assert len(labels)==1,(w,h,dpi,large,button.action,button.arg,labels)
+    _,x,y,tw,th,_=labels[0]
+    assert r.x<=x and x+tw<=r.x+r.w and r.y<=y and y+th<=r.y+r.h,(w,h,dpi,large,labels[0])
+    assert abs(y+th/2-(r.y+r.h/2))<=1,(w,h,dpi,large,labels[0])
+   text_layouts+=1;v.freeImages(v)
+g.D.dpi=None
+print(f'TEXT SCALING: {text_layouts} Kindle size, DPI and accessibility combinations passed')
+
 # Layout smoke tests execute every actual view at representative portrait/landscape sizes.
 for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
  for screen in ['welcome','home','sleep','explore','journal','history','more','profile','badges','play','train','help','reading','egg','backgrounds','weekly','recap','decorations','nickname','backups']:
@@ -600,7 +643,7 @@ for n in [1,2,1]:
 sleep_frames[0].save(OUT/'PokePal-sleep-preview.gif',save_all=True,append_images=sleep_frames[1:],duration=[800,800,2500],disposal=2)
 v.state.resting=False;v.message='Charmander is happy to see you.'
 v.screen='profile';paint(v).save(OUT/'PokePal-evolution.png')
-print('PREVIEW: rendered directly from game view; fonts approximated with Arial, not a Kindle capture')
+print(f'PREVIEW: rendered from game view with {font(18).getname()[0]}; desktop rendering, not a Kindle capture')
 
 # Every species, every frame is present, grayscale and correctly sized.
 count=0
