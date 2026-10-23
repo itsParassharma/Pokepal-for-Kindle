@@ -1,5 +1,8 @@
 -- Strict data-only saves, with a previous snapshot and atomic promotion.
 local S={}
+local source=debug.getinfo(1,"S").source:sub(2):match("^(.*)/")
+local C=dofile(source.."/companion.lua")
+local uncertain={}
 local numeric={"version","species","food","joy","energy","bond","xp","berries","last","gift","trained","played","cleaned","dirt","trip","due","trips","seed","care","started"}
 local function read(path)
  local f=io.open(path,"rb");if not f then return nil end
@@ -35,6 +38,7 @@ function S.encode(s)
   local keys={};for key in pairs(r.kindle) do keys[#keys+1]=key end;table.sort(keys)
   for _,key in ipairs(keys) do lines[#lines+1]="book="..key..","..string.format("%.0f",r.kindle[key]) end
  end
+ if s.companion then lines[#lines+1]="companion="..C.encode(s.companion) end
  return table.concat(lines,"\n").."\n"
 end
 function S.decode(data,engine)
@@ -85,6 +89,8 @@ function S.decode(data,engine)
    local key,seconds=v:match("^(%x+),(%d+)$")
    if not s.reading or not key or #key~=16 or s.reading.kindle[key] then return nil end
    s.reading.kindle[key]=tonumber(seconds)
+  elseif k=="companion" then
+   if s.companion then return nil end;s.companion=C.decode(v);if not s.companion then return nil end
   elseif k=="badge" then if #v>40 then return nil end;s.badges[v]=true
   elseif k=="log" then if #v>200 or #s.log>=24 then return nil end;s.log[#s.log+1]=v
   else return nil end
@@ -104,6 +110,8 @@ function S.save(path,s,engine,syncfile,syncdir)
  if not engine.valid(s) then return nil,"Invalid game state." end
  local data=S.encode(s)
  if not S.decode(data,engine) then return nil,"Could not serialize game state." end
+ local current=read(path)
+ if current==data and not uncertain[path] then return true end
  local f,err=io.open(path..".tmp","wb");if not f then return nil,err end
  local ok;ok,err=f:write(data)
  if ok then ok,err=f:flush() end
@@ -119,10 +127,12 @@ function S.save(path,s,engine,syncfile,syncdir)
  end
  ok,err=os.rename(path..".tmp",path)
  if not ok then return nil,err end
+ uncertain[path]=true
  if syncdir then
   local called,result,why=pcall(syncdir,path)
   if not called or result==false then return nil,why or result end
  end
+ uncertain[path]=nil
  return true
 end
 function S.location(fallback,fs)

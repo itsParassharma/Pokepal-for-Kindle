@@ -34,6 +34,7 @@ lua.execute((REPO/'tests'/'test_reading.lua').read_text())
 lua.execute((REPO/'tests'/'test_adventures.lua').read_text())
 lua.execute((REPO/'tests'/'test_companion.lua').read_text())
 lua.execute((REPO/'tests'/'test_backups.lua').read_text())
+lua.execute((REPO/'tests'/'test_improvements.lua').read_text())
 
 sprite_index=json.loads((ROOT/'assets/sprite-index.json').read_text())
 def read_sprite(name):
@@ -204,7 +205,7 @@ check('home keeps the original pet controls and reading stays under More',functi
  end
  v:go('more');v:paintTo(bb,0,0);actions={}
  for _,b in ipairs(v.buttons) do actions[b.action=='nav' and b.arg or b.action]=true end
- for _,action in ipairs({'clean','gift','help','reading'}) do assert(actions[action],action) end
+ for _,action in ipairs({'preferences','memories','help','reading'}) do assert(actions[action],action) end
  tapButton(v,'nav','reading');tapButton(v,'nav','egg');assert(v.screen=='egg')
  v:go('home');v.state.resting=true;tapButton(v,'startplay',nil)
  assert(v.screen=='home' and v.message:find('Wake up',1,true));v:leave()
@@ -214,7 +215,7 @@ check('an away partner stays away when the scene or berry basket is tapped',func
  v:paintTo(bb,0,0);v:onTap(nil,{pos={x=300,y=300}})
  assert(v.screen=='explore' and #U.queue==0)
  v:go('home');v:animate('hello');assert(not v.animating and #U.queue==0)
- v.state.gift=os.time()-86400;v:go('more');tapButton(v,'gift',nil)
+ v.state.gift=os.time()-86400;v:go('home');tapButton(v,'gift',nil)
  assert(v.state.berries==11 and not v.animating and #U.queue==0)
  v:go('entry');v.detail_id=4;v.preview_pose='idle';v:animate('preview')
  assert(U:drain()==2);v:leave()
@@ -222,7 +223,7 @@ end)
 check('save failures persist across navigation and clear after a successful retry',function()
  local P=dofile(BASE..'/main.lua');local reader=P:new{path=BASE,ui={menu={registerToMainMenu=function() end}}}
  reader.savepath=TESTDIR..'/ui-save-error.dat';reader.counterpath=reader.savepath..'.reading';reader.backups.path=reader.savepath
- reader:openPet();reader.view:stopAnimation();if reader.state.species==0 then reader.view:act('choose',4) end
+ reader:openPet();reader:syncReading();reader.view:stopAnimation();if reader.state.species==0 then reader.view:act('choose',4) end
  local save=reader.storage.save;reader.storage.save=function() return nil,'Disk full' end
  reader.view:go('more');tapButton(reader.view,'animation','off');assert(reader.save_error)
  reader.view:go('home');reader.view:onSuspend();reader.view:onResume();assert(reader.save_error)
@@ -243,17 +244,17 @@ check('main plugin persists the picker until a partner is chosen',function()
  local P=dofile(BASE..'/main.lua')
  p=P:new{path=BASE,ui={menu={registerToMainMenu=function() end}}}
  local items={};p:addToMainMenu(items);assert(items.pokepal.callback)
- items.pokepal.callback();assert(p.view and p.state.species==0 and #U.queue==0);p.view:leave()
- p:openPet();assert(p.state.species==0 and #U.queue==0)
+ items.pokepal.callback();p:syncReading();assert(p.view and p.state.species==0 and #U.queue==0);p.view:leave()
+ p:openPet();p:syncReading();assert(p.state.species==0 and #U.queue==0)
  for i=1,5 do tapButton(p.view,'starter',1) end
  tapButton(p.view,'choose',152);assert(p.state.species==152 and #U.queue==1)
  p.view:act('feed');p.view:leave()
- p:openPet();assert(p.state.species==152 and p.state.berries==5 and #U.queue==1);p.view:leave()
+ p:openPet();p:syncReading();assert(p.state.species==152 and p.state.berries==5 and #U.queue==1);p.view:leave()
 end)
 check('existing Charmander save keeps progress and bypasses the picker',function()
  local S=dofile(BASE..'/storage.lua');local s=E.new(os.time())
  E.act(s,'choose',4,os.time());s.xp=200;s.bond=42;s.berries=9;s.animation='off'
- assert(S.save(p.savepath,s,E));p:openPet()
+ assert(S.save(p.savepath,s,E));p:openPet();p:syncReading()
  assert(p.state.species==4 and p.state.xp==200 and p.state.bond==42 and p.state.berries==9)
  assert(#U.queue==0);p.view:leave()
 end)
@@ -312,17 +313,17 @@ check('KOReader events persist reading time, exclude sleep and pet visits, and c
  local real_time=os.time;local clock=real_time();os.time=function() return clock end
  local P=dofile(BASE..'/main.lua')
  local reader=P:new{path=BASE,ui={menu={registerToMainMenu=function() end}}}
- reader:openPet();local xp=reader.state.xp;reader.view:leave()
+ reader:openPet();reader:syncReading();local xp=reader.state.xp;reader.view:leave()
  reader:onPageUpdate(1);reader:onReaderReady()
  for page=2,16 do clock=clock+60;reader:onPageUpdate(page) end
  reader:onSuspend();clock=clock+7200;reader:onResume();reader:onReadingResumed()
- reader:openPet();assert(reader.state.xp==xp+3)
+ reader:openPet();reader:syncReading();assert(reader.state.xp==xp+3)
  clock=clock+7200;reader:onPageUpdate(17)
  reader.view:go('reading');tapButton(reader.view,'reading',nil);assert(not reader.state.reading.enabled)
  tapButton(reader.view,'reading',nil);assert(reader.state.reading.enabled)
- reader.view:leave();reader:openPet();assert(reader.state.xp==xp+3)
+ reader.view:leave();reader:openPet();reader:syncReading();assert(reader.state.xp==xp+3)
  reader.view:leave();clock=clock+60;reader:onCloseDocument();clock=clock+7200;reader:onClose()
- reader:openPet();assert(reader.state.xp==xp+3 and reader.state.reading.carry==60)
+ reader:openPet();reader:syncReading();assert(reader.state.xp==xp+3 and reader.state.reading.carry==60)
  reader.view:leave();os.time=real_time
 end)
 check('failed KOReader counter promotion retains time for retry without duplicate credit',function()
@@ -340,7 +341,7 @@ check('reading trips and timer trips dispatch from the mode picker',function()
   assert(v.state.trip==1 and (v.state.trail~=nil)==(mode=='reading'))
   v:go('explore');tapButton(v,'collect',nil);assert(v.state.trips==0)
   if mode=='reading' then E.readingReward(v.state,1800,os.time()) else v.state.due=os.time() end
-  v:go('explore');tapButton(v,'collect',nil);assert(v.state.trips==1)
+  v:go('explore');tapButton(v,'nav','trailstory');tapButton(v,'trailchoice',1);tapButton(v,'collect',nil);assert(v.state.trips==1)
   v:leave()
  end
 end)
@@ -369,12 +370,12 @@ check('background picker saves immediately without an animation timer',function(
 end)
 check('opening shows the pet and keeps reading recaps in their own menu',function()
  local P=dofile(BASE..'/main.lua');local reader=P:new{path=BASE,ui={menu={registerToMainMenu=function() end}}}
- reader:openPet();reader.view:leave()
- reader.clock.pending=900;reader:openPet();assert(reader.view.screen=='home' and reader.recap.seconds==900)
+ reader:openPet();reader:syncReading();reader.view:leave()
+ reader.clock.pending=900;reader:openPet();reader:syncReading();assert(reader.view.screen=='home' and reader.recap.seconds==900)
  assert(not reader.view.message:find('Reading:',1,true))
  tapButton(reader.view,'nav','more');tapButton(reader.view,'nav','reading');tapButton(reader.view,'nav','recap')
  assert(reader.view.screen=='recap' and #U.queue==0);tapButton(reader.view,'nav','home');reader.view:leave()
- reader:openPet();assert(reader.view.screen=='home' and not reader.recap);reader.view:leave()
+ reader:openPet();reader:syncReading();assert(reader.view.screen=='home' and not reader.recap);reader.view:leave()
 end)
 check('weekly picker and decoration shop preserve progress and purchases',function()
  v=newView(4);dofile(BASE..'/reading.lua').init(v.state);v:go('reading');tapButton(v,'nav','weekly')
@@ -411,7 +412,7 @@ check('backup preview can be cancelled and restore preserves a way back',functio
 end)
 check('unfinished restore blocks gameplay, writes and tracking until recovery',function()
  local P=dofile(BASE..'/main.lua');local reader=P:new{path=BASE,ui={menu={registerToMainMenu=function() end}}}
- reader:openPet();reader.view:stopAnimation();reader.backups.blocked=true
+ reader:openPet();reader:syncReading();reader.view:stopAnimation();reader.backups.blocked=true
  local f=assert(io.open(reader.savepath..'.restore','wb'));f:write('interrupted restore');f:close()
  local R=reader.reading;local before=R.counter(reader.counterpath);reader.clock.pending=60;reader:flushReading()
  assert(reader.clock.pending==60 and R.counter(reader.counterpath)==before and not reader:save())
@@ -423,6 +424,8 @@ check('unfinished restore blocks gameplay, writes and tracking until recovery',f
 end)
 print('UI LIFECYCLE: '..checks..' checks passed (mock KOReader device APIs)')
 ''')
+
+lua.execute((REPO/'tests'/'test_new_ui.lua').read_text())
 
 def paint(v,w=600,h=800):
  start(w,h);v.geometry(v);v.paintTo(v,g.bb,0,0);assert not bounds,bounds;return canvas.copy()
@@ -446,6 +449,29 @@ for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
   if (w,h)==(600,800):im.save(OUT/f'layout-{screen}.png')
   v.freeImages(v)
 print('LAYOUT: 80 screen/size combinations painted within bounds (desktop renderer)')
+
+# New screens also have to fit with both accessibility preferences enabled.
+for large in (False,True):
+ for w,h in [(600,800),(1072,1448),(800,600)]:
+  v=g.newView(4);lua.execute("return dofile(BASE..'/reading.lua')").init(v.state)
+  now=int(v.state.last);v.state.berries=80
+  g.E.act(v.state,'nickname','Évoli',now);g.E.act(v.state,'egg',None,now)
+  g.E.act(v.state,'memory','The Hobbit',now);g.E.act(v.state,'trip',1,now);v.state.due=now
+  if large:
+   g.E.act(v.state,'preference','large_text',now);g.E.act(v.state,'preference','high_contrast',now)
+  for screen in ('preferences','sleeppreview','filters','snacks','memories','bookconfirm','readinghistory','trailstory','textentry','journal'):
+   v.go(v,screen);v.input_text='The Hobbit';v.input_kind='memory';v.input_limit=100
+   im=paint(v,w,h);assert not truncated,(screen,large,w,truncated)
+   if (w,h)==(600,800):im.save(OUT/f'new-{screen}-{"large" if large else "normal"}.png')
+  v.freeImages(v)
+v=g.newView(4);v.owner.native=True;v.go(v,'preferences');paint(v);assert not truncated,truncated
+large_failures=[]
+for screen in ('home','more','profile','reading','egg','weekly','decorations','backgrounds','badges','train','help','explore','nickname','backups'):
+ v=g.newView(4);g.E.act(v.state,'preference','large_text',int(v.state.last));g.E.act(v.state,'preference','high_contrast',int(v.state.last));v.go(v,screen)
+ paint(v)
+ if truncated:large_failures.append((screen,list(truncated)))
+assert not large_failures,large_failures
+print('NEW LAYOUTS: 75 screen/size/text-mode combinations checked')
 
 # A save failure remains visible on every page, including pages with their own messages.
 for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
@@ -496,7 +522,7 @@ for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
  v.restore_preview=lua.table_from({'state':v.state,'at':now,'ko':0,'slot':'backup'});v.go(v,'restore')
  im=paint(v,w,h);assert not truncated,('restore',truncated)
  if (w,h)==(600,800):im.save(OUT/'companion-restore.png')
- v.state.trip=0;v.state.trail=None;v.state.finds=None;v.state.background=6;v.go(v,'home')
+ v.state.trip=0;v.state.trail=None;v.state.finds=None;v.state.companion.journey=None;v.state.background=6;v.go(v,'home')
  im=paint(v,w,h);assert not truncated,('decorated home',truncated)
  if (w,h)==(600,800):im.save(OUT/'companion-home.png')
  v.state.xp=270;v.state.bond=24;v.go(v,'profile');im=paint(v,w,h);assert not truncated,('evolution',truncated)

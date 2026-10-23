@@ -14,6 +14,10 @@ function F.mtime(path)
  if host_fs then return host_fs("mtime",path) end
  if ok then return lfs.symlinkattributes(path,"modification") end
 end
+function F.size(path)
+ if host_fs then return host_fs("size",path) end
+ if ok then return lfs.symlinkattributes(path,"size") end
+end
 function F.rmdir(path)
  if host_fs then return host_fs("rmdir",path) end
  if ok then return lfs.rmdir(path) end

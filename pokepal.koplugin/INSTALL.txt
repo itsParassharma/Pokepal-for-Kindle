@@ -37,6 +37,12 @@ Sleep and time spent in PokePal do not count. KOReader counts at most
 two minutes per page and skips turns faster than five seconds.
 More > Reading rewards shows progress and lets you turn rewards off.
 
+OPTIONAL SETTINGS
+More > Preferences has larger text, stronger contrast and automatic rest
+when the Kindle sleeps. KOReader can also show your sleeping partner on
+its sleep screen or add a small reading footer. These settings start off.
+KUAL keeps the Kindle's normal sleep screen. No screensaver add-on is needed.
+
 AROUND THE NEST
 Explore > As you read starts a trail that advances with recorded reading.
 Timed trips are the default and don't need reading rewards.

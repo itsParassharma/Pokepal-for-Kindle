@@ -52,6 +52,15 @@ wait "$game_pid"
 result=$?
 game_pid=""
 cleanup
+if [ -f data/sleep-enabled ]; then
+    nohup sh ./sleep-watch.sh >/dev/null 2>&1 &
+else
+    sleep_pid=$(cat data/sleep-watch.lock/pid 2>/dev/null)
+    case "$sleep_pid" in
+        ''|*[!0-9]*) ;;
+        *) if [ -r "/proc/$sleep_pid/cmdline" ] && tr '\000' '\n' <"/proc/$sleep_pid/cmdline" | grep -Fxq './sleep-watch.sh'; then kill -TERM "$sleep_pid" 2>/dev/null; fi ;;
+    esac
+fi
 if [ "$result" -eq 10 ]; then exit 0; fi
 if [ "$result" -eq 0 ]; then lipc-set-prop com.lab126.appmgrd start app://com.lab126.booklet.home 2>/dev/null; fi
 if [ "$result" -ne 0 ]; then eips 1 2 "PokePal could not start. Check extensions/pokepal/data/launch.log."; fi

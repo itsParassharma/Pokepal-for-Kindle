@@ -2,26 +2,37 @@
 local B={};B.__index=B
 local source=debug.getinfo(1,"S").source:sub(2):match("^(.*)/")
 local S=dofile(source.."/storage.lua")
+local C=dofile(source.."/companion.lua")
 local function integer(n) return type(n)=="number" and n==n and n>=0 and n<=1e12 and n%1==0 end
 local function read(path)
  local f=io.open(path,"rb");if not f then return end
- local data=f:read(1048705);f:close();return data
+ local data=f:read(1065089);f:close();return data
 end
 function B.new(path,engine,reading,fs,syncfile,syncdir)
  return setmetatable({path=path,engine=engine,reading=reading,fs=fs,syncfile=syncfile,syncdir=syncdir},B)
 end
-function B:encode(state,ko,at)
+function B:encode(state,ko,at,days)
  if not self.engine.valid(state) or not integer(ko) or not integer(at) then return end
  local game=S.encode(state)
+ if days then
+  if not self.reading.validDays(days,ko) then return end
+  return string.format("POKEPAL_BACKUP_2\n%.0f\n%.0f\n%d\n%s\n",at,ko,#game,C.encode(days))..game
+ end
  return string.format("POKEPAL_BACKUP_1\n%.0f\n%.0f\n%d\n",at,ko,#game)..game
 end
 function B:decode(data)
- if not data or #data>1048704 then return end
+ if not data or #data>1065088 then return end
  local at,ko,size,pos=data:match("^POKEPAL_BACKUP_1\n(%d+)\n(%d+)\n(%d+)\n()")
+ local days
+ if not at then
+  local encoded;at,ko,size,encoded,pos=data:match("^POKEPAL_BACKUP_2\n(%d+)\n(%d+)\n(%d+)\n(%x+)\n()")
+  days=encoded and C.decode(encoded)
+  if not days or not self.reading.validDays(days,tonumber(ko) or 0) then return end
+ end
  at,ko,size=tonumber(at),tonumber(ko),tonumber(size)
  if not integer(at) or not integer(ko) or not size or size>1048576 or #data-pos+1~=size then return end
  local state=S.decode(data:sub(pos),self.engine)
- if state then return {state=state,ko=ko,at=at,data=data} end
+ if state then return {state=state,ko=ko,at=at,data=data,days=days} end
 end
 function B:write(path,data)
  if not self:decode(data) then return nil,"Backup is unreadable." end
@@ -56,16 +67,16 @@ end
 function B:create(state)
  if self.blocked or self.fs.mode(self.path..".restore") then return nil,"Reopen PokePal to finish restoring first." end
  local unlock,err=self.fs.lock(self.path..".reading.session");if not unlock then return nil,err end
- local ko;ko,err=self.reading.counter(self.path..".reading")
+ local ko,primary,days;ko,err,primary,days=self.reading.counter(self.path..".reading")
  local ok
  if ko then
   ok,err=S.save(self.path,state,self.engine,self.syncfile,self.syncdir)
-  if ok then ok,err=self:write(self.path..".backup",self:encode(state,ko,os.time())) end
+  if ok then ok,err=self:write(self.path..".backup",self:encode(state,ko,os.time(),days)) end
  end
  unlock();return ok,err
 end
 function B:apply(backup)
- local ok,err=self.reading.saveCounter(self.path..".reading",backup.ko,self.syncfile,self.syncdir)
+ local ok,err=self.reading.saveCounter(self.path..".reading",backup.ko,self.syncfile,self.syncdir,backup.days)
  if not ok then return nil,err end
  ok,err=S.save(self.path,backup.state,self.engine,self.syncfile,self.syncdir)
  if not ok then return nil,err end
@@ -88,10 +99,10 @@ function B:restore(state,preview)
  local backup,err=self:preview(preview and preview.slot)
  if not backup or backup.data~=preview.data then return nil,err or "The backup changed. Preview it again first." end
  local unlock;unlock,err=self.fs.lock(self.path..".reading.session");if not unlock then return nil,err end
- local ko;ko,err=self.reading.counter(self.path..".reading")
+ local ko,primary,days;ko,err,primary,days=self.reading.counter(self.path..".reading")
  local ok
  if ko then
-  ok,err=self:write(self.path..".before-restore",self:encode(state,ko,os.time()))
+  ok,err=self:write(self.path..".before-restore",self:encode(state,ko,os.time(),days))
   if ok then
    ok,err=self:write(self.path..".restore",backup.data)
    -- Once the journal exists, old in-memory state must never overwrite either file.

@@ -2,6 +2,7 @@
 local E = {}
 local source=debug.getinfo(1,"S").source:sub(2):match("^(.*)/")
 E.species = dofile(source.."/species.lua")
+E.companion = dofile(source.."/companion.lua")
 E.starters = {1,4,7,25,133,152,155,158}
 E.evolution_branches = {[133]={134,135,136}}
 E.evolution_stones = {[134]="Water stone",[135]="Thunder stone",[136]="Fire stone"}
@@ -23,6 +24,10 @@ E.badge_goals={
  {"First friend","Begin your adventure"}, {"Kind heart","Care for your partner 20 times"},
  {"Trail scout","Complete 5 expeditions"}, {"Field researcher","Discover 10 Pokemon"},
  {"Best buddies","Reach 80 bond"}, {"Veteran","Earn 300 XP"},
+ {"Bookworm","Read for 10 hours"}, {"A new arrival","Hatch an egg"},
+ {"All three trails","Finish every trail"}, {"A place of our own","Place all four decorations"},
+ {"Reading together","Remember a book"}, {"Finding a rhythm","Meet four weekly goals"},
+ {"Favourite snack","Find a favourite berry"}, {"Kanto explorer","Meet all 151 Kanto Pokemon"},
 }
 E.routes = {
  {name="Meadow", seconds=1800, energy=12, berries=3, xp=12, pool={10,16,19,39,143}},
@@ -54,16 +59,17 @@ function E.displayName(s,id)
  return s.nicknames and s.nicknames[tostring(id)] or E.name(id)
 end
 function E.validNickname(name)
- return type(name)=="string" and #name>0 and #name<=12 and name:match("^[A-Za-z0-9 '%-]+$")
-  and name:match("^%S") and name:match("%S$")
+ return E.companion.text.valid(name,12) and not name:find("=",1,true)
 end
 function E.reaction(s)
  local name=E.displayName(s)
- if s.resting then return name.." is curled up for a nap." end
+ if s.resting then return name..(s.decor and s.decor[1] and " is asleep on the cushion." or " is curled up for a nap.") end
  if s.food<40 then return name.." keeps looking at the berry basket." end
  if s.energy<20 then return name.." lets out a long yawn." end
  if s.dirt>70 then return name.." has tracked mud into the nest." end
  if s.joy<40 then return name.." nudges a ball toward you." end
+ if s.decor and s.decor[2] and tonumber(os.date("%H"))%3==0 then return name.." is sniffing the plant." end
+ if s.decor and s.decor[4] and tonumber(os.date("%H"))%3==1 then return name.." is looking through the bookshelf." end
  if s.bond>=80 then return name.." settles in beside you." end
  if s.bond>=30 then return name.." perks up when you come back." end
  return name.." looks happy to see you."
@@ -130,7 +136,7 @@ function E.new(now)
   seed=now % 2147483646 + 1, resting=false, care=0, started=now}
 end
 function E.valid(s)
- if type(s)~="table" or (s.version~=1 and s.version~=2 and s.version~=3) then return false end
+ if type(s)~="table" or (s.version~=1 and s.version~=2 and s.version~=3 and s.version~=4) then return false end
  for _,k in ipairs({"species","food","joy","energy","bond","xp","berries","last","gift","trained","played","cleaned","dirt","trip","due","trips","seed","care","started"}) do
   local n=s[k]; if type(n)~="number" or n~=n or n<0 or n>1e12 then return false end
  end
@@ -187,7 +193,7 @@ function E.valid(s)
    if type(id)~="string" or not E.species[tonumber(id)] or not s.seen[id] or not E.validNickname(name) then return false end
   end
  end
- return type(s.resting)=="boolean"
+ return type(s.resting)=="boolean" and E.companion.valid(s.companion,s,E)
 end
 function E.weekStart(now)
  local d=os.date("*t",now)
@@ -203,6 +209,7 @@ function E.weekReward(s,now)
  local w=s.week
  if not w or w.claimed or w.seconds<w.target or s.species==0 then return end
  w.claimed=true
+ local companion=E.companion.get(s);companion.goals=companion.goals+1
  local berries=math.min(5,999-s.berries);local xp=math.min(10,1e12-s.xp)
  s.berries=s.berries+berries;s.xp=s.xp+xp
  E.note(s,"Weekly goal met! +"..berries.." berries, +"..xp.." XP.",now)
@@ -256,6 +263,7 @@ local function rng(s,n)
 end
 function E.count(t) local n=0;for _,v in pairs(t) do if v then n=n+1 end end;return n end
 function E.badges(s,now)
+ E.companion.badges(s,E,now)
  local rules={ {"First friend",s.species~=0},{"Kind heart",s.care>=20},
   {"Trail scout",s.trips>=5},{"Field researcher",E.count(s.seen)>=10},
   {"Best buddies",s.bond>=80},{"Veteran",s.xp>=300} }
@@ -288,12 +296,15 @@ function E.readingReward(s,seconds,now)
  local recap=seconds>0 and {seconds=seconds,berries=earned_berries,xp=earned_xp,events=events,weekly=s.week and s.week.claimed and not claimed,
   route=s.trip,trip_before=trip_before,trip_after=s.trip>0 and E.routes[s.trip].seconds-E.tripLeft(s,now) or 0,
   egg=s.egg~=nil,egg_before=egg_before,egg_after=s.egg and E.egg_seconds-E.eggLeft(s) or 0} or nil
+ E.badges(s,now)
  if earned_berries==0 and earned_xp==0 then return nil,recap end
  local message="Reading: +"..earned_berries..(earned_berries==1 and " berry" or " berries")..", +"..earned_xp.." XP."
  E.note(s,message,now);E.badges(s,now);return message,recap
 end
 function E.act(s,action,arg,now)
  E.advance(s,now)
+ local extra=E.companion.act(s,E,action,arg,now)
+ if extra then return extra end
  local function done(msg,anim)
   E.note(s,msg,now); E.badges(s,now); return msg,anim
  end
@@ -301,6 +312,7 @@ function E.act(s,action,arg,now)
   local allowed=false;for _,id in ipairs(E.starters) do if arg==id then allowed=true end end
   if not allowed then return "Choose one of the available starters." end
   s.species=arg;s.seen[tostring(arg)]=true;s.gift=now;s.started=now
+  E.companion.mark(s,arg,now)
   E.readingReward(s,0,now)
   return done(E.name(arg).." is your new friend!","hello")
  end
@@ -309,29 +321,29 @@ function E.act(s,action,arg,now)
   return "Animation: "..s.animation
  end
  if action=="background" then
-  if E.backgrounds[arg] then s.background=arg;s.version=3 end
+  if E.backgrounds[arg] then s.background=arg;s.version=math.max(s.version,3) end
   return "Background: "..E.backgrounds[s.background or 1]
  end
  if s.species==0 then return "Choose your first partner." end
  if action=="nickname" then
   if type(arg)~="string" then return "Choose a nickname of up to 12 characters." end
   local name=arg:gsub("^%s+",""):gsub("%s+$","")
-  if name~="" and not E.validNickname(name) then return "Use up to 12 letters, numbers or spaces." end
-  s.nicknames=s.nicknames or {};s.nicknames[tostring(s.species)]=name~="" and name or nil;s.version=3
+  if name~="" and not E.validNickname(name) then return "Use up to 12 characters, with no line breaks." end
+  s.nicknames=s.nicknames or {};s.nicknames[tostring(s.species)]=name~="" and name or nil;s.version=math.max(s.version,3)
   return done(name~="" and "You named your partner "..name.."." or "Back to "..E.name(s.species)..".")
  elseif action=="decorate" then
   local item=E.decorations[arg];if not item then return "Choose something for your space." end
   s.decor=s.decor or {}
   if s.decor[arg]==nil then
    if s.berries<item.cost then return "You need "..item.cost.." berries for the "..item.name:lower().."." end
-   s.berries=s.berries-item.cost;s.decor[arg]=true;s.version=3
+   s.berries=s.berries-item.cost;s.decor[arg]=true;s.version=math.max(s.version,3)
    return done("A new "..item.name:lower().." for your space.")
   end
   s.decor[arg]=not s.decor[arg]
   return s.decor[arg] and item.name.." placed." or item.name.." tucked away."
  elseif action=="goal" then
   if arg~=3600 and arg~=7200 and arg~=10800 then return "Choose 60, 120 or 180 minutes." end
-  s.week=s.week or {start=E.weekStart(now),seconds=0,claimed=false};s.week.target=arg;s.version=3
+  s.week=s.week or {start=E.weekStart(now),seconds=0,claimed=false};s.week.target=arg;s.version=math.max(s.version,3)
   E.weekReward(s,now)
   return done("Weekly goal: "..arg/60 .." minutes. Pick up your book when you feel like it.")
  elseif action=="check" then
@@ -354,12 +366,13 @@ function E.act(s,action,arg,now)
    end
   end
   if #pool==0 then pool=all end
-  s.egg={id=pool[rng(s,#pool)],start=s.reading.seconds};s.version=3;s.berries=s.berries-E.egg_cost
+  s.egg={id=pool[rng(s,#pool)],start=s.reading.seconds};s.version=math.max(s.version,3);s.berries=s.berries-E.egg_cost
   return done("An egg for your next chapters. Read for 120 minutes to hatch it.")
  elseif action=="hatch" then
   if not s.egg then return "Pick up an egg first." end
   if E.eggLeft(s)>0 then return "Your egg needs "..math.ceil(E.eggLeft(s)/60).." more reading minutes." end
   local id=s.egg.id;s.seen[tostring(id)]=true;s.egg=nil
+  E.companion.mark(s,id,now);local c=E.companion.get(s);c.hatches=c.hatches+1
   return done(E.name(id).." hatched! Find your new friend in the journal.")
  elseif action=="collect" then
   if s.trip==0 then return "Pick a trail to explore." end
@@ -372,8 +385,9 @@ function E.act(s,action,arg,now)
   local id=pool[rng(s,#pool)]
   local fresh=not s.seen[tostring(id)];s.seen[tostring(id)]=true
   s.berries=math.min(999,s.berries+r.berries);s.xp=s.xp+r.xp;s.bond=clamp(s.bond+4,0,100)
+  E.companion.mark(s,id,now);local story=E.companion.finishTrip(s,E)
   s.trips=s.trips+1;s.trip=0;s.due=0;s.trail=nil;s.finds=nil
-  return done((fresh and "New: " or "Met ")..E.name(id).."! +"..r.berries.." berries, +"..r.xp.." XP.","explore")
+  return done((fresh and "New: " or "Met ")..E.name(id).."! +"..r.berries.." berries, +"..r.xp.." XP."..(story or ""),"explore")
  end
  if s.trip>0 then return "Your partner is exploring. Tap Explore for details." end
  if action=="rest" then
@@ -387,11 +401,17 @@ function E.act(s,action,arg,now)
   s.partners=s.partners or {};s.partners[tostring(s.species)]={xp=s.xp,bond=s.bond}
   local p=s.partners[tostring(arg)] or {xp=0,bond=0}
   s.species=arg;s.xp=p.xp;s.bond=p.bond
+  E.companion.mark(s,arg,now)
   return done(E.name(arg).." joins you. Your other friends keep their progress.","hello")
  elseif action=="feed" then
   if s.berries<1 then return "No berries. Explore or check the berry basket." end
   if s.food>=95 then return "Already full! Save that berry for later." end
   s.berries=s.berries-1;s.food=clamp(s.food+24,0,100);s.bond=clamp(s.bond+2,0,100);s.care=s.care+1
+  local _,favourite=E.companion.profile(s,s.species,E)
+  if arg==favourite then
+   E.companion.get(s).tastes[tostring(s.species)]=true;s.bond=clamp(s.bond+1,0,100)
+   return done(E.displayName(s).." perks up. "..favourite.." is a favourite!","feed")
+  end
   return done("Berry eaten.","feed")
  elseif action=="play" then
   local allowed,why=E.canPlay(s,now);if not allowed then return why end
@@ -416,9 +436,10 @@ function E.act(s,action,arg,now)
   if action=="readingtrip" and (not s.reading or not s.reading.enabled) then return "Turn on reading rewards to start a reading trail." end
   if s.energy<r.energy then return "This trail needs "..r.energy.." energy." end
   if s.food<30 then return "Feed your partner before setting off." end
-  s.energy=s.energy-r.energy;s.trip=arg;s.due=now+r.seconds;s.finds=0;s.version=3
+  s.energy=s.energy-r.energy;s.trip=arg;s.due=now+r.seconds;s.finds=0;s.version=math.max(s.version,3)
+  E.companion.get(s).journey={event=rng(s,#E.companion.events)}
   if action=="readingtrip" then
-   s.trail=s.reading.seconds;s.due=0;s.version=3
+   s.trail=s.reading.seconds;s.due=0;s.version=math.max(s.version,3)
    return done("Off to "..r.name.."! Read for "..r.seconds/60 .." minutes to finish.","explore")
   end
   return done("Off to "..r.name.."! Return in "..r.seconds/60 .." min.","explore")
@@ -435,6 +456,7 @@ function E.act(s,action,arg,now)
    s.nicknames[tostring(id)]=s.nicknames[tostring(s.species)]
   end
   s.species=id;s.seen[tostring(id)]=true
+  E.companion.mark(s,id,now)
   return done("Your partner evolved into "..E.name(id).."!","evolve")
  end
  return "Ready when you are."
