@@ -10,16 +10,20 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 - Pick one of eight quick starters, or choose any of the 160 Pokémon.
 - Feed, play, train, rest and clean. Collect daily berries, give your partner a nickname and watch it react to its mood.
-- Turn the screen off and let your Pokémon rest. KOReader can show your partner curled up beside its egg on the sleep screen. [Sleep screen setup](docs/companion-update.md#sleep-screen).
-- Explore three trails, find Pokémon and choose what happens on the way home. Trips run on a timer or advance as you read.
-- Help your partner evolve by building XP and bond. Use **Profile > Change companion**, then **Choose from all 160 Pokémon** for the full list. Each keeps its XP, bond and nickname when you switch.
+- Earn berries and XP, hatch eggs and reach weekly goals as you read. Check your recap and weekly history, or remember books you finished together.
+- Explore three different trails, find Pokémon and choose what happens on the way home.
+- Help your partner evolve by building XP and bond.
+- Use **Profile > Change companion**, then **Choose from all 160 Pokémon** for starting with any Pokémon or choose from 8 different starters and watch it evolve!
 - Discover favourite berries and watch your partner settle beside its decorations.
-- Search your journal, save favourites and find friends ready to evolve. Try five animations and earn 14 badges.
+- Search your journal, save favourites and find friends ready to evolve. Earn 14 badges.
 - Earn berries and XP, hatch eggs and reach weekly goals as you read. Check your recap and weekly history, or remember books you finished together. Reading rewards are optional.
-- Choose larger text, stronger contrast or a small reading footer in KOReader.
-- Back up your game and reading records, with a preview before restoring. Everything works offline.
+- Turn the screen off and let your Pokémon rest. KOReader can show your partner curled up beside its egg on the sleep screen.
+- Choose larger text, stronger contrast or a small reading footer in settings.
+- Back up your game and reading records. Everything works offline.
 
-See the [reading rewards guide](docs/reading-rewards.md) to get started.
+More:
+[Reading rewards guide](docs/reading-rewards.md)
+[Sleep screen setup](docs/companion-update.md#sleep-screen).
 
 See [what changed in 1.0.7](docs/release-v1.0.7.md), including the KOReader text-size fix.
 
@@ -41,8 +45,9 @@ You need KOReader installed on your Kindle.
 
 ## Saves
 
-Both editions share your save. Use **More > Backups** to save or restore, and copy the `pokepal` folder to your computer before updating. Keep both editions on the same version; older builds cannot read newer saves.
+Both editions share your save. Use **More > Backups** to save or restore, and copy the `pokepal` folder to your computer before updating.
 
 [Save help](pokepal.koplugin/INSTALL.txt) · [Build and device notes](native/README.md) · [Credits](pokepal.koplugin/CREDITS.txt)
 
-Unofficial fan project. Sprites by [SpriteCollab contributors](https://github.com/PMDCollab/SpriteCollab). Pokémon belongs to its respective owners. Shared game code is MIT; the standalone host is GPL-3.0-or-later.
+Unofficial fan project. Sprites by [SpriteCollab contributors](https://github.com/PMDCollab/SpriteCollab).
+Pokémon belongs to its respective owners. Shared game code is MIT; the standalone host is GPL-3.0-or-later.
