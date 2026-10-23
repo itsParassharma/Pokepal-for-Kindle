@@ -25,7 +25,7 @@ More:
 [Reading rewards guide](docs/reading-rewards.md)
 [Sleep screen setup](docs/companion-update.md#sleep-screen).
 
-See [what changed in 1.0.7](docs/release-v1.0.7.md), including the KOReader text-size fix.
+See [what changed in 1.0.7](docs/release-v1.0.7.md).
 
 ## Install with KUAL
 
