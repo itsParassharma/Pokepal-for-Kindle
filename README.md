@@ -18,7 +18,7 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 - Search your journal, save favourites and find friends ready to evolve. Earn 14 badges.
 - Turn the screen off and let your Pokémon rest. KOReader can show your partner curled up beside its egg on the sleep screen.
 - Choose larger text, stronger contrast or a small reading footer in settings.
-- Back up your game and reading records. Everything works offline.
+- Everything works offline.
 
 More:
 [Reading rewards guide](docs/reading-rewards.md)
