@@ -309,8 +309,7 @@ function E.act(s,action,arg,now)
   E.note(s,msg,now); E.badges(s,now); return msg,anim
  end
  if action=="choose" and s.species==0 then
-  local allowed=false;for _,id in ipairs(E.starters) do if arg==id then allowed=true end end
-  if not allowed then return "Choose one of the available starters." end
+  if not E.species[arg] then return "Choose a Pokemon from the list." end
   s.species=arg;s.seen[tostring(arg)]=true;s.gift=now;s.started=now
   E.companion.mark(s,arg,now)
   E.readingReward(s,0,now)
@@ -396,11 +395,11 @@ function E.act(s,action,arg,now)
  end
  if s.resting then return "Your partner is napping. Tap Wake up first." end
  if action=="partner" then
-  if not E.species[arg] or not s.seen[tostring(arg)] then return "Meet this Pokemon on a trail first." end
+  if not E.species[arg] then return "Choose a Pokemon from the list." end
   if arg==s.species then return E.name(arg).." is already with you." end
   s.partners=s.partners or {};s.partners[tostring(s.species)]={xp=s.xp,bond=s.bond}
   local p=s.partners[tostring(arg)] or {xp=0,bond=0}
-  s.species=arg;s.xp=p.xp;s.bond=p.bond
+  s.species=arg;s.xp=p.xp;s.bond=p.bond;s.seen[tostring(arg)]=true
   E.companion.mark(s,arg,now)
   return done(E.name(arg).." joins you. Your other friends keep their progress.","hello")
  elseif action=="feed" then
