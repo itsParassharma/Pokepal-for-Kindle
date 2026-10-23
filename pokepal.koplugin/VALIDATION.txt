@@ -1,7 +1,9 @@
-POKEPAL 1.0.4
+POKEPAL 1.0.7
 
 The test suite checks game actions, old saves, damaged-save recovery,
 all 160 reachable species, partner progress, UI lifecycle and layouts.
+It also checks choosing any of the 160 species at the start or from
+Profile, confirmation and cancellation, and progress after switching.
 Every species has five moving animations and all 800 pose buttons
 are exercised through the actual touch dispatcher.
 Generated motion is identified in assets/pose-sources.json.

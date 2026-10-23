@@ -4,7 +4,7 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 ![PokePal](docs/kindle-preview.png)
 
-[Download 1.0.6](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/tag/v1.0.6) · [Watch the trailer](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/download/v1.0.6/PokePal-trailer.mp4)
+[Download 1.0.7](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/tag/v1.0.7) · [Watch the trailer](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/download/v1.0.7/PokePal-trailer.mp4)
 
 ## Features
 
@@ -21,13 +21,13 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 See the [reading rewards guide](docs/reading-rewards.md) to get started.
 
-These additions are on the development branch. The download link is still for 1.0.6.
+See [what changed in 1.0.7](docs/release-v1.0.7.md), including the KOReader text-size fix.
 
 ## Install with KUAL
 
 You need a jailbroken touchscreen Kindle with KUAL installed. KOReader is not required.
 
-1. Download and unzip **PokePal-v1.0.6-kual.zip**.
+1. Download and unzip **PokePal-v1.0.7-kual.zip**.
 2. Connect your Kindle by USB. Copy the `extensions` folder onto the Kindle drive, next to `documents`. Merge folders if asked.
 3. Eject your Kindle, then open **KUAL > PokePal > Play PokePal**.
 
@@ -35,7 +35,7 @@ You need a jailbroken touchscreen Kindle with KUAL installed. KOReader is not re
 
 You need KOReader installed on your Kindle.
 
-1. Download and unzip **PokePal-v1.0.6-koreader.zip**.
+1. Download and unzip **PokePal-v1.0.7-koreader.zip**.
 2. Copy the `koreader` folder onto the Kindle drive. Merge it with the existing folder.
 3. Restart KOReader, then open **Tools > More tools > PokePal**.
 

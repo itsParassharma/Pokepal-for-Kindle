@@ -1,6 +1,6 @@
 # Companion update
 
-This branch adds the 17 agreed improvements. New preferences start off. Existing saves load with their current partner, rewards and trips intact.
+Version 1.0.7 includes these companion features. New preferences start off. Existing saves load with their current partner, rewards and trips intact.
 
 ## Sleep screen
 
@@ -38,7 +38,7 @@ Reading-dependent actions wait until the scan finishes. You can browse or exit w
 
 ## Saves
 
-Back up the whole `pokepal` folder before installing this branch, and update both editions together. Older builds cannot read the new companion fields or dated reading counter. Backups now include those dates; older backups still restore.
+Back up the whole `pokepal` folder before installing 1.0.7, and update both editions together. Older builds cannot read the new companion fields or dated reading counter. Backups now include those dates; older backups still restore.
 
 Book memories are stored locally because you chose to save their titles. Reward tracking still uses hashed book identities, not titles or book text.
 
