@@ -16,7 +16,6 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 - Use **Profile > Change companion**, then **Choose from all 160 Pokémon** for starting with any Pokémon or choose from 8 different starters and watch it evolve!
 - Discover favourite berries and watch your partner settle beside its decorations.
 - Search your journal, save favourites and find friends ready to evolve. Earn 14 badges.
-- Earn berries and XP, hatch eggs and reach weekly goals as you read. Check your recap and weekly history, or remember books you finished together. Reading rewards are optional.
 - Turn the screen off and let your Pokémon rest. KOReader can show your partner curled up beside its egg on the sleep screen.
 - Choose larger text, stronger contrast or a small reading footer in settings.
 - Back up your game and reading records. Everything works offline.
