@@ -1,9 +1,9 @@
-POKEPAL 1.0.6
+POKEPAL 1.0.7
 
 KUAL
 Needs a jailbroken touchscreen Kindle with KUAL installed.
 
-1. Unzip PokePal-v1.0.6-kual.zip.
+1. Unzip PokePal-v1.0.7-kual.zip.
 2. Copy extensions onto your Kindle drive, next to documents.
    Merge folders if asked.
 3. Eject, then open KUAL > PokePal > Play PokePal.
@@ -13,7 +13,7 @@ KOReader is not required for this version.
 KOREADER
 Needs KOReader installed on your Kindle.
 
-1. Unzip PokePal-v1.0.6-koreader.zip.
+1. Unzip PokePal-v1.0.7-koreader.zip.
 2. Copy koreader onto your Kindle drive. Merge with the existing folder.
 3. Restart KOReader. Open Tools > More tools > PokePal.
 
@@ -54,6 +54,10 @@ Feed, play, train, rest, clean and collect daily berries from home.
 More holds reading rewards, backgrounds, decorations and backups.
 Decorations cost berries once and can be placed or hidden in any background.
 Profile > Nickname lets you name your partner. The name stays when it evolves.
+Profile > Change companion lets you switch partners. Choose from all 160
+Pokemon opens the full list, even for Pokemon you haven't met. Tap one and
+confirm. Each keeps its XP, bond and nickname. The full list is also
+available when starting a new game, alongside the eight quick starters.
 More > Reading rewards > Weekly goal offers 60, 120 or 180 minutes. Reach it for 5 berries
 and 10 XP. Weeks start on Monday and count minutes collected that week.
 Last visit in the reading menu shows your rewards, trail and egg progress.
