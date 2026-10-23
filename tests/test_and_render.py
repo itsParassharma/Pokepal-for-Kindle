@@ -257,6 +257,72 @@ check('starter browsing wraps and confirms every available partner',function()
   v:leave();assert(#U.queue==0)
  end
 end)
+check('Profile companion picker previews, cancels and switches without losing progress',function()
+ local real_time=os.time;local now=1800000000;os.time=function() return now end
+ local S=dofile(BASE..'/storage.lua');local v=newView(4)
+ v.state.animation='off';v.state.xp=200;v.state.bond=42;v.state.berries=19
+ E.act(v.state,'nickname','Ember',now);v.state.seen['150']=true
+ v.journal_query='no match';v.journal_filter='favourites'
+ local before=S.encode(v.state)
+ v:go('profile');tapButton(v,'nav','companions');assert(v.screen=='companions')
+ v:paintTo(bb,0,0);assert(v.journal_count==9 and v.page==1)
+ tapButton(v,'entry',1);assert(v.screen=='entry' and v.detail_id==1)
+ assert(tapButton(v,'favourite',1).disabled)
+ v:onBack();assert(v.screen=='companions');v:onBack();assert(v.screen=='profile')
+ assert(S.encode(v.state)==before and not v.owner.saved)
+ tapButton(v,'nav','companions');tapButton(v,'page',1);assert(v.page==2)
+ tapButton(v,'entry',158);tapButton(v,'nav','companions');assert(v.screen=='companions')
+ tapButton(v,'entry',7);tapButton(v,'partner',7)
+ assert(v.screen=='home' and v.state.species==7 and v.owner.saved==1)
+ assert(v.state.xp==0 and v.state.bond==0 and v.state.berries==19)
+ v.state=S.decode(S.encode(v.state),E);assert(v.state and v.state.species==7)
+ v:go('profile');tapButton(v,'nav','companions');tapButton(v,'entry',4);tapButton(v,'partner',4)
+ assert(v.state.xp==200 and v.state.bond==42 and E.displayName(v.state)=='Ember')
+ v:leave();os.time=real_time
+end)
+check('all 160 are reachable from the welcome screen and Profile without unlocking',function()
+ local real_time=os.time;local now=1800000000;os.time=function() return now end
+ local S=dofile(BASE..'/storage.lua');local v=newView();v.state.animation='off'
+ local before=S.encode(v.state)
+ tapButton(v,'nav','allcompanions');assert(v.screen=='allcompanions')
+ local found={}
+ for page=1,27 do
+  v:paintTo(bb,0,0);assert(v.journal_count==160 and v.page==page)
+  for _,b in ipairs(v.buttons) do
+   if b.action=='entry' then assert(not found[b.arg]);found[b.arg]=true end
+  end
+  if page<27 then tapButton(v,'page',1) end
+ end
+ for id=1,160 do assert(found[id],id) end
+ assert(tapButton(v,'page',1).disabled and v.page==27)
+ tapButton(v,'entry',160);assert(v.screen=='entry')
+ v:onBack();assert(v.screen=='allcompanions');v:onBack();assert(v.screen=='home')
+ assert(S.encode(v.state)==before and not v.owner.saved)
+ tapButton(v,'nav','allcompanions');tapButton(v,'entry',3);tapButton(v,'choose',3)
+ assert(v.state.species==3 and v.state.seen['3'] and E.count(v.state.seen)==1 and v.owner.saved==1)
+ v.state.xp=200;v.state.bond=42;E.act(v.state,'nickname','Leaf',now)
+ v:go('profile');tapButton(v,'nav','companions');tapButton(v,'nav','allcompanions')
+ tapButton(v,'entry',6);tapButton(v,'partner',6)
+ assert(v.state.species==6 and v.state.xp==0 and E.count(v.state.seen)==2)
+ v.state=S.decode(S.encode(v.state),E);assert(v.state and v.state.species==6)
+ v:go('profile');tapButton(v,'nav','companions');tapButton(v,'entry',3);tapButton(v,'partner',3)
+ assert(v.state.xp==200 and v.state.bond==42 and E.displayName(v.state)=='Leaf')
+ v:leave();os.time=real_time
+end)
+check('companion confirmation explains blocked switches and respects save locks',function()
+ local v=newView(4);v.state.animation='off';v:go('profile')
+ tapButton(v,'nav','companions');tapButton(v,'entry',4)
+ assert(tapButton(v,'partner',4).disabled)
+ tapButton(v,'nav','companions');tapButton(v,'entry',7)
+ v.state.resting=true;assert(tapButton(v,'partner',7).disabled and v.state.species==4)
+ v.state.resting=false;E.act(v.state,'trip',1,os.time())
+ assert(tapButton(v,'partner',7).disabled and v.state.species==4)
+ v.state.trip=0;v.state.due=0;v.state.trail=nil;v.state.finds=nil;v.state.companion.journey=nil
+ v.owner.reading_busy=true;tapButton(v,'partner',7);assert(v.state.species==4)
+ v.owner.reading_busy=false;v.owner.backups={blocked=true}
+ tapButton(v,'partner',7);assert(v.state.species==4)
+ v.owner.backups=nil;v:leave()
+end)
 check('main plugin persists the picker until a partner is chosen',function()
  local P=dofile(BASE..'/main.lua')
  p=P:new{path=BASE,ui={menu={registerToMainMenu=function() end}}}
@@ -472,6 +538,24 @@ for w,h in [(1072,1448),(600,800),(758,1024),(1264,1680),(1440,1920),(800,600)]:
    text_layouts+=1;v.freeImages(v)
 g.D.dpi=None
 print(f'TEXT SCALING: {text_layouts} Kindle size, DPI and accessibility combinations passed')
+
+# Companion selection shares the journal grid and must fit large text and Eevee's three evolutions.
+for w,h in [(600,800),(1072,1448),(800,600)]:
+ for large in (False,True):
+  v=g.newView(133);v.state.xp=120;v.state.bond=30
+  if large:
+   g.E.act(v.state,'preference','large_text',int(v.state.last))
+   g.E.act(v.state,'preference','high_contrast',int(v.state.last))
+  for screen in ('profile','companions','allcompanions','entry'):
+   v.go(v,screen);v.detail_id=158;v.entry_from='companions'
+   im=paint(v,w,h);assert not truncated,(screen,w,h,large,truncated)
+   buttons=list(v.buttons.values())
+   for i,a in enumerate(buttons):
+    for b in buttons[i+1:]:
+     assert a.x+a.w<=b.x or b.x+b.w<=a.x or a.y+a.h<=b.y or b.y+b.h<=a.y,(screen,a.action,b.action)
+   if (w,h)==(600,800):im.save(OUT/f'change-companion-{screen}-{"large" if large else "normal"}.png')
+  v.freeImages(v)
+print('COMPANION PICKER: 24 profile, selection and confirmation layouts checked')
 
 # Layout smoke tests execute every actual view at representative portrait/landscape sizes.
 for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:

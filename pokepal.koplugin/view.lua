@@ -168,7 +168,7 @@ function View:act(action,arg)
  local previous=self.state.species
  local hatching=action=="hatch" and self.state.egg and self.state.egg.id
  self.message,self.next_effect=self.engine.act(self.state,action,arg,os.time())
- self.owner:save();self:freeImages();self.screen="home"
+ self.owner:save();self:freeImages();self.screen="home";self.entry_from=nil
  if hatching and not self.state.egg then
   self.screen="entry";self.detail_id=hatching;self.preview_pose="idle";self.hatched=hatching;self.next_effect="hello"
  end
@@ -180,10 +180,10 @@ function View:paintTo(bb,x,y)
  self.art.text(self,bb,"POKEPAL",32,28,3);self.art.icon(self,bb,"berry",373,24,2)
  self:text(bb,self.state.berries,406,29,18,64);self:button(bb,"Exit",492,20,76,40,"exit")
  self:rect(bb,32,75,536,1)
- if self.state.species==0 then self:paintWelcome(bb)
+ if self.state.species==0 and self.screen~="allcompanions" and self.screen~="entry" then self:paintWelcome(bb)
  elseif self.screen=="home" then self:paintHome(bb)
  elseif self.screen=="explore" then self:paintExplore(bb)
- elseif self.screen=="journal" then self:paintJournal(bb)
+ elseif self.screen=="journal" or self.screen=="companions" or self.screen=="allcompanions" then self:paintJournal(bb)
  elseif self.screen=="entry" then self:paintEntry(bb)
  elseif self.screen=="history" then self:paintHistory(bb)
  elseif self.screen=="profile" then self:paintProfile(bb)
@@ -222,7 +222,8 @@ function View:paintWelcome(bb)
  self:wrapped(bb,"Feed, play, explore and grow together. Choose a friend for your adventure.",530,19)
  self:button(bb,"Previous",60,602,232,48,"starter",-1)
  self:button(bb,"Next",308,602,232,48,"starter",1)
- self:button(bb,"Start with "..self.engine.name(id),60,670,480,62,"choose",id,"heart")
+ self:button(bb,"Start with "..self.engine.name(id),60,658,480,52,"choose",id,"heart")
+ self:button(bb,"Choose from all 160 Pokemon",60,720,480,44,"nav","allcompanions")
 end
 function View:landscape(bb,background)
  local hour=tonumber(os.date("%H"));local night=hour<7 or hour>=19
@@ -416,13 +417,26 @@ function View:paintDecorations(bb)
  self:backButton(bb)
 end
 function View:paintJournal(bb)
- local ids=self.engine.companion.journal(self.state,self.engine,self.journal_query,self.journal_filter or "met")
+ local choosing=self.screen=="companions" or self.screen=="allcompanions"
+ local ids={}
+ if choosing then
+  local starters={};for _,id in ipairs(self.engine.starters) do starters[id]=true end
+  for id=1,160 do
+   if self.screen=="allcompanions" or starters[id] or self.state.seen[tostring(id)] then ids[#ids+1]=id end
+  end
+ else ids=self.engine.companion.journal(self.state,self.engine,self.journal_query,self.journal_filter or "met") end
  self.journal_count=#ids
  local pages=math.max(1,math.ceil(#ids/6));self.page=math.min(self.page or 1,pages)
- self:title(bb,"Field journal",self.engine.kantoCount(self.state).." / 151 Kanto   |   "..#ids.." shown")
- self:button(bb,self.journal_query and self.journal_query~="" and self.journal_query or "Search",32,184,172,42,"journalSearch")
- self:button(bb,"Filter",214,184,172,42,"nav","filters")
- self:button(bb,"My partner",396,184,172,42,"entry",self.state.species)
+ if choosing then
+  self:title(bb,self.screen=="allcompanions" and "All 160 Pokemon" or "Change companion",
+   self.screen=="allcompanions" and "Every Pokemon is available to choose." or "Starters and friends you've met.")
+  self:wrapped(bb,"Tap a Pokemon to see its details, then choose it.",190,18)
+ else
+  self:title(bb,"Field journal",self.engine.kantoCount(self.state).." / 151 Kanto   |   "..#ids.." shown")
+  self:button(bb,self.journal_query and self.journal_query~="" and self.journal_query or "Search",32,184,172,42,"journalSearch")
+  self:button(bb,"Filter",214,184,172,42,"nav","filters")
+  self:button(bb,"My partner",396,184,172,42,"entry",self.state.species)
+ end
  for pos=(self.page-1)*6+1,math.min(self.page*6,#ids) do
   local i=pos-(self.page-1)*6-1;local x=32+(i%3)*182;local y=241+math.floor(i/3)*164
   self:sprite(bb,ids[pos],x+28,y,116,1);self:text(bb,self.engine.displayName(self.state,ids[pos]),x,y+124,17,172,false,true)
@@ -431,8 +445,17 @@ function View:paintJournal(bb)
  self:button(bb,"Previous",32,597,170,43,"page",-1,nil,self.page==1)
  self:text(bb,self.page.." / "..pages,217,609,20,166,false,true)
  self:button(bb,"Next",398,597,170,43,"page",1,nil,self.page==pages)
- self:button(bb,"Activity",32,659,262,43,"nav","history","book")
- self:button(bb,"Badges",306,659,262,43,"nav","badges","badge");self:backButton(bb)
+ if choosing then
+  if self.screen=="companions" then
+   self:button(bb,"Choose from all 160 Pokemon",32,652,536,44,"nav","allcompanions")
+  else self:wrapped(bb,"XP, bond and nicknames stay with each friend.",662,18) end
+  local back=self.state.species==0 and "home" or self.screen=="allcompanions" and "companions" or "profile"
+  local label=back=="home" and "Back to starters" or back=="companions" and "Back to companions" or "Back to profile"
+  self:button(bb,label,32,717,536,44,"nav",back)
+ else
+  self:button(bb,"Activity",32,659,262,43,"nav","history","book")
+  self:button(bb,"Badges",306,659,262,43,"nav","badges","badge");self:backButton(bb)
+ end
 end
 function View:paintEntry(bb)
  local id=self.detail_id;local name=self.engine.name(id)
@@ -446,12 +469,15 @@ function View:paintEntry(bb)
  end
  local p=id==self.state.species and self.state or (self.state.partners and self.state.partners[tostring(id)]) or {xp=0,bond=0}
  self:text(bb,p.xp.." XP   /   Bond "..math.floor(p.bond).."   /   Tap a pose to preview",32,546,17,536,false,true)
- self:button(bb,id==self.state.species and "Your current partner" or "Choose "..name,32,594,536,52,"partner",id,"heart",id==self.state.species or self.state.trip>0 or self.state.resting)
+ local label=id==self.state.species and "Your current partner" or self.state.trip>0 and "Collect your trip before changing"
+  or self.state.resting and "Wake up before changing" or "Choose "..name
+ self:button(bb,label,32,594,536,52,self.state.species==0 and "choose" or "partner",id,"heart",id==self.state.species or self.state.trip>0 or self.state.resting)
  local C=self.engine.companion;local trait,berry=C.profile(self.state,id,self.engine)
  local c=self.state.companion;local known=c and c.tastes[tostring(id)]
  self:text(bb,trait..(known and " / Likes "..berry or " / Try different berries"),32,658,17,344)
- self:button(bb,c and c.favourites[tostring(id)] and "Unfavourite" or "Favourite",398,652,170,42,"favourite",id)
- self:button(bb,"Back to journal",32,717,536,44,"nav","journal")
+ self:button(bb,c and c.favourites[tostring(id)] and "Unfavourite" or "Favourite",398,652,170,42,"favourite",id,nil,not self.state.seen[tostring(id)])
+ local back=self.entry_from or "journal"
+ self:button(bb,back=="journal" and "Back to journal" or back=="allcompanions" and "Back to all 160 Pokemon" or "Back to companions",32,717,536,44,"nav",back)
 end
 function View:paintHistory(bb)
  local entries=self.state.log
@@ -474,6 +500,7 @@ function View:paintProfile(bb)
  local s=self.state;local lv=self.engine.level(s)
  local line=self.engine.evolutionLine(s.species);local choices=self.engine.evolutionChoices(s.species)
  self:title(bb,"Partner",self.engine.displayName(s).."   /   Lv "..lv.."   /   Bond "..math.floor(s.bond).." / 100")
+ self:button(bb,"Change companion",182,97,239,40,"nav","companions")
  self:button(bb,"Nickname",431,97,137,40,"nav","nickname")
  for i,id in ipairs(line) do
   local x=(600-(#line*182-10))/2+(i-1)*182;self:sprite(bb,id,x+26,183,120,1)
@@ -659,7 +686,9 @@ function View:onTap(_,ges)
    self:freeImages();UIManager:setDirty(self,"ui")
   elseif b.action=="nav" then
    self:go(b.arg);if b.arg=="home" then self.message=self.engine.act(self.state,"check",nil,os.time()) end
-  elseif b.action=="entry" then self:go("entry");self.detail_id=b.arg;self.preview_pose="idle"
+  elseif b.action=="entry" then
+   self.entry_from=self.screen
+   self:go("entry");self.detail_id=b.arg;self.preview_pose="idle"
   elseif b.action=="preview" then self.preview_pose=b.arg;self:animate("preview");UIManager:setDirty(self,"ui")
   elseif b.action=="hello" then self.message=self.engine.act(self.state,"check",nil,os.time());self:animate("hello");UIManager:setDirty(self,"ui")
   elseif b.action=="startplay" then self:startPlay()
@@ -702,7 +731,11 @@ function View:onTap(_,ges)
 end
 function View:onSwipe() return true end
 function View:onBack()
- if self.screen=="home" or (self.owner.backups and self.owner.backups.blocked) then self:leave() else self:go("home") end
+ if self.screen=="home" or (self.owner.backups and self.owner.backups.blocked) then self:leave()
+ elseif self.screen=="companions" then self:go("profile")
+ elseif self.screen=="allcompanions" then self:go(self.state.species==0 and "home" or "companions")
+ elseif self.screen=="entry" and self.entry_from and self.entry_from~="journal" then self:go(self.entry_from)
+ else self:go("home") end
  return true
 end
 function View:onClose() self:leave();return true end

@@ -216,10 +216,33 @@ test("switching preserves separate XP and bond across saves",function()
  s.xp=80;s.bond=20;s=S.decode(S.encode(s),E)
  E.act(s,'partner',4,now);assert(s.xp==300 and s.bond==40)
  E.act(s,'partner',150,now);assert(s.xp==80 and s.bond==20)
- E.act(s,'partner',151,now);assert(s.species==150)
- s.resting=true;E.act(s,'partner',4,now);assert(s.species==150)
- s.resting=false;E.act(s,'trip',1,now);E.act(s,'partner',4,now);assert(s.species==150)
+ E.act(s,'partner',151,now);assert(s.species==151 and s.seen['151'])
+ s.resting=true;E.act(s,'partner',4,now);assert(s.species==151)
+ s.resting=false;E.act(s,'trip',1,now);E.act(s,'partner',4,now);assert(s.species==151)
 end)
+test("all 160 Pokemon can be chosen initially or switched to without losing progress",function()
+ for id=1,160 do
+  local first=pet(id);assert(first.species==id and E.valid(first))
+  assert(S.decode(S.encode(first),E).species==id)
+  local s=pet(4);s.xp=300;s.bond=40;E.act(s,'nickname','Ember',now)
+  local berries,started,gift=s.berries,s.started,s.gift
+  E.act(s,'partner',id,now)
+  assert(s.species==id and s.seen[tostring(id)] and E.valid(s))
+  assert(s.berries==berries and s.started==started and s.gift==gift)
+  if id~=4 then assert(s.xp==0 and s.bond==0) end
+  s=S.decode(S.encode(s),E);assert(s and s.species==id)
+  E.act(s,'partner',4,now);assert(s.xp==300 and s.bond==40 and E.displayName(s)=='Ember')
+ end
+ local s=pet(4);local before=S.encode(s)
+ for _,id in ipairs({0,161,1.5,'25',{}}) do
+  E.act(s,'partner',id,now);assert(S.encode(s)==before)
+  local first=E.new(now);E.act(first,'choose',id,now);assert(first.species==0)
+ end
+ E.act(s,'partner',nil,now);assert(S.encode(s)==before)
+ s.resting=true;E.act(s,'partner',7,now);assert(s.species==4 and not s.seen['7'])
+ s.resting=false;E.act(s,'trip',1,now);E.act(s,'partner',7,now);assert(s.species==4 and not s.seen['7'])
+end)
+
 test("partner records reject malformed, duplicate and undiscovered data",function()
  local data=S.encode(pet(4))
  assert(not S.decode(data..'partner=150,10,20\n',E))

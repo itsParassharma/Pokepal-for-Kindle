@@ -2,7 +2,20 @@ app.owner:syncReading()
 local s=app.state;local E=app.engine;local v=app.view
 for key in pairs(s) do s[key]=nil end
 for key,value in pairs(E.new(os.time())) do s[key]=value end
-if s.species==0 then v:act('choose',4) end
+local function tap(action,arg)
+ app_paint()
+ for _,button in ipairs(v.buttons) do
+  if button.action==action and button.arg==arg then
+   assert(not button.disabled);local r=v:region(button.x+4,button.y+4,0,0)
+   v:onTap(nil,{pos={x=r.x,y=r.y}});return
+  end
+ end
+ error('Missing native control: '..action)
+end
+tap('nav','allcompanions');app_paint();assert(v.journal_count==160)
+tap('entry',3);tap('choose',3);assert(s.species==3)
+v:go('profile');tap('nav','companions');tap('nav','allcompanions')
+tap('entry',4);tap('partner',4);assert(s.species==4)
 v:go('home');s.animation='off';s.food=60;s.berries=6
 v:act('feed');assert(s.food==84 and s.berries==5)
 s.seen['150']=true;v:act('partner',150);assert(s.species==150 and s.xp==0)
