@@ -1,4 +1,4 @@
-import sys,pathlib,os,tempfile,json,io
+import sys,pathlib,os,tempfile,json,io,time,datetime
 from lupa.luajit21 import LuaRuntime
 from PIL import Image,ImageDraw,ImageFont
 REPO=pathlib.Path(__file__).resolve().parents[1]
@@ -510,6 +510,44 @@ print('UI LIFECYCLE: '..checks..' checks passed (mock KOReader device APIs)')
 ''')
 
 lua.execute((REPO/'tests'/'test_new_ui.lua').read_text())
+
+# Check the displayed dates and totals using real daylight-saving transitions.
+if hasattr(time,'tzset'):
+ render_history=lua.eval('''function(now,week,days)
+  local clock=os.time;os.time=function(t) if t then return clock(t) end;return now end
+  local v=newView(4);v.engine.companion.get(v.state).days=days
+  v.screen='readinghistory';v.history_week=week;v:paintTo(bb,0,0)
+  os.time=clock
+ end''')
+ original_tz=os.environ.get('TZ')
+ try:
+  for zone,today,week,monday in [
+   ('Australia/Hobart','2026-10-25',3,'2026-09-28'),
+   ('Australia/Hobart','2026-04-19',2,'2026-03-30'),
+   ('America/New_York','2026-03-22',2,'2026-03-02'),
+   ('America/New_York','2026-11-15',2,'2026-10-26'),
+   ('UTC','2026-10-25',3,'2026-09-28'),
+  ]:
+   os.environ['TZ']=zone;time.tzset();start()
+   today=datetime.date.fromisoformat(today);monday=datetime.date.fromisoformat(monday)
+   days=lua.table()
+   for i in range(-1,8):
+    day=monday+datetime.timedelta(days=i)
+    days[day.isoformat()]=lua.table_from({'ko':(i+1)*60 if 0<=i<=6 else 60000,'kindle':0})
+   now=lua.eval('os.time')(lua.table_from({'year':today.year,'month':today.month,'day':today.day,'hour':12}))
+   render_history(now,week,days)
+   assert 'Week of '+monday.strftime('%d %b %Y') in painted_text,(zone,painted_text)
+   labels=[text for text,x,y,*_ in painted_text_boxes if x==32 and 243<=y<=501]
+   expected=[(monday+datetime.timedelta(days=i)).strftime('%a %d') for i in range(7)]
+   assert labels==expected,(zone,labels,expected)
+   assert '28 minutes recorded' in painted_text,(zone,painted_text)
+ finally:
+  if original_tz is None:os.environ.pop('TZ',None)
+  else:os.environ['TZ']=original_tz
+  time.tzset()
+ print('READING HISTORY: dates and totals pass across both DST changes in Hobart and New York, and in UTC')
+else:
+ print('READING HISTORY: timezone checks need time.tzset; run this suite on Linux')
 
 def paint(v,w=600,h=800):
  start(w,h);v.geometry(v);v.paintTo(v,g.bb,0,0);assert not bounds,bounds;return canvas.copy()

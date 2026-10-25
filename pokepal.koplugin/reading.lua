@@ -114,8 +114,8 @@ function R.scan(root,fs,yield_step)
       or name:match("%.mbs$") or name:match("%.tas$") or name:match("%.pdt$")) then
     local modified=fs.mtime and fs.mtime(full);local size=fs.size and fs.size(full)
     local key=R.key(full);local old=cache[key];local seconds;local checked=os.time()
-    -- Recent files are read again: FAT timestamps can miss same-second changes.
-    if old and modified and size and modified==old.modified and size==old.size and checked-modified>3
+    -- Recheck records first read near a write: FAT timestamps can miss later changes.
+    if old and modified and size and modified==old.modified and size==old.size and old.checked-modified>3
      and checked>=old.checked and checked-old.checked<3600 then
      seconds=old.seconds
     else

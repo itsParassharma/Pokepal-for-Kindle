@@ -65,8 +65,12 @@ function PokePal:flushReading()
  if total then
   days=days or {};for day,n in pairs(self.clock.days or {}) do days[day]=(days[day] or 0)+n end
   local keys={};for day in pairs(days) do keys[#keys+1]=day end;table.sort(keys);while #keys>62 do days[table.remove(keys,1)]=nil end
-  local saved,committed=primary and pending==0,false
-  if not saved then saved,err,committed=self.reading.saveCounter(self.counterpath,total+pending,ffiUtil.fsyncOpenedFile,ffiUtil.fsyncDirectory,days) end
+  local saved,committed=primary and pending==0 and not self.reading_unsynced,false
+  if not saved then
+   saved,err,committed=self.reading.saveCounter(self.counterpath,total+pending,ffiUtil.fsyncOpenedFile,ffiUtil.fsyncDirectory,days)
+   -- A renamed counter still needs a retry if its directory could not be synced.
+   if saved then self.reading_unsynced=nil elseif committed then self.reading_unsynced=true end
+  end
   if saved or committed then self.clock.pending=self.clock.pending-pending;self.clock.days={};self.clock.total=total+pending end
  end
  unlock();self.reading_error=err

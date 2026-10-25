@@ -28,7 +28,9 @@ local function plugin(name,book)
 end
 local passed,failed=0,0
 local function check(name,fn)
+ local ffiUtil=require('ffi/util');local syncfile,syncdir=ffiUtil.fsyncOpenedFile,ffiUtil.fsyncDirectory
  local ok,err=pcall(fn)
+ ffiUtil.fsyncOpenedFile,ffiUtil.fsyncDirectory=syncfile,syncdir
  if ok then passed=passed+1;print('PASS '..name)
  else failed=failed+1;print('FAIL '..name..': '..tostring(err)) end
  for _,reader in ipairs(instances) do
@@ -43,6 +45,43 @@ check('a book view does not suppress KOReader page timing',function()
  for page=2,16 do now=now+60;reader:onPageUpdate(page) end
  assert(reader.reading.counter(reader.counterpath)==900,'15 minutes of reading were not recorded')
  assert(reader.view==book,'KOReader owns the book view')
+end)
+
+check('failed reading sync stays pending until a retry succeeds',function()
+ local reader=plugin('sync-retry',true)
+ local ffiUtil=require('ffi/util');local syncs,writes=0,0
+ ffiUtil.fsyncOpenedFile=function() writes=writes+1;return true end
+ ffiUtil.fsyncDirectory=function()
+  syncs=syncs+1
+  if syncs==1 then return false,'directory sync failed' end
+  if syncs==2 then error('directory sync failed again') end
+  return true
+ end
+ reader.clock.pending=60;reader.clock.days={['2027-01-15']=60}
+ for attempt=1,3 do
+  reader:flushReading()
+  assert(syncs==attempt and writes==attempt,'the failed sync was not retried')
+  assert(reader.clock.pending==0 and next(reader.clock.days)==nil)
+  local total,err,primary,days=reader.reading.counter(reader.counterpath)
+  assert(total==60 and primary and days['2027-01-15']==60,'a retry counted reading twice')
+  if attempt<3 then assert(reader.reading_error,'the error was cleared before recovery')
+  else assert(not reader.reading_error) end
+ end
+ reader:flushReading();assert(syncs==3 and writes==3,'an unchanged, synced counter was rewritten')
+end)
+
+check('reading added after a failed sync is saved once',function()
+ local reader=plugin('sync-more-reading',true)
+ local ffiUtil=require('ffi/util');local syncs=0
+ ffiUtil.fsyncDirectory=function()
+  syncs=syncs+1;if syncs==1 then return false,'directory sync failed' end;return true
+ end
+ reader.clock.pending=60;reader.clock.days={['2027-01-15']=60};reader:flushReading()
+ reader.clock.pending=30;reader.clock.days={['2027-01-16']=30};reader:flushReading()
+ local total,err,primary,days=reader.reading.counter(reader.counterpath)
+ assert(total==90 and primary and days['2027-01-15']==60 and days['2027-01-16']==30)
+ assert(not reader.reading_error and reader.clock.pending==0)
+ reader:flushReading();assert(syncs==2)
 end)
 
 check('sleep and wake leave the book view alone and exclude sleeping time',function()

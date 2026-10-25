@@ -12,6 +12,10 @@ Reader lifecycle tests pass KOReader's book view into the plugin, then
 check reading time, sleep/wake, opening the game from a book, trips
 across book changes, and CloseWidget cleanup over repeated visits.
 Sleep-screen failures keep KOReader's normal screen and lock settings.
+Reading tests also cover same-timestamp Kindle record updates, including
+reloaded caches, and retrying failed disk syncs without duplicate credit.
+On Linux, history dates and totals are checked across both daylight-saving
+changes in Hobart and New York, plus a week in UTC.
 
 The standalone renderer, save reload and suspend smoke tests run on
 Windows. The ARM executable is built and checked separately.

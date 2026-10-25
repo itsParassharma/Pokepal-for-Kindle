@@ -66,12 +66,13 @@ return function(View,UIManager,BB)
  function View:paintReadingHistory(bb)
   local C=self.engine.companion;local days=self.state.companion and self.state.companion.days or {}
   self.history_week=math.max(0,math.min(7,self.history_week or 0))
-  local d=os.date("*t",self.engine.weekStart(os.time()));d.day=d.day-7*self.history_week
+  local d=os.date("*t",self.engine.weekStart(os.time()));d.day=d.day-7*self.history_week;d.isdst=nil
   local start=os.time(d);self:title(bb,"Reading history","Week of "..os.date("%d %b %Y",start))
   self:text(bb,"Day",32,199,18,140,true);self:text(bb,"KOReader",180,199,18,178,true,true);self:text(bb,"Kindle visits",376,199,18,192,true,true)
   local kt,nt=0,0
   for i=0,6 do
-   local date=os.date("*t",start);date.day=date.day+i;local at=os.time(date)
+   -- Resolve daylight saving for this date, not the week we navigated from.
+   local date=os.date("*t",start);date.day=date.day+i;date.isdst=nil;local at=os.time(date)
    local entry=days[os.date("%Y-%m-%d",at)] or {ko=0,kindle=0};kt=kt+entry.ko;nt=nt+entry.kindle
    local y=243+i*43
    self:text(bb,os.date("%a %d",at),32,y,19,140)
