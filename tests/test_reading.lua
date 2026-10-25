@@ -55,6 +55,26 @@ test('library scan covers all five sidecar extensions and deduplicates copies an
  assert(values[R.key('book1')]==120 and values[R.key('book5')]==300)
  assert(not R.scan(TESTDIR..'/missing',F))
 end)
+test('same-timestamp updates keep reading credit with a fresh or reloaded cache',function()
+ local clock=os.time;local checked=now+1
+ os.time=function(t) if t then return clock(t) end;return checked end
+ for _,reload in ipairs({false,true}) do
+  local root=TESTDIR..'/recent-'..tostring(reload);assert(F.mkdir(root));assert(F.mkdir(root..'/book.sdr'))
+  local file=root..'/book.sdr/time.azw3f';local path=root..'/scan-cache'
+  local fs={list=F.list,mode=F.mode,mtime=function() return now end,size=function() return #fixture(0) end}
+  checked=now+1;put(file,fixture(60000));R.loadCache(path)
+  local s=E.new(checked);E.act(s,'choose',4,checked)
+  R.collect(s,E,assert(R.scan(root,fs)),0,checked);R.saveCache()
+  -- FAT can give two writes the same timestamp and file size.
+  put(file,fixture(120000));if reload then R.loadCache(path) end
+  checked=now+61;R.collect(s,E,assert(R.scan(root,fs)),0,checked)
+  assert(s.reading.seconds==60,'the cache lost a minute of reading')
+  R.clearCache();checked=checked+1;R.collect(s,E,assert(R.scan(root,fs)),0,checked)
+  checked=checked+3600;R.collect(s,E,assert(R.scan(root,fs)),0,checked)
+  assert(s.reading.seconds==60,'a rescan or cache expiry counted reading twice')
+ end
+ os.time=clock
+end)
 test('existing history is baselined and new reading is rewarded once across both sources',function()
  local s=E.new(now);E.act(s,'choose',25,now)
  local key=R.key('book');R.collect(s,E,{[key]=12000},8000,now)

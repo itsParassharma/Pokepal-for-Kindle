@@ -6,6 +6,7 @@ local InfoMessage = require("ui/widget/infomessage")
 local PokePal = WidgetContainer:extend{name="pokepal",is_doc_only=false}
 
 function PokePal:init()
+ -- KOReader supplies self.view for the book. The game uses self.pet_view.
  self.engine=dofile(self.path.."/engine.lua")
  self.storage=dofile(self.path.."/storage.lua")
  self.fs=dofile(self.path.."/filesystem.lua")
@@ -25,7 +26,7 @@ function PokePal:addToMainMenu(items)
  items.pokepal={text="PokePal - Pokemon companion",sorting_hint="more_tools",callback=function() self:openPet() end}
 end
 function PokePal:openPet()
- if self.view then return end
+ if self.pet_view then return end
  if not self.savepath then UIManager:show(InfoMessage:new{text=self.path_error});return end
  self:pauseReading()
  local notice
@@ -46,12 +47,12 @@ function PokePal:openPet()
   UIManager:show(InfoMessage:new{text="PokePal could not save. Check free space on the Kindle."})
   self:onPetClosed();return
  end
- self.view=self.View:new{owner=self,engine=self.engine,state=self.state,path=self.path}
- if notice then self.view.message=notice end
- UIManager:show(self.view,"full")
+ self.pet_view=self.View:new{owner=self,engine=self.engine,state=self.state,path=self.path}
+ if notice then self.pet_view.message=notice end
+ UIManager:show(self.pet_view,"full")
  self:startReadingScan(visit)
- if self.view.screen=="home" and self.state.species~=0 and self.engine.tripLeft(self.state,os.time())==0 then
-  self.view:animate(self.state.resting and "ambient_sleep" or "ambient")
+ if self.pet_view.screen=="home" and self.state.species~=0 and self.engine.tripLeft(self.state,os.time())==0 then
+  self.pet_view:animate(self.state.resting and "ambient_sleep" or "ambient")
  end
 end
 function PokePal:flushReading()
@@ -64,8 +65,12 @@ function PokePal:flushReading()
  if total then
   days=days or {};for day,n in pairs(self.clock.days or {}) do days[day]=(days[day] or 0)+n end
   local keys={};for day in pairs(days) do keys[#keys+1]=day end;table.sort(keys);while #keys>62 do days[table.remove(keys,1)]=nil end
-  local saved,committed=primary and pending==0,false
-  if not saved then saved,err,committed=self.reading.saveCounter(self.counterpath,total+pending,ffiUtil.fsyncOpenedFile,ffiUtil.fsyncDirectory,days) end
+  local saved,committed=primary and pending==0 and not self.reading_unsynced,false
+  if not saved then
+   saved,err,committed=self.reading.saveCounter(self.counterpath,total+pending,ffiUtil.fsyncOpenedFile,ffiUtil.fsyncDirectory,days)
+   -- A renamed counter still needs a retry if its directory could not be synced.
+   if saved then self.reading_unsynced=nil elseif committed then self.reading_unsynced=true end
+  end
   if saved or committed then self.clock.pending=self.clock.pending-pending;self.clock.days={};self.clock.total=total+pending end
  end
  unlock();self.reading_error=err
@@ -74,7 +79,7 @@ function PokePal:pauseReading()
  self.timer.pause(self.clock,os.time());self:flushReading()
 end
 function PokePal:resumeReading()
- if self.document_open and not self.suspended and not self.reading_paused and not self.view then
+ if self.document_open and not self.suspended and not self.reading_paused and not self.pet_view then
   self.timer.resume(self.clock,self.clock.page,os.time())
  end
 end
@@ -85,7 +90,7 @@ function PokePal:onReaderReady()
 end
 function PokePal:onPageUpdate(page)
  if not self.document_open then self.clock.page=page;return end
- if self.view or self.suspended or self.reading_paused then self.clock.page=page;return end
+ if self.pet_view or self.suspended or self.reading_paused then self.clock.page=page;return end
  self.timer.page(self.clock,page,os.time())
  if self.clock.pending>=60 then self:flushReading() end
 end
@@ -117,11 +122,11 @@ function PokePal:startReadingScan(visit)
  self:cancelReadingScan();self.reading_busy=true
  local step=self.reading.scanAsync("/mnt/us/documents",self.fs)
  self.scan_step=function()
-  if not self.view or self.suspended then self:cancelReadingScan();return end
+  if not self.pet_view or self.suspended then self:cancelReadingScan();return end
   local done,counters,status=step()
   if done then
    self:cancelReadingScan();self:finishReadingScan(counters,status,visit);self:save()
-   self.view:freeImages();UIManager:setDirty(self.view,"ui")
+   self.pet_view:freeImages();UIManager:setDirty(self.pet_view,"ui")
   else UIManager:scheduleIn(0.01,self.scan_step) end
  end
  UIManager:scheduleIn(0.05,self.scan_step)
@@ -152,19 +157,23 @@ end
 function PokePal:onSuspend()
  self.suspended=true;self:pauseReading();self:cancelReadingScan()
  self:companionState(function(s) self.engine.companion.suspend(s,self.engine,os.time()) end)
- if self.view then self.view:onSuspend() end
+ if self.pet_view then self.pet_view:onSuspend() end
 end
 function PokePal:onResume()
  local visit=self.state and self.reading.visit(self.state)
  self:companionState(function(s) self.engine.companion.resume(s,self.engine,os.time()) end)
  self.suspended=false;self:updateCompanion();self:resumeReading()
- if self.view then self.view:onResume();self:startReadingScan(visit) end
+ if self.pet_view then self.pet_view:onResume();self:startReadingScan(visit) end
 end
 function PokePal:onClose()
  self:detachCompanion();self:cancelReadingScan()
  self.document_open=false;self:pauseReading()
- if self.view then self.view:leave() end
+ if self.pet_view then self.pet_view:leave() end
  self:onPetClosed()
+end
+function PokePal:onCloseWidget()
+ -- Closing a book or the file browser sends CloseWidget, not Close.
+ self:onClose()
 end
 dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/reader_companion.lua").attach(PokePal,UIManager)
 return PokePal

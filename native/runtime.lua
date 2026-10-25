@@ -88,9 +88,9 @@ function owner:startReadingScan(visit)
  self:cancelReadingScan();self.reading_busy=true
  local step=R.scanAsync('/mnt/us/documents',F)
  self.scan_step=function()
-  if not self.view or self.view.closed then self:cancelReadingScan();return end
+  if not self.pet_view or self.pet_view.closed then self:cancelReadingScan();return end
   local done,counters,status=step()
-  if done then self:cancelReadingScan();self:finishReadingScan(counters,status,visit);self:save();self.view:freeImages();U:setDirty(self.view,'ui')
+  if done then self:cancelReadingScan();self:finishReadingScan(counters,status,visit);self:save();self.pet_view:freeImages();U:setDirty(self.pet_view,'ui')
   else U:scheduleIn(0.01,self.scan_step) end
  end
  U:scheduleIn(0.05,self.scan_step)
@@ -108,7 +108,7 @@ if host_mode=='suspend' or host_mode=='resume' then
  return
 end
 local V=dofile('game/view.lua')
-local view=V:new{state=state,engine=E,owner=owner,path='game'};owner.view=view
+local view=V:new{state=state,engine=E,owner=owner,path='game'};owner.pet_view=view
 if notice then view.message=notice end
 local bb={paintRect=function(_,...) host_rect(...) end}
 function app_paint()
