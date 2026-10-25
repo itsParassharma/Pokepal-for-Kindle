@@ -1,5 +1,8 @@
 app.owner:syncReading()
 local s=app.state;local E=app.engine;local v=app.view
+assert(app.owner.pet_view==v)
+app.owner:startReadingScan();assert(app.owner.scan_step)
+app.owner.scan_step();assert(not app.owner.reading_busy)
 for key in pairs(s) do s[key]=nil end
 for key,value in pairs(E.new(os.time())) do s[key]=value end
 local function tap(action,arg)

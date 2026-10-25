@@ -45,22 +45,40 @@ function I.attach(PokePal,UIManager)
    end
   end
  end
+ function PokePal:sleepImage()
+  local s=self.session and self.state or self.storage.load(self.savepath,self.engine)
+  if not s or s.species==0 or not self.engine.companion.option(s,"sleep_screen") then return end
+  local image,preview
+  local painted,err=pcall(function()
+   local BB=require("ffi/blitbuffer");local Device=require("device")
+   image=BB.new(Device.screen:getWidth(),Device.screen:getHeight(),BB.TYPE_BB8)
+   preview=self.View:new{owner={save=function() return true end},state=s,engine=self.engine,path=self.path}
+   preview:paintSleep(image,false)
+  end)
+  if preview then preview:stopAnimation();preview:freeImages() end
+  if not painted then
+   if image then image:free() end
+   error(err,0)
+  end
+  return image
+ end
  function PokePal:installSleepScreen()
+  if self.sleep_hook and self.sleep_hook.active then return end
   local ok,Screensaver=pcall(require,"ui/screensaver")
   if not ok or not Screensaver.setup then return end
   local previous=Screensaver.setup;self.screensaver=Screensaver;self.previous_setup=previous
+  local hook={active=true};self.sleep_hook=hook
   self.sleep_setup=function(screen,event,...)
    local result=previous(screen,event,...)
-   if event or not screen.ui or not self.savepath then return result end
-   local s=self.session and self.state or self.storage.load(self.savepath,self.engine)
-   if not s or s.species==0 or not self.engine.companion.option(s,"sleep_screen") then return result end
-   local BB=require("ffi/blitbuffer");local Device=require("device")
-   local w,h=Device.screen:getWidth(),Device.screen:getHeight()
-   local image=BB.new(w,h,BB.TYPE_BB8)
-   local preview=self.View:new{owner={save=function() return true end},state=s,engine=self.engine,path=self.path}
-   local painted=pcall(preview.paintSleep,preview,image,false)
-   preview:stopAnimation();preview:freeImages()
-   if not painted then image:free();return result end
+   if not hook.active or event or screen.ui~=self.ui or not self.savepath then return result end
+   -- This callback runs outside KOReader's plugin event error handler.
+   local painted,image=pcall(self.sleepImage,self)
+   if not painted then
+    local logged,logger=pcall(require,"logger")
+    if logged then logger.warn("PokePal: could not draw the sleep screen:",image) end
+    return result
+   end
+   if not image then return result end
    if screen.image then screen.image:free() end
    screen.image=image;screen.image_file=nil;screen.screensaver_type="cover"
    screen.show_message=false;screen.overlay_message=nil;screen.screensaver_background="white"
@@ -69,8 +87,10 @@ function I.attach(PokePal,UIManager)
   Screensaver.setup=self.sleep_setup
  end
  function PokePal:detachCompanion()
+  if self.sleep_hook then self.sleep_hook.active=false end
   if self.footer_owner then self.footer_owner:removeAdditionalFooterContent(self.footer_content);self.footer_owner=nil end
   if self.screensaver and self.screensaver.setup==self.sleep_setup then self.screensaver.setup=self.previous_setup end
+  self.screensaver=nil;self.previous_setup=nil;self.sleep_setup=nil;self.sleep_hook=nil
  end
 end
 return I

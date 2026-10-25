@@ -746,7 +746,7 @@ function View:leave()
   and "Reopen PokePal to finish restoring your backup." or "PokePal could not save. Check free space on the Kindle before playing again."}) end
 end
 function View:onCloseWidget()
- self:stopAnimation();self.closed=true;self:freeImages();self.owner.view=nil
+ self:stopAnimation();self.closed=true;self:freeImages();self.owner.pet_view=nil
  if self.owner.onPetClosed then self.owner:onPetClosed() end
 end
 function View:onSuspend()
