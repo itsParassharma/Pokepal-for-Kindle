@@ -1,4 +1,4 @@
-POKEPAL 1.0.7
+POKEPAL 1.0.8
 
 The test suite checks game actions, old saves, damaged-save recovery,
 all 160 reachable species, partner progress, UI lifecycle and layouts.
