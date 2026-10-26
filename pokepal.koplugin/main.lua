@@ -1,5 +1,6 @@
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local UIManager = require("ui/uimanager")
+local Device = require("device")
 local DataStorage = require("datastorage")
 local ffiUtil = require("ffi/util")
 local InfoMessage = require("ui/widget/infomessage")
@@ -82,7 +83,7 @@ function PokePal:pauseReading()
  self.timer.pause(self.clock,os.time());self:flushReading()
 end
 function PokePal:resumeReading()
- if self.document_open and not self.suspended and not self.reading_paused and not self.pet_view then
+ if self.document_open and not self.suspended and not Device.screen_saver_mode and not self.reading_paused and not self.pet_view then
   self.timer.resume(self.clock,self.clock.page,os.time())
  end
 end
@@ -93,7 +94,7 @@ function PokePal:onReaderReady()
 end
 function PokePal:onPageUpdate(page)
  if not self.document_open then self.clock.page=page;return end
- if self.pet_view or self.suspended or self.reading_paused then self.clock.page=page;return end
+ if self.pet_view or self.suspended or Device.screen_saver_mode or self.reading_paused then self.clock.page=page;return end
  self.timer.page(self.clock,page,os.time())
  if self.clock.pending>=60 then self:flushReading() end
 end

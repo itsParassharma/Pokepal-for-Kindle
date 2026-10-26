@@ -16,6 +16,13 @@ Dialog tests follow KOReader v2026.07.1 window stacking and check search,
 nicknames, book titles, dismissal and cleanup when the game closes.
 Landscape tests cover portrait sleep images and touch targets after a
 delayed unlock. Journal filters cover all 18 types in the roster.
+The KOReader v2026.07.1 Linux runtime also passes 72 sleep/wake cycles
+across bookshelf, book and game views, portrait/landscape, sleep preferences
+and unlock settings. Real page turns and scrolling each record 15 minutes
+across two books, advancing trips and eggs and paying rewards once.
+Time waiting at either kind of lock screen is excluded. These tests use
+KOReader's real widgets and image buffers with a simulated display and clock.
+See docs/koreader-testing.md for the command and hardware limits.
 Reading tests also cover same-timestamp Kindle record updates, including
 reloaded caches, and retrying failed disk syncs without duplicate credit.
 On Linux, history dates and totals are checked across both daylight-saving

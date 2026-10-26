@@ -32,11 +32,13 @@ reader:onCloseDocument();assert(footer.removed==1)
 
 -- Sleep hooks preserve the normal setup for poweroff and detach on plugin close.
 local active_ui=reader.ui
-local screensaver={calls=0,setup=function(self) self.calls=self.calls+1;self.ui=active_ui;self.screensaver_type='disable' end}
+local screensaver={calls=0,setup=function(self) self.calls=self.calls+1;self.ui=active_ui;self.screensaver_type='disable' end,
+ cleanup=function() Device.screen_saver_mode=false;return 'cleaned' end}
 package.loaded['ui/screensaver']=screensaver
-local original=screensaver.setup
+local original,original_cleanup=screensaver.setup,screensaver.cleanup
 reader:installSleepScreen();assert(screensaver.setup~=original)
-local installed=screensaver.setup;reader:installSleepScreen();assert(screensaver.setup==installed)
+local installed,installed_cleanup=screensaver.setup,screensaver.cleanup
+reader:installSleepScreen();assert(screensaver.setup==installed and screensaver.cleanup==installed_cleanup)
 screensaver:setup('poweroff');assert(screensaver.calls==1 and screensaver.screensaver_type=='disable')
 -- The normal sleep scene replaces only the image and preserves wake handling.
 local BB=require('ffi/blitbuffer');local newBuffer,paintSleep=BB.new,reader.View.paintSleep
@@ -77,14 +79,29 @@ screensaver:setup();assert(#buffers==4 and screensaver.image==buffers[4] and buf
 reader.storage.load=load;reader.session={}
 E.act(reader.state,'preference','sleep_screen',os.time());screensaver:setup();assert(#buffers==4)
 reader.session=nil;BB.new=newBuffer;reader.View.paintSleep=paintSleep
-reader:detachCompanion();assert(screensaver.setup==original)
+-- Reading starts after cleanup, including lock-only screens without an
+-- OutOfScreenSaver event. A paused or closed book must remain paused.
+reader.document_open=true;reader.clock.since=nil;Device.screen_saver_mode=true
+reader:resumeReading();assert(not reader.clock.since)
+assert(screensaver:cleanup()=='cleaned' and reader.clock.since)
+reader.clock.since=nil;reader.reading_paused=true
+screensaver:cleanup();assert(not reader.clock.since)
+reader.reading_paused=false;reader.document_open=false
+screensaver:cleanup();assert(not reader.clock.since)
+reader.document_open=true;screensaver.ui={}
+screensaver:cleanup();assert(not reader.clock.since)
+reader.document_open=false;screensaver.ui=reader.ui
+reader:detachCompanion();assert(screensaver.setup==original and screensaver.cleanup==original_cleanup)
 -- Another plugin may wrap setup after us. Closing must keep that hook intact
 -- while making our captured callback inactive.
-reader:installSleepScreen();local wrapped=screensaver.setup
+reader:installSleepScreen();local wrapped,wrapped_cleanup=screensaver.setup,screensaver.cleanup
 local other_calls=0
 local other=function(...) other_calls=other_calls+1;return wrapped(...) end
-screensaver.setup=other;reader:detachCompanion();assert(screensaver.setup==other)
+local other_cleanup=function(...) other_calls=other_calls+1;return wrapped_cleanup(...) end
+screensaver.setup=other;screensaver.cleanup=other_cleanup
+reader:detachCompanion();assert(screensaver.setup==other and screensaver.cleanup==other_cleanup)
 local closed_calls=0;reader.sleepImage=function() closed_calls=closed_calls+1 end
-screensaver:setup();assert(other_calls==1 and closed_calls==0)
+reader.resumeReading=function() closed_calls=closed_calls+1 end
+screensaver:setup();screensaver:cleanup();assert(other_calls==2 and closed_calls==0)
 package.loaded['ui/screensaver']=nil
 print('NEW UI: preferences, journal, memories, recap, scan cancellation and reader hooks passed')

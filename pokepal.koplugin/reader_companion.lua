@@ -93,11 +93,24 @@ function I.attach(PokePal,UIManager)
    return result
   end
   Screensaver.setup=self.sleep_setup
+  -- Resume may arrive before a delayed unlock. Cleanup also covers lock-only
+  -- screens, which do not send KOReader's OutOfScreenSaver event.
+  if Screensaver.cleanup then
+   local previous_cleanup=Screensaver.cleanup;self.previous_cleanup=previous_cleanup
+   self.sleep_cleanup=function(screen,...)
+    local result=previous_cleanup(screen,...)
+    if hook.active and screen.ui==self.ui then self:resumeReading() end
+    return result
+   end
+   Screensaver.cleanup=self.sleep_cleanup
+  end
  end
  function PokePal:detachCompanion()
   if self.sleep_hook then self.sleep_hook.active=false end
   if self.footer_owner then self.footer_owner:removeAdditionalFooterContent(self.footer_content);self.footer_owner=nil end
   if self.screensaver and self.screensaver.setup==self.sleep_setup then self.screensaver.setup=self.previous_setup end
+  if self.screensaver and self.screensaver.cleanup==self.sleep_cleanup then self.screensaver.cleanup=self.previous_cleanup end
+  self.previous_cleanup=nil;self.sleep_cleanup=nil
   self.screensaver=nil;self.previous_setup=nil;self.sleep_setup=nil;self.sleep_hook=nil
  end
 end
