@@ -1,6 +1,9 @@
 -- KOReader integration uses its existing footer and screensaver lifecycle.
 local I={}
 function I.attach(PokePal,UIManager)
+ function PokePal:refreshCompanion()
+  if not self.session and self.savepath then self.state=self.storage.load(self.savepath,self.engine) end
+ end
  function PokePal:companionState(callback)
   if self.session then callback(self.state);return self:save() end
   if not self.savepath then return end
@@ -46,7 +49,8 @@ function I.attach(PokePal,UIManager)
   end
  end
  function PokePal:sleepImage()
-  local s=self.session and self.state or self.storage.load(self.savepath,self.engine)
+  -- Preferences are loaded while awake, including when on the bookshelf.
+  local s=self.state
   if not s or s.species==0 or not self.engine.companion.option(s,"sleep_screen") then return end
   local image,preview
   local painted,err=pcall(function()

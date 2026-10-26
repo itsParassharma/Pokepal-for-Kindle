@@ -23,6 +23,7 @@ local function plugin(name,book)
  reader.counterpath=reader.savepath..'.reading';reader.backups.path=reader.savepath
  local s=reader.engine.new(now);reader.engine.act(s,'choose',4,now);s.animation='off'
  assert(reader.storage.save(reader.savepath,s,reader.engine))
+ reader.state=s
  instances[#instances+1]=reader;active_ui=ui
  return reader,view
 end
@@ -36,7 +37,7 @@ local function check(name,fn)
  for _,reader in ipairs(instances) do
   if reader.onCloseWidget then pcall(reader.onCloseWidget,reader) else pcall(reader.onClose,reader) end
  end
- instances={};screensaver.setup=setup;U.queue={}
+ instances={};screensaver.setup=setup;U.queue={};U.dirty={}
 end
 
 check('a book view does not suppress KOReader page timing',function()
@@ -45,6 +46,101 @@ check('a book view does not suppress KOReader page timing',function()
  for page=2,16 do now=now+60;reader:onPageUpdate(page) end
  assert(reader.reading.counter(reader.counterpath)==900,'15 minutes of reading were not recorded')
  assert(reader.view==book,'KOReader owns the book view')
+end)
+
+check('scrolling counts page changes and excludes pauses and sleep',function()
+ local reader=plugin('scroll',true)
+ reader:onPosUpdate(0,1);reader:onReaderReady()
+ now=now+30;reader:onPosUpdate(200,1)
+ now=now+30;reader:onPosUpdate(800,2);reader:onPageUpdate(2)
+ assert(reader.reading.counter(reader.counterpath)==60,'scrolling within a page reset the timer')
+ now=now+30;reader:onReadingPaused()
+ now=now+600;reader:onPosUpdate(1600,3);reader:onReadingResumed()
+ now=now+30;reader:onSuspend()
+ now=now+7200;reader:onPosUpdate(2400,4);reader:onResume()
+ now=now+60;reader:onPosUpdate(3200,5)
+ assert(reader.reading.counter(reader.counterpath)==180,'paused or sleeping time was counted')
+end)
+
+check('repeated resume notifications keep elapsed reading time',function()
+ local reader=plugin('repeat-resume',true)
+ reader:onPageUpdate(1);reader:onReaderReady()
+ now=now+20;reader:onReadingResumed()
+ now=now+40;reader:onPageUpdate(2)
+ assert(reader.reading.counter(reader.counterpath)==60,'a resume event discarded reading time')
+ reader:onSuspend();now=now+7200;reader:onResume()
+ now=now+20;reader:onReadingResumed()
+ now=now+40;reader:onPageUpdate(3)
+ assert(reader.reading.counter(reader.counterpath)==120)
+end)
+
+check('disabled sleep features do not open the game save during suspend',function()
+ local reader=plugin('disabled-sleep',false)
+ local loads,opens,saves=0,0,0
+ local load,open,save=reader.storage.load,reader.storage.open,reader.storage.save
+ reader.storage.load=function(...) loads=loads+1;return load(...) end
+ reader.storage.open=function(...) opens=opens+1;return open(...) end
+ reader.storage.save=function(...) saves=saves+1;return save(...) end
+ screensaver:setup();reader:onSuspend()
+ assert(loads==0 and opens==0 and saves==0,'disabled sleep features still accessed the game save')
+ assert(not reader.fs.mode(reader.counterpath),'sleeping on the bookshelf wrote an empty reading counter')
+ now=now+7200;reader:onResume()
+ assert(loads==1 and opens==0 and saves==0,'waking should only refresh the cached save')
+ assert(#U.queue==0)
+end)
+
+check('bookshelf initialization loads saved sleep preferences before the first sleep',function()
+ local data=require('datastorage');local getSettingsDir=data.getSettingsDir
+ local shelf=plugin('startup-sleep',false)
+ local dir=TESTDIR..'/startup-sleep';assert(shelf.fs.mkdir(dir))
+ shelf.engine.act(shelf.state,'preference','auto_rest',now)
+ assert(shelf.storage.save(dir..'/pokepal.dat',shelf.state,shelf.engine))
+ data.getSettingsDir=function() return dir end
+ local ok,reader=pcall(function() return P:new{path=BASE,ui={menu={registerToMainMenu=function() end}}} end)
+ data.getSettingsDir=getSettingsDir;assert(ok,reader)
+ instances[#instances+1]=reader
+ assert(reader.state and reader.engine.companion.option(reader.state,'auto_rest'))
+ reader:onSuspend()
+ assert(reader.storage.load(reader.savepath,reader.engine).companion.sleep)
+ now=now+600;reader:onResume()
+ assert(not reader.storage.load(reader.savepath,reader.engine).resting)
+end)
+
+check('the open game handles each power event once in either broadcast order',function()
+ for _,order in ipairs({'game-first','plugin-first'}) do
+  local reader=plugin('power-order-'..order,true)
+  reader:openPet();reader:syncReading()
+  reader.engine.act(reader.state,'preference','auto_rest',now)
+  local game=reader.pet_view;local save=reader.save;local saves=0
+  reader.save=function(self) saves=saves+1;return save(self) end
+  for cycle=1,3 do
+   if order=='game-first' then game:onSuspend();reader:onSuspend()
+   else reader:onSuspend();game:onSuspend() end
+   assert(saves==cycle*2-1 and game.suspended and reader.state.companion.sleep)
+   now=now+600
+   if order=='game-first' then game:onResume();reader:onResume()
+   else reader:onResume();game:onResume() end
+   assert(saves==cycle*2 and not game.suspended and not reader.state.companion.sleep)
+   reader:cancelReadingScan()
+  end
+ end
+end)
+
+check('waking refreshes progress and sleep preferences changed in KUAL',function()
+ local reader=plugin('shared-sleep',false)
+ reader:onSuspend()
+ local changed=assert(reader.storage.load(reader.savepath,reader.engine))
+ changed.xp=42;reader.engine.act(changed,'preference','auto_rest',now)
+ reader.engine.companion.suspend(changed,reader.engine,now)
+ assert(reader.storage.save(reader.savepath,changed,reader.engine))
+ now=now+600;reader:onResume()
+ assert(reader.state.xp==42 and not reader.state.resting and not reader.state.companion.sleep)
+ assert(reader.engine.companion.option(reader.state,'auto_rest'))
+ reader:onSuspend()
+ assert(reader.storage.load(reader.savepath,reader.engine).companion.sleep)
+ now=now+600;reader:onResume()
+ local saved=assert(reader.storage.load(reader.savepath,reader.engine))
+ assert(saved.xp==42 and not saved.resting and not saved.companion.sleep)
 end)
 
 check('failed reading sync stays pending until a retry succeeds',function()
@@ -116,8 +212,9 @@ check('waking a book never schedules a game redraw against its reader view',func
  assert(not reader.pet_view and not reader.reading_busy and not reader.scan_step)
 end)
 
-check('bookshelf trips collect reading across book changes exactly once',function()
- local shelf=plugin('trip',false)
+for _,mode in ipairs({'pages','scroll'}) do
+check('bookshelf trips collect '..mode..' across book changes exactly once',function()
+ local shelf=plugin('trip-'..mode,false)
  shelf:openPet();shelf:syncReading()
  shelf.engine.act(shelf.state,'readingtrip',2,now)
  local xp,berries=shelf.state.xp,shelf.state.berries
@@ -127,8 +224,11 @@ check('bookshelf trips collect reading across book changes exactly once',functio
  for i=1,2 do
   local reader=plugin('trip-reader-'..i,true)
   reader.savepath=shelf.savepath;reader.counterpath=shelf.counterpath;reader.backups.path=shelf.savepath
-  reader:onPageUpdate(1);reader:onReaderReady()
-  for page=2,16 do now=now+30;reader:onPageUpdate(page) end
+  local function turn(page)
+   if mode=='scroll' then reader:onPosUpdate(page*800,page) else reader:onPageUpdate(page) end
+  end
+  turn(1);reader:onReaderReady()
+  for page=2,16 do now=now+30;turn(page) end
   reader:onCloseDocument();reader:onCloseWidget()
  end
  local returned=plugin('trip-returned',false)
@@ -141,6 +241,7 @@ check('bookshelf trips collect reading across book changes exactly once',functio
  assert(returned.state.reading.seconds==900 and returned.state.xp==xp+3)
  returned.pet_view:leave()
 end)
+end
 
 check('book and bookshelf teardown removes the sleep hook every time',function()
  for i=1,20 do

@@ -63,10 +63,12 @@ local allocate=BB.new;BB.new=function() error('test allocation failure') end
 screensaver:setup();assert(#buffers==3 and screensaver.image==buffers[1])
 BB.new=allocate
 reader.session=nil
+-- Preparing the screen uses the saved state already loaded while awake.
+reader.View.paintSleep=function(_,image) image.painted=true end
 local load=reader.storage.load;reader.storage.load=function() error('test save read failure') end
-screensaver:setup();assert(#buffers==3 and screensaver.image==buffers[1])
+screensaver:setup();assert(#buffers==4 and screensaver.image==buffers[4] and buffers[4].painted)
 reader.storage.load=load;reader.session={}
-E.act(reader.state,'preference','sleep_screen',os.time());screensaver:setup();assert(#buffers==3)
+E.act(reader.state,'preference','sleep_screen',os.time());screensaver:setup();assert(#buffers==4)
 reader.session=nil;BB.new=newBuffer;reader.View.paintSleep=paintSleep
 reader:detachCompanion();assert(screensaver.setup==original)
 -- Another plugin may wrap setup after us. Closing must keep that hook intact
