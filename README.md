@@ -6,10 +6,13 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 [Download 1.0.8](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/tag/v1.0.8) · [Watch the trailer](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/download/v1.0.8/PokePal-trailer.mp4)
 
+The full roster and extra animations below are coming in the next release.
+
 ## Features
 
-- Pick one of eight quick starters, or choose any of the 160 Pokémon.
+- Choose any of the 386 Pokémon from Kanto, Johto and Hoenn, with 11 quick starters.
 - Feed, play, train, rest and clean. Collect daily berries, give your partner a nickname and watch it react to its mood.
+- Every Pokémon has ten animations, including hops, spins and training moves. Preview them in the journal, or choose Eco or Off in settings.
 - Earn berries and XP, hatch eggs and reach weekly goals as you read.
 - Explore three different trails, find Pokémon and choose what happens on the way home.
 - Help your partner evolve by building XP and bond.

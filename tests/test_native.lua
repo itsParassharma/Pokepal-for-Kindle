@@ -15,7 +15,7 @@ local function tap(action,arg)
  end
  error('Missing native control: '..action)
 end
-tap('nav','allcompanions');app_paint();assert(v.journal_count==160)
+tap('nav','allcompanions');app_paint();assert(v.journal_count==386)
 tap('entry',3);tap('choose',3);assert(s.species==3)
 v:go('profile');tap('nav','companions');tap('nav','allcompanions')
 tap('entry',4);tap('partner',4);assert(s.species==4)
@@ -24,9 +24,9 @@ v:act('feed');assert(s.food==84 and s.berries==5)
 s.seen['150']=true;v:act('partner',150);assert(s.species==150 and s.xp==0)
 s.xp=60;s.bond=30;v:act('partner',4);v:act('partner',150);assert(s.xp==60 and s.bond==30)
 v:go('entry');v.detail_id=150
-for _,pose in ipairs({'idle','sleep','walk','attack','eat'}) do
+for _,pose in ipairs({'idle','sleep','walk','attack','eat','hop','rotate','charge','swing','double'}) do
  v.preview_pose=pose
- for frame=1,v.poses[150][pose] do v.frame=frame;app_paint();assert(#v.buttons==9) end
+ for frame=1,v.poses[150][pose] do v.frame=frame;app_paint();assert(#v.buttons==14) end
 end
 assert(app.owner:save())
 local save=app.storage.save;app.storage.save=function() return nil,'Test save failure' end
@@ -38,6 +38,7 @@ v:onSuspend();assert(#app.ui.queue==0);v:onResume()
 print('NATIVE: drawing, actions, partner progress, save reload and suspend passed')
 BASE='game';TESTDIR=os.tmpname();os.remove(TESTDIR);assert(host_fs('mkdir',TESTDIR))
 dofile('../../../tests/test_reading.lua')
+dofile('../../../tests/test_gen3.lua')
 dofile('../../../tests/test_adventures.lua')
 dofile('../../../tests/test_companion.lua')
 dofile('../../../tests/test_backups.lua')

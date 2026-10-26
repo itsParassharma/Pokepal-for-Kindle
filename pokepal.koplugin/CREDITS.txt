@@ -6,13 +6,15 @@ They are not covered by the code license.
 SPRITES
 https://github.com/PMDCollab/SpriteCollab
 Revision: 4702f10d888d19e804c5986a91170dfc92ae01b8
-The package includes all 151 Kanto Pokemon and nine Johto starter forms.
-Front-facing Idle, Sleep, Walk and Attack sheets were cropped as a group,
-scaled with nearest-neighbour sampling and converted to four-level grayscale.
-All species include five moving poses. Missing eating poses use PokePal's
-berry and chewing motion, derived from the credited idle sprites. Still
-idle sprites use added breathing motion. These additions are recorded in
-the source manifest. Animations use at most four frames.
+The package includes all 386 Pokemon from Kanto, Johto and Hoenn.
+Idle, Sleep, Walk, Attack, Eat, Hop, Rotate, Charge, Swing and Double sheets
+were cropped, scaled with nearest-neighbour sampling and converted to
+four-level grayscale. The five new poses keep the body close to its idle
+size, with movement bounded inside the sprite tile.
+Missing eating poses use PokePal's berry and chewing motion, derived from
+the credited idle sprites. Still poses use added breathing motion. These
+additions are recorded in the source manifest. Every species has ten
+moving poses, with at most four frames per animation.
 
 assets/pose-sources.json records sheet URLs, SHA-256, metadata, selected
 frames, motion and per-species credit files. assets/credits/ contains the

@@ -1,0 +1,1 @@
+2020-10-07 17:58:44.516860	CHUNSOFT	CUR	Unspecified	Walk,Attack,Stomp,Shoot,Swell,Sleep,Hurt,Idle,Swing,Double,Hop,Charge,Rotate

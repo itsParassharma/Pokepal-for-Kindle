@@ -30,6 +30,7 @@ def listdir(path):
  except OSError:return None
 g.host_fs=fs;g.host_listdir=listdir
 lua.execute((REPO/'tests'/'test_engine.lua').read_text())
+lua.execute((REPO/'tests'/'test_gen3.lua').read_text())
 lua.execute((REPO/'tests'/'test_reading.lua').read_text())
 lua.execute((REPO/'tests'/'test_adventures.lua').read_text())
 lua.execute((REPO/'tests'/'test_companion.lua').read_text())
@@ -266,7 +267,7 @@ check('Profile companion picker previews, cancels and switches without losing pr
  v.journal_query='no match';v.journal_filter='favourites'
  local before=S.encode(v.state)
  v:go('profile');tapButton(v,'nav','companions');assert(v.screen=='companions')
- v:paintTo(bb,0,0);assert(v.journal_count==9 and v.page==1)
+ v:paintTo(bb,0,0);assert(v.journal_count==#E.starters+1 and v.page==1)
  tapButton(v,'entry',1);assert(v.screen=='entry' and v.detail_id==1)
  assert(tapButton(v,'favourite',1).disabled)
  v:onBack();assert(v.screen=='companions');v:onBack();assert(v.screen=='profile')
@@ -281,22 +282,23 @@ check('Profile companion picker previews, cancels and switches without losing pr
  assert(v.state.xp==200 and v.state.bond==42 and E.displayName(v.state)=='Ember')
  v:leave();os.time=real_time
 end)
-check('all 160 are reachable from the welcome screen and Profile without unlocking',function()
+check('all 386 are reachable from the welcome screen and Profile without unlocking',function()
  local real_time=os.time;local now=1800000000;os.time=function() return now end
  local S=dofile(BASE..'/storage.lua');local v=newView();v.state.animation='off'
  local before=S.encode(v.state)
  tapButton(v,'nav','allcompanions');assert(v.screen=='allcompanions')
  local found={}
- for page=1,27 do
-  v:paintTo(bb,0,0);assert(v.journal_count==160 and v.page==page)
+ local pages=math.ceil(E.species_count/6)
+ for page=1,pages do
+  v:paintTo(bb,0,0);assert(v.journal_count==E.species_count and v.page==page)
   for _,b in ipairs(v.buttons) do
    if b.action=='entry' then assert(not found[b.arg]);found[b.arg]=true end
   end
-  if page<27 then tapButton(v,'page',1) end
+  if page<pages then tapButton(v,'page',1) end
  end
- for id=1,160 do assert(found[id],id) end
- assert(tapButton(v,'page',1).disabled and v.page==27)
- tapButton(v,'entry',160);assert(v.screen=='entry')
+ for id=1,E.species_count do assert(found[id],id) end
+ assert(tapButton(v,'page',1).disabled and v.page==pages)
+ tapButton(v,'entry',E.species_count);assert(v.screen=='entry')
  v:onBack();assert(v.screen=='allcompanions');v:onBack();assert(v.screen=='home')
  assert(S.encode(v.state)==before and not v.owner.saved)
  tapButton(v,'nav','allcompanions');tapButton(v,'entry',3);tapButton(v,'choose',3)
@@ -324,6 +326,23 @@ check('companion confirmation explains blocked switches and respects save locks'
  tapButton(v,'partner',7);assert(v.state.species==4)
  v.owner.backups=nil;v:leave()
 end)
+check('region tabs show every regional species and reset the page',function()
+ local v=newView();v.state.animation='off';v:go('allcompanions')
+ local ranges={{1,386},{1,151},{152,251},{252,386}}
+ for region,range in ipairs(ranges) do
+  tapButton(v,'chooserregion',region);assert(v.page==1)
+  local found={};local count=range[2]-range[1]+1;local pages=math.ceil(count/6)
+  for page=1,pages do
+   v:paintTo(bb,0,0);assert(v.journal_count==count)
+   for _,b in ipairs(v.buttons) do
+    if b.action=='entry' then assert(b.arg>=range[1] and b.arg<=range[2] and not found[b.arg]);found[b.arg]=true end
+   end
+   if page<pages then tapButton(v,'page',1) end
+  end
+  assert(E.count(found)==count and tapButton(v,'page',1).disabled)
+ end
+ tapButton(v,'entry',386);tapButton(v,'choose',386);assert(v.state.species==386);v:leave()
+end)
 check('main plugin persists the picker until a partner is chosen',function()
  local P=dofile(BASE..'/main.lua')
  p=P:new{path=BASE,ui={menu={registerToMainMenu=function() end}}}
@@ -342,21 +361,36 @@ check('existing Charmander save keeps progress and bypasses the picker',function
  assert(p.state.species==4 and p.state.xp==200 and p.state.bond==42 and p.state.berries==9)
  assert(#U.queue==0);p.pet_view:leave()
 end)
-check('Eevee profile gates and dispatches each evolution branch',function()
- for _,id in ipairs({134,135,136}) do
-  v=newView(133);v.state.animation='off';v:go('profile')
-  v.state.xp=119;v.state.bond=30
-  assert(tapButton(v,'evolve',id).disabled and v.state.species==133)
-  v.state.xp=120;v.state.bond=29
-  assert(tapButton(v,'evolve',id).disabled and v.state.species==133)
-  v.state.bond=30;assert(not tapButton(v,'evolve',id).disabled)
-  assert(v.state.species==id and v.state.seen[tostring(id)]);v:leave()
+check('Profile gates and dispatches every split evolution',function()
+ for _,parent in ipairs({44,61,79,133,236,265,290,366}) do
+  for _,id in ipairs(E.evolutionChoices(parent)) do
+   v=newView(parent);v.state.animation='off';v:go('profile')
+   v.state.xp=E.species[parent][3]-1;v.state.bond=30
+   assert(tapButton(v,'evolve',id).disabled and v.state.species==parent)
+   v.state.xp=E.species[parent][3];v.state.bond=29
+   assert(tapButton(v,'evolve',id).disabled and v.state.species==parent)
+   v.state.bond=30;assert(not tapButton(v,'evolve',id).disabled)
+   assert(v.state.species==id and v.state.seen[tostring(id)]);v:leave()
+  end
  end
 end)
-check('new partners use finite fallback frames across actions',function()
- for id=152,160 do
+check('care actions and training moves play the matching new poses',function()
+ for _,id in ipairs({25,184,252,384,386}) do
+  local poses={'attack','swing','double','charge'}
+  for i,move in ipairs(E.moves({species=id})) do
+   v=newView(id);v.state.animation='gentle';v.state.xp=1000;v.state.energy=100
+   v:act('train',move.name);assert(v.animating and v:poseFor(v.effect)==poses[i])
+   assert(U:drain()<=4);v:leave()
+  end
+  v=newView(id);v.state.animation='gentle';v.state.dirt=60
+  v:act('clean');assert(v.animating and v:poseFor(v.effect)=='rotate');U:drain()
+  v:animate('play');assert(v:poseFor(v.effect)=='hop');U:drain();v:leave()
+ end
+end)
+check('all partners use bounded animations across actions',function()
+ for id=1,E.species_count do
   v=newView(152);v.state.species=id;v.state.animation='gentle'
-  for _,effect in ipairs({'hello','feed','play','train','evolve','rest'}) do
+  for _,effect in ipairs({'hello','feed','play','train','evolve','rest','clean','explore'}) do
    v.state.resting=effect=='rest';v:animate(effect);assert(U:drain()<=4 and not v.animating)
   end
   v.state.animation='eco';v:animate('play');assert(U:drain()==2)
@@ -578,7 +612,7 @@ for w,h in [(1072,1448),(600,800),(758,1024),(1264,1680),(1440,1920),(800,600)]:
 g.D.dpi=None
 print(f'TEXT SCALING: {text_layouts} Kindle size, DPI and accessibility combinations passed')
 
-# Companion selection shares the journal grid and must fit large text and Eevee's three evolutions.
+# Companion selection must fit large text, region tabs and Eevee's five evolutions.
 for w,h in [(600,800),(1072,1448),(800,600)]:
  for large in (False,True):
   v=g.newView(133);v.state.xp=120;v.state.bond=30
@@ -705,8 +739,9 @@ for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
 print('COMPANION LAYOUTS: 32 recap, goal, decor, keyboard, backup, restore, home and evolution layouts checked')
 
 # Assert visible species, lineage and text, not just that drawing does not crash.
-families=[(1,2,3),(4,5,6),(7,8,9),(25,26),(133,),
-          (133,134),(133,135),(133,136),(152,153,154),(155,156,157),(158,159,160)]
+families=[(1,2,3),(4,5,6),(7,8,9),(172,25,26),(133,),
+          (133,134),(133,135),(133,136),(133,196),(133,197),(152,153,154),(155,156,157),(158,159,160),
+          (252,253,254),(255,256,257),(258,259,260),(298,183,184),(374,375,376)]
 profile_cases={species:family for family in families for species in family if species!=133}
 profile_cases[133]=(133,)
 species_layouts=0
@@ -733,15 +768,15 @@ for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
 print(f'PARTNERS: {species_layouts} starter/profile/home/training/sleep layouts verified')
 
 # New journal entries use the actual touch dispatcher and every core pose.
-for species in range(1,161):
+for species in range(1,g.E.species_count+1):
  v=g.newView(4);v.state.seen[str(species)]=True
  v.go(v,'entry');v.detail_id=species;v.preview_pose='idle';paint(v)
  assert not truncated,(species,'entry',truncated)
- for pose in ('idle','sleep','walk','attack','eat'):
+ for pose in ('idle','sleep','walk','attack','eat','hop','rotate','charge','swing','double'):
   g.tapButton(v,'preview',pose);assert v.preview_pose==pose
   assert g.U.drain(g.U)<=4
  v.freeImages(v)
-print('JOURNAL: all 160 entries and 800 pose buttons rendered and dispatched')
+print(f'JOURNAL: all {g.E.species_count} entries and {g.E.species_count*10} pose buttons rendered and dispatched')
 
 v=g.newView(4);v.state.bond=28;v.state.xp=48;v.state.food=76;v.state.joy=84;v.state.energy=72;v.state.dirt=22
 v.message='Charmander is happy to see you.'
@@ -788,9 +823,11 @@ for record in sources:
  assert all(0<=index<record['original_frames'] for index in record['sampled'])
 print(f'ASSETS: {count} valid transparent frames; all {len(species_ids)} species have frames and source records')
 poses=lua.execute((ROOT/'assets'/'poses.lua').read_text())
+pose_sources={(r['species'],r['pose'].lower()):r for r in json.loads((ROOT/'assets'/'pose-sources.json').read_text())}
+assert set(pose_sources)=={(id,pose) for id in species_ids for pose in poses[id].keys()}
 pose_count=0
 for id in poses.keys():
- assert set(poses[id].keys())=={'idle','sleep','walk','attack','eat'}
+ assert set(poses[id].keys())=={'idle','sleep','walk','attack','eat','hop','rotate','charge','swing','double'}
  for pose,frames in poses[id].items():
   hashes=[]
   for fr in range(1,frames+1):
@@ -798,9 +835,9 @@ for id in poses.keys():
    assert img.size==(96,96) and img.mode=='LA'
    assert set(img.getchannel('L').tobytes()).issubset({0,85,170,255})
    hashes.append(img.tobytes());pose_count+=1
-  record=next(r for r in json.loads((ROOT/'assets'/'pose-sources.json').read_text()) if r['species']==id and r['pose'].lower()==pose)
+  record=pose_sources[id,pose]
   assert len(set(hashes))>=2 and record['motion'],(id,pose)
-print(f'POSES: {pose_count} valid grayscale alpha frames; every species has five moving poses')
+print(f'POSES: {pose_count} valid grayscale alpha frames; every species has ten moving poses')
 compile_lua=lua.eval('function(path) assert(loadfile(path)) end')
 sources=list(ROOT.rglob('*.lua'))
 for path in sources:compile_lua(path.as_posix())

@@ -1,10 +1,10 @@
-POKEPAL 1.0.8
+POKEPAL VALIDATION
 
 The test suite checks game actions, old saves, damaged-save recovery,
-all 160 reachable species, partner progress, UI lifecycle and layouts.
-It also checks choosing any of the 160 species at the start or from
-Profile, confirmation and cancellation, and progress after switching.
-Every species has five moving animations and all 800 pose buttons
+all 386 reachable species, partner progress, UI lifecycle and layouts.
+It also checks choosing any species at the start or from Profile, region
+filters, every split evolution, eggs and a full 386-species save and backup.
+Every species has ten moving animations and all 3,860 pose buttons
 are exercised through the actual touch dispatcher.
 Generated motion is identified in assets/pose-sources.json.
 
@@ -18,5 +18,5 @@ On Linux, history dates and totals are checked across both daylight-saving
 changes in Hobart and New York, plus a week in UTC.
 
 The standalone renderer, save reload and suspend smoke tests run on
-Windows. The ARM executable is built and checked separately.
+Linux and Windows. The ARM executable is built and checked separately.
 Physical device checks are described in native/README.md.
