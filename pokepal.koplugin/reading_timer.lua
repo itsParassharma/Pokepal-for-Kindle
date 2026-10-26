@@ -1,7 +1,10 @@
 -- No polling timer: page turns and reader lifecycle events supply elapsed time.
 local T={}
 function T.new() return {pending=0,days={}} end
-function T.resume(t,page,now) t.page=page;t.since=now end
+function T.resume(t,page,now)
+ t.page=page
+ if not t.since then t.since=now end
+end
 function T.pause(t,now)
  if t.since then
   local elapsed=now-t.since

@@ -9,6 +9,8 @@ local RenderImage=require("ui/renderimage")
 local Font=require("ui/font")
 local BB=require("ffi/blitbuffer")
 local View=InputContainer:extend{covers_fullscreen=true,modal=true}
+local POSES={{"Idle","idle"},{"Sleep","sleep"},{"Walk","walk"},{"Attack","attack"},{"Eat","eat"},
+ {"Hop","hop"},{"Spin","rotate"},{"Charge","charge"},{"Swing","swing"},{"Combo","double"}}
 local BLACK,WHITE,GRAY,LIGHT=BB.COLOR_BLACK,BB.COLOR_WHITE,BB.Color8(170),BB.Color8(238)
 local function round(n) return math.floor(n+0.5) end
 local function minutes(n) return math.max(0,math.ceil(n/60)) end
@@ -39,8 +41,8 @@ function View:init()
   UIManager:setDirty(self,"ui",self:stageRegion())
  end
 end
-function View:geometry()
- local w,h=Device.screen:getWidth(),Device.screen:getHeight()
+function View:geometry(w,h)
+ w=w or Device.screen:getWidth();h=h or Device.screen:getHeight()
  self.dimen=Geom:new{x=0,y=0,w=w,h=h};self.scale=math.min(w/600,h/800)
  self.ox=round((w-600*self.scale)/2);self.oy=round((h-800*self.scale)/2)
  -- Font:getFace scales again in KOReader. Our layout already uses screen pixels.
@@ -138,8 +140,11 @@ function View:poseFor(effect)
  if self.screen=="entry" then return self.preview_pose or "idle" end
  if effect=="rest" or effect=="ambient_sleep" then return self.state.resting and "sleep" or "idle" end
  if effect=="feed" then return self.poses[self:animationSpecies()].eat and "eat" or "idle" end
- if effect=="train" then return "attack" end
- if effect=="play" then return "walk" end
+ if effect=="train" then return self.training_pose or "attack" end
+ if effect=="play" or (effect=="hello" and not self.state.resting) then return "hop" end
+ if effect=="clean" then return "rotate" end
+ if effect=="evolve" then return "charge" end
+ if effect=="explore" then return "walk" end
  return self.state.resting and "sleep" or "idle"
 end
 function View:animate(effect,previous)
@@ -168,9 +173,14 @@ function View:act(action,arg)
  local previous=self.state.species
  local hatching=action=="hatch" and self.state.egg and self.state.egg.id
  self.message,self.next_effect=self.engine.act(self.state,action,arg,os.time())
+ if self.next_effect=="train" then
+  local poses={"attack","swing","double","charge"}
+  self.training_pose="attack"
+  for i,move in ipairs(self.engine.moves(self.state)) do if move.name==arg then self.training_pose=poses[i] end end
+ end
  self.owner:save();self:freeImages();self.screen="home";self.entry_from=nil
  if hatching and not self.state.egg then
-  self.screen="entry";self.detail_id=hatching;self.preview_pose="idle";self.hatched=hatching;self.next_effect="hello"
+  self.screen="entry";self.detail_id=hatching;self.preview_pose="hop";self.hatched=hatching;self.next_effect="hello"
  end
  self:animate(self.next_effect,self.next_effect=="evolve" and previous or nil)
  self.action_count=self.action_count+1;UIManager:setDirty(self,self.action_count%12==0 and "flashui" or "ui")
@@ -223,7 +233,7 @@ function View:paintWelcome(bb)
  self:button(bb,"Previous",60,602,232,48,"starter",-1)
  self:button(bb,"Next",308,602,232,48,"starter",1)
  self:button(bb,"Start with "..self.engine.name(id),60,658,480,52,"choose",id,"heart")
- self:button(bb,"Choose from all 160 Pokemon",60,720,480,44,"nav","allcompanions")
+ self:button(bb,"Choose from all "..self.engine.species_count.." Pokemon",60,720,480,44,"nav","allcompanions")
 end
 function View:landscape(bb,background)
  local hour=tonumber(os.date("%H"));local night=hour<7 or hour>=19
@@ -276,7 +286,6 @@ function View:paintHomeStage(bb)
   local size=192;local id=s.species
   for i,member in ipairs(self.engine.evolutionLine(id)) do if member==id then size=176+i*16 end end
   if self.effect=="evolve" and self.previous_species and self.step<=2 then id=self.previous_species end
-  local dy=(self.animating and self.effect=="play" and self.frame%2==0) and -6 or 0
   self:rect(bb,253,401,94,3,GRAY);self:rect(bb,265,398,70,3,GRAY)
   local pose=self.animating and self:poseFor(self.effect) or self:poseFor(nil)
   local px=(600-size)/2
@@ -285,7 +294,7 @@ function View:paintHomeStage(bb)
    elseif not s.resting and s.decor[2] and tonumber(os.date("%H"))%3==0 then px=458-size/2;pose="idle"
    elseif not s.resting and s.decor[4] and tonumber(os.date("%H"))%3==1 then px=150-size/2;pose="idle" end
   end
-  self:sprite(bb,id,px,414-size+dy,size,self.frame,pose)
+  self:sprite(bb,id,px,414-size,size,self.frame,pose)
   if self.animating and self.effect~="ambient" and self.effect~="ambient_sleep" then self:paintEffect(bb) end
  end
  if s.egg then
@@ -418,21 +427,29 @@ function View:paintDecorations(bb)
 end
 function View:paintJournal(bb)
  local choosing=self.screen=="companions" or self.screen=="allcompanions"
+ local regions={{"All",1,self.engine.species_count},{"Kanto",1,151},{"Johto",152,251},{"Hoenn",252,386}}
+ local region=regions[self.chooser_region or 1]
  local ids={}
  if choosing then
   local starters={};for _,id in ipairs(self.engine.starters) do starters[id]=true end
-  for id=1,160 do
-   if self.screen=="allcompanions" or starters[id] or self.state.seen[tostring(id)] then ids[#ids+1]=id end
+  for id=1,self.engine.species_count do
+   if self.screen=="allcompanions" then
+    if id>=region[2] and id<=region[3] then ids[#ids+1]=id end
+   elseif starters[id] or self.state.seen[tostring(id)] then ids[#ids+1]=id end
   end
  else ids=self.engine.companion.journal(self.state,self.engine,self.journal_query,self.journal_filter or "met") end
  self.journal_count=#ids
  local pages=math.max(1,math.ceil(#ids/6));self.page=math.min(self.page or 1,pages)
  if choosing then
-  self:title(bb,self.screen=="allcompanions" and "All 160 Pokemon" or "Change companion",
+  self:title(bb,self.screen=="allcompanions" and "All "..self.engine.species_count.." Pokemon" or "Change companion",
    self.screen=="allcompanions" and "Every Pokemon is available to choose." or "Starters and friends you've met.")
-  self:wrapped(bb,"Tap a Pokemon to see its details, then choose it.",190,18)
+  if self.screen=="allcompanions" then
+   for i,item in ipairs(regions) do
+    self:button(bb,item[1],32+(i-1)*137,184,125,42,"chooserregion",i,nil,false,(self.chooser_region or 1)==i)
+   end
+  else self:wrapped(bb,"Tap a Pokemon to see its details, then choose it.",190,18) end
  else
-  self:title(bb,"Field journal",self.engine.kantoCount(self.state).." / 151 Kanto   |   "..#ids.." shown")
+  self:title(bb,"Field journal",self.engine.count(self.state.seen).." / "..self.engine.species_count.." found   |   "..#ids.." shown")
   self:button(bb,self.journal_query and self.journal_query~="" and self.journal_query or "Search",32,184,172,42,"journalSearch")
   self:button(bb,"Filter",214,184,172,42,"nav","filters")
   self:button(bb,"My partner",396,184,172,42,"entry",self.state.species)
@@ -447,7 +464,7 @@ function View:paintJournal(bb)
  self:button(bb,"Next",398,597,170,43,"page",1,nil,self.page==pages)
  if choosing then
   if self.screen=="companions" then
-   self:button(bb,"Choose from all 160 Pokemon",32,652,536,44,"nav","allcompanions")
+   self:button(bb,"Choose from all "..self.engine.species_count.." Pokemon",32,652,536,44,"nav","allcompanions")
   else self:wrapped(bb,"XP, bond and nicknames stay with each friend.",662,18) end
   local back=self.state.species==0 and "home" or self.screen=="allcompanions" and "companions" or "profile"
   local label=back=="home" and "Back to starters" or back=="companions" and "Back to companions" or "Back to profile"
@@ -462,22 +479,21 @@ function View:paintEntry(bb)
  self:title(bb,self.hatched==id and "Just hatched!" or string.format("#%03d  %s",id,name),
   (self.hatched==id and name.."   /   " or "")..self.engine.species[id].types)
  self:sprite(bb,id,174,196,252,self.frame,self.preview_pose or "idle")
- local poses={{"Idle","idle"},{"Sleep","sleep"},{"Walk","walk"},{"Attack","attack"},{"Eat","eat"}}
- for i,p in ipairs(poses) do
+ for i,p in ipairs(POSES) do
   local available=self.poses[id] and self.poses[id][p[2]]
-  self:button(bb,p[1],32+(i-1)*109,476,100,46,"preview",p[2],nil,not available,self.preview_pose==p[2])
+  self:button(bb,p[1],32+(i-1)%5*109,470+math.floor((i-1)/5)*50,100,42,"preview",p[2],nil,not available,self.preview_pose==p[2])
  end
  local p=id==self.state.species and self.state or (self.state.partners and self.state.partners[tostring(id)]) or {xp=0,bond=0}
- self:text(bb,p.xp.." XP   /   Bond "..math.floor(p.bond).."   /   Tap a pose to preview",32,546,17,536,false,true)
+ self:text(bb,p.xp.." XP   /   Bond "..math.floor(p.bond).."   /   Tap a pose to preview",32,574,17,536,false,true)
  local label=id==self.state.species and "Your current partner" or self.state.trip>0 and "Collect your trip before changing"
   or self.state.resting and "Wake up before changing" or "Choose "..name
- self:button(bb,label,32,594,536,52,self.state.species==0 and "choose" or "partner",id,"heart",id==self.state.species or self.state.trip>0 or self.state.resting)
+ self:button(bb,label,32,604,536,44,self.state.species==0 and "choose" or "partner",id,"heart",id==self.state.species or self.state.trip>0 or self.state.resting)
  local C=self.engine.companion;local trait,berry=C.profile(self.state,id,self.engine)
  local c=self.state.companion;local known=c and c.tastes[tostring(id)]
  self:text(bb,trait..(known and " / Likes "..berry or " / Try different berries"),32,658,17,344)
  self:button(bb,c and c.favourites[tostring(id)] and "Unfavourite" or "Favourite",398,652,170,42,"favourite",id,nil,not self.state.seen[tostring(id)])
  local back=self.entry_from or "journal"
- self:button(bb,back=="journal" and "Back to journal" or back=="allcompanions" and "Back to all 160 Pokemon" or "Back to companions",32,717,536,44,"nav",back)
+ self:button(bb,back=="journal" and "Back to journal" or back=="allcompanions" and "Back to all "..self.engine.species_count.." Pokemon" or "Back to companions",32,717,536,44,"nav",back)
 end
 function View:paintHistory(bb)
  local entries=self.state.log
@@ -523,7 +539,7 @@ function View:paintProfile(bb)
  end
  if #choices>1 then
   for i,id in ipairs(choices) do
-   self:button(bb,self.engine.evolution_stones[id]..": "..self.engine.name(id),32,520+(i-1)*50,536,44,"evolve",id,nil,not self.engine.ready(s))
+   self:button(bb,self.engine.name(id),32+(i-1)%2*274,520+math.floor((i-1)/2)*50,262,44,"evolve",id,nil,not self.engine.ready(s))
   end
  elseif #choices==1 then
   local id=choices[1]
@@ -681,6 +697,8 @@ function View:onTap(_,ges)
   elseif self.owner.reading_busy and b.action~="nav" and b.action~="page" then return true
   elseif b.disabled then return true
   elseif self:companionTap(b.action,b.arg) then return true
+  elseif b.action=="chooserregion" then
+   self.chooser_region=b.arg;self.page=1;self:freeImages();UIManager:setDirty(self,"ui")
   elseif b.action=="starter" then
    self.starter_index=(self.starter_index-1+b.arg)%#self.engine.starters+1
    self:freeImages();UIManager:setDirty(self,"ui")
@@ -747,6 +765,7 @@ function View:leave()
 end
 function View:onCloseWidget()
  self:stopAnimation();self.closed=true;self:freeImages();self.owner.pet_view=nil
+ if self.input_dialog then UIManager:close(self.input_dialog);self.input_dialog=nil end
  if self.owner.onPetClosed then self.owner:onPetClosed() end
 end
 function View:onSuspend()
@@ -758,5 +777,11 @@ function View:onResume()
  self.suspended=false;self:freeImages();self:geometry();self.message=self.engine.act(self.state,"check",nil,os.time());UIManager:setDirty(self,"full")
 end
 function View:onSetDimensions() self:stopAnimation();self:freeImages();self:geometry();UIManager:setDirty(self,"full");return true end
+function View:onOutOfScreenSaver()
+ -- With a delayed or locked sleep screen, rotation is restored after Resume.
+ if not self.closed and (self.dimen.w~=Device.screen:getWidth() or self.dimen.h~=Device.screen:getHeight()) then
+  self:onSetDimensions()
+ end
+end
 dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/companion_view.lua")(View,UIManager,BB)
 return View

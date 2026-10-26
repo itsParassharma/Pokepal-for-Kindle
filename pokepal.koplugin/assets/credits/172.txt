@@ -1,0 +1,14 @@
+2020-10-07 17:58:43.813132	CHUNSOFT	CUR	Unspecified	Walk,Attack,QuickStrike,Shock,Sing,Appeal,Sleep,Hurt,Idle,Swing,Double,Hop,Charge,Rotate
+2023-03-31 07:43:37.521359	<@!454421330058805251>	CUR	PMDCollab_1	EventSleep,Wake,Eat,Tumble,Pose,Pull,Pain,Float,DeepBreath,Nod,Sit,LookUp,Sink,Trip,Laying,LeapForth,Head,Cringe,LostBalance,TumbleBack,HitGround,Faint
+2023-04-09 15:40:44.183737	<@!454421330058805251>	CUR	PMDCollab_1	Tumble,Pose,Pain,Nod,Sit,LookUp,Sink,LeapForth,TumbleBack,HitGround
+2023-04-14 22:15:16.617311	<@!454421330058805251>	CUR	PMDCollab_1	Wake,Pain
+2023-04-15 00:36:45.710329	<@!454421330058805251>	CUR	PMDCollab_1	Pain
+2023-04-22 10:46:17.867751	<@!454421330058805251>	CUR	PMDCollab_1	Pain,Trip,HitGround,Faint
+2023-06-18 20:09:12.351687	<@!454421330058805251>	CUR	PMDCollab_2	Wake,Nod
+2023-07-24 20:50:32.263698	<@!454421330058805251>	CUR	PMDCollab_2	Pose,Nod,Trip,LeapForth,HitGround
+2023-10-13 20:12:56.420025	<@!454421330058805251>	CUR	PMDCollab_2	Pose,Pain,Nod,Trip,HitGround,Faint
+2024-07-31 02:22:31.048084	<@!454421330058805251>	CUR	CC_BY-NC_4	EventSleep,Wake,Tumble,Pose,Pain,Float,Nod,Sink,Trip,Laying,LeapForth,TumbleBack,HitGround,Faint
+2024-08-20 01:37:43.869590	<@!454421330058805251>	CUR	CC_BY-NC_4	EventSleep,Wake,Eat,Float,Nod,Trip,Laying,Head,HitGround
+2025-08-17 17:32:13.671858	<@!454421330058805251>	CUR	CC_BY-NC_4	EventSleep,Wake,Eat,Tumble,Pose,Pull,Float,Nod,Trip,Laying,LeapForth,LostBalance,TumbleBack,HitGround,Faint
+2025-08-17 22:35:43.868958	<@!454421330058805251>	CUR	CC_BY-NC_4	Nod,LeapForth
+2025-08-17 22:35:48.439766	<@!454421330058805251>	CUR	CC_BY-NC_4	Nod,LeapForth

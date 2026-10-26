@@ -71,14 +71,14 @@ test('eggs work during travel and rest, and do not spend partner progress',funct
 end)
 test('eggs prefer unseen first forms and still work with a complete journal',function()
  local s=pet();local children={}
- for id=1,160 do for _,child in ipairs(E.evolutionChoices(id)) do children[child]=true end end
- local available=0;for id=1,160 do if not children[id] and not s.seen[tostring(id)] then available=available+1 end end
+ for id=1,E.species_count do for _,child in ipairs(E.evolutionChoices(id)) do children[child]=true end end
+ local available=0;for id=1,E.species_count do if not children[id] and not s.seen[tostring(id)] then available=available+1 end end
  for i=1,available do
   s.berries=3;E.act(s,'egg',nil,now);local id=s.egg.id
   assert(not children[id] and not s.seen[tostring(id)])
   E.readingReward(s,7200,now);E.act(s,'hatch',nil,now)
  end
- for id=1,160 do s.seen[tostring(id)]=true end
+ for id=1,E.species_count do s.seen[tostring(id)]=true end
  s.berries=3;E.act(s,'egg',nil,now);assert(s.egg and not children[s.egg.id])
 end)
 test('old saves retain timed trips, partners, rewards and defaults',function()

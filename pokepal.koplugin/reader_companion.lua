@@ -1,6 +1,9 @@
 -- KOReader integration uses its existing footer and screensaver lifecycle.
 local I={}
 function I.attach(PokePal,UIManager)
+ function PokePal:refreshCompanion()
+  if not self.session and self.savepath then self.state=self.storage.load(self.savepath,self.engine) end
+ end
  function PokePal:companionState(callback)
   if self.session then callback(self.state);return self:save() end
   if not self.savepath then return end
@@ -46,13 +49,18 @@ function I.attach(PokePal,UIManager)
   end
  end
  function PokePal:sleepImage()
-  local s=self.session and self.state or self.storage.load(self.savepath,self.engine)
+  -- Preferences are loaded while awake, including when on the bookshelf.
+  local s=self.state
   if not s or s.species==0 or not self.engine.companion.option(s,"sleep_screen") then return end
   local image,preview
   local painted,err=pcall(function()
    local BB=require("ffi/blitbuffer");local Device=require("device")
-   image=BB.new(Device.screen:getWidth(),Device.screen:getHeight(),BB.TYPE_BB8)
+   -- KOReader turns image sleep screens to portrait after setup returns.
+   local w,h=Device.screen:getWidth(),Device.screen:getHeight()
+   if w>h then w,h=h,w end
+   image=BB.new(w,h,BB.TYPE_BB8)
    preview=self.View:new{owner={save=function() return true end},state=s,engine=self.engine,path=self.path}
+   preview:geometry(w,h)
    preview:paintSleep(image,false)
   end)
   if preview then preview:stopAnimation();preview:freeImages() end
@@ -85,11 +93,24 @@ function I.attach(PokePal,UIManager)
    return result
   end
   Screensaver.setup=self.sleep_setup
+  -- Resume may arrive before a delayed unlock. Cleanup also covers lock-only
+  -- screens, which do not send KOReader's OutOfScreenSaver event.
+  if Screensaver.cleanup then
+   local previous_cleanup=Screensaver.cleanup;self.previous_cleanup=previous_cleanup
+   self.sleep_cleanup=function(screen,...)
+    local result=previous_cleanup(screen,...)
+    if hook.active and screen.ui==self.ui then self:resumeReading() end
+    return result
+   end
+   Screensaver.cleanup=self.sleep_cleanup
+  end
  end
  function PokePal:detachCompanion()
   if self.sleep_hook then self.sleep_hook.active=false end
   if self.footer_owner then self.footer_owner:removeAdditionalFooterContent(self.footer_content);self.footer_owner=nil end
   if self.screensaver and self.screensaver.setup==self.sleep_setup then self.screensaver.setup=self.previous_setup end
+  if self.screensaver and self.screensaver.cleanup==self.sleep_cleanup then self.screensaver.cleanup=self.previous_cleanup end
+  self.previous_cleanup=nil;self.sleep_cleanup=nil
   self.screensaver=nil;self.previous_setup=nil;self.sleep_setup=nil;self.sleep_hook=nil
  end
 end

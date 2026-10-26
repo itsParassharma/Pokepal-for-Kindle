@@ -6,7 +6,9 @@ ROOT=Path(__file__).resolve().parents[1]/'pokepal.koplugin/assets'
 
 def pack():
     index={};lines=['local S={index={']
-    for species in range(1,161):
+    species_ids=sorted({int(p.name.split('-')[0]) for p in ROOT.glob('*-*.png')})
+    assert species_ids and species_ids==list(range(1,max(species_ids)+1)), 'Incomplete species roster'
+    for species in species_ids:
         frames=sorted(ROOT.glob(f'{species}-*.png'))
         assert frames,f'Missing frames for {species}'
         data=bytearray();offsets={}
@@ -31,6 +33,6 @@ end
 return S''']
     (ROOT/'sprites.lua').write_text('\n'.join(lines)+'\n')
     (ROOT/'sprite-index.json').write_text(json.dumps(index,sort_keys=True,separators=(',',':'))+'\n')
-    print(f'Packed {len(index)} PNG frames into 160 species files (byte-for-byte checked).')
+    print(f'Packed {len(index)} PNG frames into {len(species_ids)} species files (byte-for-byte checked).')
 
 if __name__=='__main__':pack()

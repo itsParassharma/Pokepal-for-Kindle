@@ -6,8 +6,8 @@ local function test(name,fn) fn();passed=passed+1;print("PASS "..name) end
 local function pet(id)
  local s=E.new(now);E.act(s,"choose",id or 25,now);return s
 end
-test("all eight starter choices round-trip without changing progress",function()
- local expected={1,4,7,25,133,152,155,158};assert(#E.starters==#expected)
+test("all eleven starter choices round-trip without changing progress",function()
+ local expected={1,4,7,25,133,152,155,158,252,255,258};assert(#E.starters==#expected)
  for i,id in ipairs(expected) do
   assert(E.starters[i]==id);local s=pet(id);assert(s.species==id and E.valid(s))
   assert(S.encode(S.decode(S.encode(s),E))==S.encode(s))
@@ -111,12 +111,13 @@ test("Johto evolution boundaries preserve care and record every stage",function(
  end
 end)
 test("profiles retain ancestry and only show the selected Eevee branch",function()
- local families={{1,2,3},{4,5,6},{7,8,9},{25,26},{152,153,154},{155,156,157},{158,159,160}}
+ local families={{1,2,3},{4,5,6},{7,8,9},{172,25,26},{152,153,154},{155,156,157},{158,159,160},
+  {252,253,254},{255,256,257},{258,259,260},{298,183,184}}
  for _,family in ipairs(families) do
   for _,id in ipairs(family) do assert(table.concat(E.evolutionLine(id),",")==table.concat(family,",")) end
  end
  assert(table.concat(E.evolutionLine(133),",")=="133")
- for _,id in ipairs({134,135,136}) do
+ for _,id in ipairs({134,135,136,196,197}) do
   assert(table.concat(E.evolutionLine(id),",")=="133,"..id)
   assert(#E.evolutionChoices(id)==0)
  end
@@ -195,10 +196,11 @@ end)
 test("unwritable destination reports failure",function()
  local ok,err=S.save(TESTDIR.."/absent/save.dat",pet(),E);assert(not ok and err)
 end)
-test("all Kanto Pokemon and retained Johto partners are reachable",function()
+test("all Kanto, Johto and Hoenn Pokemon are reachable",function()
  local reachable={}
  for _,route in ipairs(E.routes) do for _,id in ipairs(route.pool) do reachable[id]=true end end
- for id=1,160 do assert(E.species[id] and reachable[id] and E.species[id].types) end
+ assert(E.species_count==386)
+ for id=1,E.species_count do assert(E.species[id] and reachable[id] and E.species[id].types) end
 end)
 test("trails discover every member before repeating",function()
  for route,r in ipairs(E.routes) do
@@ -220,8 +222,8 @@ test("switching preserves separate XP and bond across saves",function()
  s.resting=true;E.act(s,'partner',4,now);assert(s.species==151)
  s.resting=false;E.act(s,'trip',1,now);E.act(s,'partner',4,now);assert(s.species==151)
 end)
-test("all 160 Pokemon can be chosen initially or switched to without losing progress",function()
- for id=1,160 do
+test("all 386 Pokemon can be chosen initially or switched to without losing progress",function()
+ for id=1,E.species_count do
   local first=pet(id);assert(first.species==id and E.valid(first))
   assert(S.decode(S.encode(first),E).species==id)
   local s=pet(4);s.xp=300;s.bond=40;E.act(s,'nickname','Ember',now)
@@ -234,7 +236,7 @@ test("all 160 Pokemon can be chosen initially or switched to without losing prog
   E.act(s,'partner',4,now);assert(s.xp==300 and s.bond==40 and E.displayName(s)=='Ember')
  end
  local s=pet(4);local before=S.encode(s)
- for _,id in ipairs({0,161,1.5,'25',{}}) do
+ for _,id in ipairs({0,E.species_count+1,1.5,'25',{}}) do
   E.act(s,'partner',id,now);assert(S.encode(s)==before)
   local first=E.new(now);E.act(first,'choose',id,now);assert(first.species==0)
  end

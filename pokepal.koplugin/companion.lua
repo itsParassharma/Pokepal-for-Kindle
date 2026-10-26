@@ -17,7 +17,7 @@ local function keys(t,allowed)
 end
 local function map(t,check,limit)
  if type(t)~="table" then return false end
- local n=0;for k,v in pairs(t) do n=n+1;if n>(limit or 160) or not check(k,v) then return false end end;return true
+ local n=0;for k,v in pairs(t) do n=n+1;if n>limit or not check(k,v) then return false end end;return true
 end
 function C.get(s)
  if not s.companion then s.companion={prefs={},favourites={},tastes={},met={},memories={},days={},ko_days={},routes={},hatches=0,goals=0} end
@@ -31,9 +31,9 @@ function C.valid(c,s,E)
  if not keys(c.prefs,prefs) then return false end
  for _,v in pairs(c.prefs) do if type(v)~="boolean" then return false end end
  local function id(k) return type(k)=="string" and tostring(tonumber(k))==k and E.species[tonumber(k)] and s.seen[k] end
- if not map(c.favourites,function(k,v) return id(k) and v==true end)
-  or not map(c.tastes,function(k,v) return id(k) and v==true end)
-  or not map(c.met,function(k,v) return id(k) and integer(v,1e12) end)
+ if not map(c.favourites,function(k,v) return id(k) and v==true end,E.species_count)
+  or not map(c.tastes,function(k,v) return id(k) and v==true end,E.species_count)
+  or not map(c.met,function(k,v) return id(k) and integer(v,1e12) end,E.species_count)
   or not map(c.routes,function(k,v) return (k=="1" or k=="2" or k=="3") and v==true end,3)
   or not integer(c.hatches,1e9) or not integer(c.goals,1e9) then return false end
  local function day(k) return type(k)=="string" and k:match("^%d%d%d%d%-%d%d%-%d%d$")~=nil end
@@ -72,7 +72,7 @@ function C.decode(hex)
   nodes=nodes+1;if depth>8 or nodes>4096 then error("Data limit") end
   local kind=data:sub(pos,pos);pos=pos+1
   if kind=="b" then local b=data:sub(pos,pos);pos=pos+1;if b~="0" and b~="1" then error("Boolean") end;return b=="1" end
-  local ending=data:find(":",pos,true);if not ending or ending-pos>12 then error("Length") end
+  local ending=data:find(":",pos,true);if not ending or ending-pos>13 then error("Length") end
   local digits=data:sub(pos,ending-1);if not digits:match("^%d+$") then error("Number") end
   local n=tonumber(digits);pos=ending+1
   if kind=="n" then return n
@@ -156,7 +156,7 @@ function C.finishTrip(s,E)
 end
 function C.journal(s,E,query,filter)
  local list={};query=(query or ""):lower()
- for id=1,160 do
+ for id=1,E.species_count do
   local known=s.seen[tostring(id)];local p=s.partners and s.partners[tostring(id)] or {xp=0,bond=0}
   if id==s.species then p=s end
   local c=s.companion

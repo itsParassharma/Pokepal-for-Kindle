@@ -1,10 +1,10 @@
-POKEPAL 1.0.8
+POKEPAL VALIDATION
 
 The test suite checks game actions, old saves, damaged-save recovery,
-all 160 reachable species, partner progress, UI lifecycle and layouts.
-It also checks choosing any of the 160 species at the start or from
-Profile, confirmation and cancellation, and progress after switching.
-Every species has five moving animations and all 800 pose buttons
+all 386 reachable species, partner progress, UI lifecycle and layouts.
+It also checks choosing any species at the start or from Profile, region
+filters, every split evolution, eggs and a full 386-species save and backup.
+Every species has ten moving animations and all 3,860 pose buttons
 are exercised through the actual touch dispatcher.
 Generated motion is identified in assets/pose-sources.json.
 
@@ -12,11 +12,22 @@ Reader lifecycle tests pass KOReader's book view into the plugin, then
 check reading time, sleep/wake, opening the game from a book, trips
 across book changes, and CloseWidget cleanup over repeated visits.
 Sleep-screen failures keep KOReader's normal screen and lock settings.
+Dialog tests follow KOReader v2026.07.1 window stacking and check search,
+nicknames, book titles, dismissal and cleanup when the game closes.
+Landscape tests cover portrait sleep images and touch targets after a
+delayed unlock. Journal filters cover all 18 types in the roster.
+The KOReader v2026.07.1 Linux runtime also passes 72 sleep/wake cycles
+across bookshelf, book and game views, portrait/landscape, sleep preferences
+and unlock settings. Real page turns and scrolling each record 15 minutes
+across two books, advancing trips and eggs and paying rewards once.
+Time waiting at either kind of lock screen is excluded. These tests use
+KOReader's real widgets and image buffers with a simulated display and clock.
+See docs/koreader-testing.md for the command and hardware limits.
 Reading tests also cover same-timestamp Kindle record updates, including
 reloaded caches, and retrying failed disk syncs without duplicate credit.
 On Linux, history dates and totals are checked across both daylight-saving
 changes in Hobart and New York, plus a week in UTC.
 
 The standalone renderer, save reload and suspend smoke tests run on
-Windows. The ARM executable is built and checked separately.
+Linux and Windows. The ARM executable is built and checked separately.
 Physical device checks are described in native/README.md.

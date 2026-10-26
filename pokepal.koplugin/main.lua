@@ -1,5 +1,6 @@
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local UIManager = require("ui/uimanager")
+local Device = require("device")
 local DataStorage = require("datastorage")
 local ffiUtil = require("ffi/util")
 local InfoMessage = require("ui/widget/infomessage")
@@ -18,6 +19,7 @@ function PokePal:init()
  if self.savepath then
   self.backups=dofile(self.path.."/backups.lua").new(self.savepath,self.engine,self.reading,self.fs,ffiUtil.fsyncOpenedFile,ffiUtil.fsyncDirectory)
  end
+ self:refreshCompanion()
  self.View=dofile(self.path.."/view.lua")
  self.ui.menu:registerToMainMenu(self)
  self:installSleepScreen()
@@ -57,6 +59,8 @@ function PokePal:openPet()
 end
 function PokePal:flushReading()
  if not self.counterpath then return end
+ -- Do not create or lock a counter when no reading needs saving.
+ if self.clock.pending==0 and not self.reading_unsynced and not self.reading_error then return end
  if self.fs.mode(self.savepath..".restore") then self.reading_error="Reopen PokePal to finish restoring.";return end
  local pending=self.clock.pending
  local unlock,err=self.fs.lock(self.counterpath..".session")
@@ -79,20 +83,24 @@ function PokePal:pauseReading()
  self.timer.pause(self.clock,os.time());self:flushReading()
 end
 function PokePal:resumeReading()
- if self.document_open and not self.suspended and not self.reading_paused and not self.pet_view then
+ if self.document_open and not self.suspended and not Device.screen_saver_mode and not self.reading_paused and not self.pet_view then
   self.timer.resume(self.clock,self.clock.page,os.time())
  end
 end
 function PokePal:onReaderReady()
  self.document_open=true
- if not self.session and self.savepath then self.state=self.storage.load(self.savepath,self.engine) end
+ self:refreshCompanion()
  self:updateCompanion();self:resumeReading()
 end
 function PokePal:onPageUpdate(page)
  if not self.document_open then self.clock.page=page;return end
- if self.pet_view or self.suspended or self.reading_paused then self.clock.page=page;return end
+ if self.pet_view or self.suspended or Device.screen_saver_mode or self.reading_paused then self.clock.page=page;return end
  self.timer.page(self.clock,page,os.time())
  if self.clock.pending>=60 then self:flushReading() end
+end
+function PokePal:onPosUpdate(_,page)
+ -- Reflowable books emit PosUpdate instead of PageUpdate in scroll mode.
+ self:onPageUpdate(page)
 end
 function PokePal:onReadingPaused()
  self.reading_paused=true;self:pauseReading()
@@ -156,12 +164,20 @@ function PokePal:save()
 end
 function PokePal:onSuspend()
  self.suspended=true;self:pauseReading();self:cancelReadingScan()
- self:companionState(function(s) self.engine.companion.suspend(s,self.engine,os.time()) end)
- if self.pet_view then self.pet_view:onSuspend() end
+ if self.pet_view then self.pet_view:onSuspend()
+ elseif self.state and self.engine.companion.option(self.state,"auto_rest") then
+  self:companionState(function(s) self.engine.companion.suspend(s,self.engine,os.time()) end)
+ end
 end
 function PokePal:onResume()
  local visit=self.state and self.reading.visit(self.state)
- self:companionState(function(s) self.engine.companion.resume(s,self.engine,os.time()) end)
+ if not self.pet_view then
+  -- Pick up changes from KUAL, but only write when a partner needs waking.
+  self:refreshCompanion()
+  if self.state and self.state.companion and self.state.companion.sleep then
+   self:companionState(function(s) self.engine.companion.resume(s,self.engine,os.time()) end)
+  end
+ end
  self.suspended=false;self:updateCompanion();self:resumeReading()
  if self.pet_view then self.pet_view:onResume();self:startReadingScan(visit) end
 end

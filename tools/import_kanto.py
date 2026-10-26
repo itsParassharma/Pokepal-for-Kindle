@@ -1,4 +1,4 @@
-"""Import pinned Pokemon data and front-facing action sprites. Build-time only.
+"""Import Kanto, Johto and Hoenn data and action sprites. Build-time only.
 
 Usage: python tools/import_kanto.py /path/to/download-cache
 Keeps upstream credits and a SHA-256 for every downloaded sheet.
@@ -19,6 +19,9 @@ from PIL import Image, ImageChops, ImageDraw
 ROOT = Path(__file__).resolve().parents[1] / 'pokepal.koplugin'
 PMD = '4702f10d888d19e804c5986a91170dfc92ae01b8'
 DATA = '2bf639e5572812a67d2b94903fdcb9d095f5aeb2'
+SPECIES_COUNT = 386
+POSES = ('Idle','Sleep','Walk','Attack','Eat','Hop','Rotate','Charge','Swing','Double')
+EXTRA_POSES = POSES[5:]
 CACHE = Path(sys.argv[1]).resolve()
 CACHE.mkdir(parents=True, exist_ok=True)
 
@@ -46,8 +49,8 @@ def table(name):
     return list(csv.DictReader(io.StringIO(data.decode('utf-8'))))
 
 def species_data():
-    species = {int(r['id']):r for r in table('pokemon_species') if int(r['id']) <= 160}
-    names = {int(r['pokemon_species_id']):r['name'] for r in table('pokemon_species_names') if r['local_language_id']=='9' and int(r['pokemon_species_id']) <= 160}
+    species = {int(r['id']):r for r in table('pokemon_species') if int(r['id']) <= SPECIES_COUNT}
+    names = {int(r['pokemon_species_id']):r['name'] for r in table('pokemon_species_names') if r['local_language_id']=='9' and int(r['pokemon_species_id']) <= SPECIES_COUNT}
     names[29]='Nidoran F';names[32]='Nidoran M';names[83]="Farfetch'd"
     types = {r['id']:r['identifier'].title() for r in table('types')}
     by_type = {id:[] for id in species}
@@ -62,16 +65,17 @@ def species_data():
     levels = {}
     for r in table('pokemon_evolution'):
         child=int(r['evolved_species_id'])
-        if child in species and r['minimum_level'] and r.get('version_group_id') in ('1','3'):
+        if child in species and r['minimum_level'] and r.get('version_group_id') in ('1','3','5'):
             levels.setdefault(child,int(r['minimum_level']))
     # Preserve the existing game's progression for current players.
     legacy={1:60,2:180,4:300,5:700,7:60,8:180,25:120,133:120,152:300,153:620,155:260,156:700,158:340,159:580}
     rows=['-- Generated from pinned PokeAPI data by tools/import_kanto.py.','return {']
-    for id in range(1,161):
-        kids=children.get(id,[])
+    for id in range(1,SPECIES_COUNT+1):
+        kids=sorted(children.get(id,[]))
         xp=legacy.get(id,(levels.get(kids[0],20)-1)*20 if kids else 0)
         fields=json.dumps(names[id],ensure_ascii=True)
         if kids: fields+=f',{kids[0]},{xp}'
+        if len(kids)>1: fields+=',evolutions={'+','.join(map(str,kids))+'}'
         fields+=',types='+json.dumps(' / '.join(by_type[id]))
         rows.append(f' [{id}]={{{fields}}},')
     rows.append('}')
@@ -114,7 +118,7 @@ def import_species(id):
     (ROOT/'assets'/'credits'/f'{id:03d}.txt').write_bytes(credits)
     animations={a.findtext('Name'):a for a in ET.fromstring(xml).findall('Anims/Anim')}
     records=[]; poses={}
-    for pose in ('Idle','Sleep','Walk','Attack','Eat'):
+    for pose in POSES:
         missing=pose not in animations
         actual='Idle' if missing and pose=='Eat' else pose
         if actual not in animations: raise ValueError(f'Missing pose {id} {pose}')
@@ -135,13 +139,30 @@ def import_species(id):
         if not box: raise ValueError(f'Empty animation {id} {pose}')
         bw,bh=box[2]-box[0],box[3]-box[1]
         scale=80/max(bw,bh);size=(max(1,round(bw*scale)),max(1,round(bh*scale)))
+        if pose=='Idle': idle_scale=scale
+        if pose in EXTRA_POSES:
+            # Keep the body close to its idle size. Large leaps are bounded
+            # inside the tile instead of shrinking the Pokemon to fit them.
+            bodies=[fr.getchannel('A').getbbox() for fr in frames]
+            body_extent=max(max(b[2]-b[0],b[3]-b[1]) for b in bodies if b)
+            scale=min(idle_scale,80/body_extent)
         selected=list(range(count)) if count<=4 else [round(i*(count-1)/3) for i in range(4)]
         converted=[]
         for index in selected:
-            fr=frames[index].crop(box).resize(size,Image.Resampling.NEAREST)
+            if pose in EXTRA_POSES:
+                body=bodies[index]
+                if not body: raise ValueError(f'Empty frame {id} {pose} {index}')
+                size=(max(1,round((body[2]-body[0])*scale)),max(1,round((body[3]-body[1])*scale)))
+                x=round(48+((body[0]+body[2]-box[0]-box[2])/2)*scale-size[0]/2)
+                y=round(90-(box[3]-body[1])*scale)
+                position=(max(6,min(90-size[0],x)),max(6,min(90-size[1],y)))
+                fr=frames[index].crop(body).resize(size,Image.Resampling.NEAREST)
+            else:
+                position=((96-size[0])//2,90-size[1])
+                fr=frames[index].crop(box).resize(size,Image.Resampling.NEAREST)
             gray=fr.convert('L').point(lambda v:min(255,((v+42)//85)*85))
             tile=Image.new('LA',(96,96),(255,0))
-            tile.paste(Image.merge('LA',(gray,fr.getchannel('A'))),((96-size[0])//2,90-size[1]))
+            tile.paste(Image.merge('LA',(gray,fr.getchannel('A'))),position)
             converted.append(tile)
         generated=None
         if missing:
@@ -156,16 +177,16 @@ def import_species(id):
             if pose=='Idle': tile.save(ROOT/'assets'/f'{id}-{frame}.png',optimize=True)
         poses[pose.lower()]=len(converted)
         records.append({'species':id,'pose':pose,'sheet_pose':actual,'source':url,'source_sha256':hashlib.sha256(data).hexdigest(),'metadata':xml_url,'frames':selected,'original_frames':count,'count':len(converted),'motion':motion,'generated':generated,'direction':'front','credits':f'credits/{id:03d}.txt'})
-    if not all(p in poses for p in ('idle','sleep','walk','attack','eat')): raise ValueError(f'Missing poses {id}: {poses}')
+    if not all(p.lower() in poses for p in POSES): raise ValueError(f'Missing poses {id}: {poses}')
     return id,poses,records
 
 if __name__=='__main__':
     species_data()
     results=[]
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
-        for result in pool.map(import_species,range(1,161)):
+        for result in pool.map(import_species,range(1,SPECIES_COUNT+1)):
             results.append(result)
-            if result[0]%10==0: print(f'Imported {result[0]}/160',flush=True)
+            if result[0]%10==0: print(f'Imported {result[0]}/{SPECIES_COUNT}',flush=True)
     rows=['return {'];normal=['return {'];records=[];sources=[]
     for id,poses,items in results:
         rows.append(f' [{id}]={{'+','.join(f'{p}={n}' for p,n in poses.items())+'},')
@@ -182,5 +203,5 @@ if __name__=='__main__':
     print(f'{len(results)} species; {len(records)} action poses; {sum(i["count"] for i in records)} frames')
     from pack_sprites import pack
     pack()
-    for frame in (ROOT/'assets').glob('*.png'):
+    for frame in list((ROOT/'assets').glob('*.png')):
         frame.unlink()

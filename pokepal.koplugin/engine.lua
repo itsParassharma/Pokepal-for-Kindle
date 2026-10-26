@@ -2,10 +2,13 @@
 local E = {}
 local source=debug.getinfo(1,"S").source:sub(2):match("^(.*)/")
 E.species = dofile(source.."/species.lua")
+E.species_count = #E.species
 E.companion = dofile(source.."/companion.lua")
-E.starters = {1,4,7,25,133,152,155,158}
-E.evolution_branches = {[133]={134,135,136}}
-E.evolution_stones = {[134]="Water stone",[135]="Thunder stone",[136]="Fire stone"}
+E.starters = {1,4,7,25,133,152,155,158,252,255,258}
+E.parents = {}
+for id,p in ipairs(E.species) do
+ for _,child in ipairs(p.evolutions or (p[2] and {p[2]} or {})) do E.parents[child]=id end
+end
 -- Practice unlocks are PokePal rules, not a battle-game learnset.
 E.move_sets = {
  [1]={"Tackle","Vine Whip","Razor Leaf","Solar Beam"},
@@ -19,6 +22,12 @@ E.move_sets = {
  [152]={"Tackle","Razor Leaf","Magical Leaf","Solar Beam"},
  [155]={"Tackle","Ember","Flame Wheel","Flamethrower"},
  [158]={"Scratch","Water Gun","Bite","Hydro Pump"},
+ [172]={"Thunder Shock","Quick Attack","Thunderbolt","Thunder"},
+ [196]={"Tackle","Confusion","Psybeam","Psychic"},
+ [197]={"Tackle","Bite","Feint Attack","Dark Pulse"},
+ [252]={"Pound","Absorb","Leaf Blade","Solar Beam"},
+ [255]={"Scratch","Ember","Flame Burst","Flamethrower"},
+ [258]={"Tackle","Water Gun","Mud Shot","Hydro Pump"},
 }
 E.badge_goals={
  {"First friend","Begin your adventure"}, {"Kind heart","Care for your partner 20 times"},
@@ -42,7 +51,7 @@ E.decorations={{name="Cushion",cost=5},{name="Plant",cost=8},{name="Lamp",cost=1
 E.discoveries={{name="Berry patch",detail="Find 1 berry"},{name="Footprints",detail="Follow a new trail for 3 XP"},{name="Campsite",detail="Rest for 8 energy"}}
 -- Keep old route IDs and durations so expeditions from older saves finish normally.
 for _,route in ipairs(E.routes) do route.pool={} end
-for id=1,160 do
+for id=1,E.species_count do
  local types=E.species[id].types
  local route=(types:find("Water") or types:find("Ice")) and 2
   or (types:find("Rock") or types:find("Ground") or types:find("Ghost") or types:find("Psychic")) and 3 or 1
@@ -76,13 +85,10 @@ function E.reaction(s)
 end
 function E.level(s) return math.min(100,1+math.floor(s.xp/20)) end
 function E.evolutionChoices(id)
- if E.evolution_branches[id] then return E.evolution_branches[id] end
- local p=E.species[id];return p and p[2] and {p[2]} or {}
+ local p=E.species[id];return p and (p.evolutions or (p[2] and {p[2]})) or {}
 end
 local function parentOf(id)
- for parent in pairs(E.species) do
-  for _,child in ipairs(E.evolutionChoices(parent)) do if child==id then return parent end end
- end
+ return E.parents[id]
 end
 function E.evolutionLine(id)
  local line={id};local parent=parentOf(id)
@@ -103,7 +109,8 @@ function E.mood(s,now)
  return "Happy to be with you"
 end
 function E.moves(s)
- local root=E.evolutionLine(s.species)[1]
+ local ancestor=s.species
+ while ancestor and not E.move_sets[ancestor] do ancestor=parentOf(ancestor) end
  local by_type={
   Normal={"Tackle","Quick Attack","Swift","Take Down"}, Fire={"Scratch","Ember","Flame Wheel","Flamethrower"},
   Water={"Tackle","Water Gun","Bubble Beam","Hydro Pump"}, Grass={"Tackle","Vine Whip","Razor Leaf","Solar Beam"},
@@ -113,10 +120,11 @@ function E.moves(s)
   Psychic={"Confusion","Psybeam","Zen Headbutt","Psychic"}, Bug={"Bug Bite","String Shot","Pin Missile","Bug Buzz"},
   Rock={"Rock Throw","Rollout","Rock Slide","Stone Edge"}, Ghost={"Lick","Night Shade","Shadow Punch","Shadow Ball"},
   Dragon={"Twister","Dragon Breath","Dragon Claw","Dragon Pulse"}, Steel={"Metal Claw","Metal Sound","Iron Head","Flash Cannon"},
+  Dark={"Bite","Feint Attack","Crunch","Dark Pulse"},
   Fairy={"Disarming Voice","Fairy Wind","Draining Kiss","Moonblast"},
  }
  local kind=E.species[s.species] and E.species[s.species].types:match("^%a+") or "Normal"
- local names=E.move_sets[s.species] or E.move_sets[root] or by_type[kind] or by_type.Normal
+ local names=E.move_sets[ancestor] or by_type[kind] or by_type.Normal
  local levels={1,7,20,36};local moves={}
  for i,name in ipairs(names) do moves[i]={name=name,level=levels[i]} end
  return moves
@@ -174,7 +182,10 @@ function E.valid(s)
  end
  if s.trail~=nil and (s.trip==0 or s.due~=0 or not readingStart(s.trail)) then return false end
  if s.egg~=nil then
-  if type(s.egg)~="table" or not E.species[s.egg.id] or parentOf(s.egg.id) or not readingStart(s.egg.start) then return false end
+  if type(s.egg)~="table" or not E.species[s.egg.id] or not readingStart(s.egg.start) then return false end
+  -- Eggs from the original roster can predate the newly added baby forms.
+  local parent=parentOf(s.egg.id)
+  if parent and not (s.egg.id<=160 and parent>160) then return false end
  end
  if s.background~=nil and not E.backgrounds[s.background] then return false end
  if s.week~=nil then
@@ -359,7 +370,7 @@ function E.act(s,action,arg,now)
   if not s.reading or not s.reading.enabled then return "Turn on reading rewards to raise an egg." end
   if s.berries<E.egg_cost then return "An egg costs "..E.egg_cost.." berries." end
   local pool,all={},{}
-  for id=1,160 do
+  for id=1,E.species_count do
    if not parentOf(id) then
     all[#all+1]=id;if not s.seen[tostring(id)] then pool[#pool+1]=id end
    end
