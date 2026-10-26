@@ -12,10 +12,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Update the 1.0.8 trailer
+      - name: Update the 1.0.9 trailer
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload v1.0.8 docs/PokePal-trailer.mp4 --clobber
+        run: gh release upload v1.0.9 docs/PokePal-trailer.mp4 --clobber
   release:
     if: github.repository == 'itsParassharma/Pokepal-for-Kindle' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release]'))
     runs-on: ubuntu-22.04
@@ -49,12 +49,12 @@ jobs:
           sh -n native/kual/launch.sh
       - name: Package clean downloads and corresponding source
         run: python tools/package_release.py --deps ../pokepal-build-cache
-      - name: Publish 1.0.8
+      - name: Publish 1.0.9
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if ! gh release view v1.0.8 >/dev/null 2>&1; then
-            gh release create v1.0.8 --target "$GITHUB_SHA" --title "1.0.8" --draft --notes-file docs/release-v1.0.8.md
+          if ! gh release view v1.0.9 >/dev/null 2>&1; then
+            gh release create v1.0.9 --target "$GITHUB_SHA" --title "1.0.9" --draft --notes-file docs/release-v1.0.9.md
           fi
-          gh release upload v1.0.8 dist/PokePal-v1.0.8-* docs/PokePal-trailer.mp4 --clobber
-          gh release edit v1.0.8 --title "1.0.8" --draft=false --prerelease=false --latest --notes-file docs/release-v1.0.8.md
+          gh release upload v1.0.9 dist/PokePal-v1.0.9-* docs/PokePal-trailer.mp4 --clobber
+          gh release edit v1.0.9 --title "1.0.9" --draft=false --prerelease=false --latest --notes-file docs/release-v1.0.9.md

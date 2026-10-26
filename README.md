@@ -4,9 +4,7 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 ![PokePal](docs/kindle-preview.png)
 
-[Download 1.0.8](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/tag/v1.0.8) · [Watch the trailer](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/download/v1.0.8/PokePal-trailer.mp4)
-
-The full roster, extra animations and KOReader shortcuts below are coming in the next release.
+[Download 1.0.9](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/tag/v1.0.9) · [Watch the trailer](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/download/v1.0.9/PokePal-trailer.mp4)
 
 ## Features
 
@@ -26,13 +24,13 @@ More:
 [Reading rewards guide](docs/reading-rewards.md)
 [Sleep screen setup](docs/companion-update.md#sleep-screen).
 
-See [what changed in 1.0.8](docs/release-v1.0.8.md).
+See [what changed in 1.0.9](docs/release-v1.0.9.md).
 
 ## Install with KUAL
 
 You need a jailbroken touchscreen Kindle with KUAL installed. KOReader is not required.
 
-1. Download and unzip **PokePal-v1.0.8-kual.zip**.
+1. Download and unzip **PokePal-v1.0.9-kual.zip**.
 2. Connect your Kindle by USB. Copy the `extensions` folder onto the Kindle drive, next to `documents`. Merge folders if asked.
 3. Eject your Kindle, then open **KUAL > PokePal > Play PokePal**.
 
@@ -40,11 +38,11 @@ You need a jailbroken touchscreen Kindle with KUAL installed. KOReader is not re
 
 You need KOReader installed on your Kindle.
 
-1. Download and unzip **PokePal-v1.0.8-koreader.zip**.
+1. Download and unzip **PokePal-v1.0.9-koreader.zip**.
 2. Copy the `koreader` folder onto the Kindle drive. Merge it with the existing folder.
-3. Restart KOReader, then open **Tools > More tools > PokePal** in 1.0.8.
+3. Restart KOReader. Choose **Open PokePal** in the welcome, or open **Tools > PokePal**.
 
-The next build puts **PokePal** directly under **Tools**. A one-time welcome offers **Open PokePal**, **Shortcut help** or **Later**. You can assign **Open PokePal** to a gesture or QuickMenu; your existing shortcuts stay as they are. [Shortcut help](docs/koreader-shortcuts.md).
+You can assign **Open PokePal** to a gesture or QuickMenu. Hold **PokePal** in Tools for help, or read the [shortcut guide](docs/koreader-shortcuts.md).
 
 ## Saves
 

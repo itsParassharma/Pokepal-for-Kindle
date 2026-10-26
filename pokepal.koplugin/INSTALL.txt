@@ -1,9 +1,9 @@
-POKEPAL 1.0.8
+POKEPAL 1.0.9
 
 KUAL
 Needs a jailbroken touchscreen Kindle with KUAL installed.
 
-1. Unzip PokePal-v1.0.8-kual.zip.
+1. Unzip PokePal-v1.0.9-kual.zip.
 2. Copy extensions onto your Kindle drive, next to documents.
    Merge folders if asked.
 3. Eject, then open KUAL > PokePal > Play PokePal.
@@ -13,7 +13,7 @@ KOReader is not required for this version.
 KOREADER
 Needs KOReader installed on your Kindle.
 
-1. Unzip PokePal-v1.0.8-koreader.zip.
+1. Unzip PokePal-v1.0.9-koreader.zip.
 2. Copy koreader onto your Kindle drive. Merge with the existing folder.
 3. Restart KOReader. Choose Open PokePal in the welcome, or Tools > PokePal.
 

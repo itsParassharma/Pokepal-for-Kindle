@@ -1,8 +1,5 @@
 # Opening PokePal in KOReader
 
-These shortcuts are coming in the next release. In 1.0.8, use
-**Tools > More tools > PokePal**.
-
 Copy the plugin to `koreader/plugins/pokepal.koplugin` and restart KOReader.
 The welcome offers **Open PokePal**, **Shortcut help** and **Later**. It
 appears once. You can always open the game from **Tools > PokePal**.
