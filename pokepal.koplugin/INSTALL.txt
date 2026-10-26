@@ -15,7 +15,13 @@ Needs KOReader installed on your Kindle.
 
 1. Unzip PokePal-v1.0.8-koreader.zip.
 2. Copy koreader onto your Kindle drive. Merge with the existing folder.
-3. Restart KOReader. Open Tools > More tools > PokePal.
+3. Restart KOReader. Choose Open PokePal in the welcome, or Tools > PokePal.
+
+The welcome appears once. Shortcut help explains how to assign Open PokePal
+to a gesture or QuickMenu. Later closes the welcome without starting a game.
+Hold the PokePal entry in Tools to see the help again. Existing gestures
+are left as they are. Keep the folder named pokepal.koplugin; KOReader uses
+the .koplugin ending to find plugins.
 
 SAVES
 Both editions use pokepal/pokepal.dat on the Kindle drive.
