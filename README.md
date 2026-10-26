@@ -10,7 +10,7 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 - Pick one of eight quick starters, or choose any of the 160 Pokémon.
 - Feed, play, train, rest and clean. Collect daily berries, give your partner a nickname and watch it react to its mood.
-- Earn berries and XP, hatch eggs and reach weekly goals as you read. Check your recap and weekly history, or remember books you finished together.
+- Earn berries and XP, hatch eggs and reach weekly goals as you read.
 - Explore three different trails, find Pokémon and choose what happens on the way home.
 - Help your partner evolve by building XP and bond.
 - Discover favourite berries and watch your partner settle beside its decorations.
