@@ -23,13 +23,19 @@ function PokePal:init()
  self.View=dofile(self.path.."/view.lua")
  self.ui.menu:registerToMainMenu(self)
  self:installSleepScreen()
+ self:onDispatcherRegisterActions()
+ self:scheduleWelcome()
 end
 function PokePal:addToMainMenu(items)
- items.pokepal={text="PokePal - Pokemon companion",sorting_hint="more_tools",callback=function() self:openPet() end}
+ items.pokepal={text="PokePal",sorting_hint="tools",callback=function() self:openPet() end,
+  hold_callback=function() self:showShortcutHelp() end}
 end
 function PokePal:openPet()
+ if self.closed or self.suspended or Device.screen_saver_mode then return end
+ self:closeShortcutDialog()
  if self.pet_view then return end
  if not self.savepath then UIManager:show(InfoMessage:new{text=self.path_error});return end
+ self:markWelcomeSeen()
  self:pauseReading()
  local notice
  self.session,notice=self.storage.open(self.savepath,{DataStorage:getSettingsDir().."/pokepal.dat",
@@ -83,7 +89,9 @@ function PokePal:pauseReading()
  self.timer.pause(self.clock,os.time());self:flushReading()
 end
 function PokePal:resumeReading()
- if self.document_open and not self.suspended and not Device.screen_saver_mode and not self.reading_paused and not self.pet_view then
+ if self.closed then return end
+ self:scheduleWelcome()
+ if self.document_open and not self.suspended and not Device.screen_saver_mode and not self.reading_paused and not self.pet_view and not self.shortcut_dialog then
   self.timer.resume(self.clock,self.clock.page,os.time())
  end
 end
@@ -94,7 +102,7 @@ function PokePal:onReaderReady()
 end
 function PokePal:onPageUpdate(page)
  if not self.document_open then self.clock.page=page;return end
- if self.pet_view or self.suspended or Device.screen_saver_mode or self.reading_paused then self.clock.page=page;return end
+ if self.pet_view or self.shortcut_dialog or self.suspended or Device.screen_saver_mode or self.reading_paused then self.clock.page=page;return end
  self.timer.page(self.clock,page,os.time())
  if self.clock.pending>=60 then self:flushReading() end
 end
@@ -182,6 +190,7 @@ function PokePal:onResume()
  if self.pet_view then self.pet_view:onResume();self:startReadingScan(visit) end
 end
 function PokePal:onClose()
+ self.closed=true;self:cancelWelcome();self:closeShortcutDialog()
  self:detachCompanion();self:cancelReadingScan()
  self.document_open=false;self:pauseReading()
  if self.pet_view then self.pet_view:leave() end
@@ -192,4 +201,5 @@ function PokePal:onCloseWidget()
  self:onClose()
 end
 dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/reader_companion.lua").attach(PokePal,UIManager)
+dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/shortcuts.lua").attach(PokePal,UIManager)
 return PokePal

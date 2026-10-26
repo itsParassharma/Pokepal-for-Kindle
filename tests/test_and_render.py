@@ -136,6 +136,8 @@ package.preload["ui/uimanager"]=function() return U end
 package.preload["datastorage"]=function() return {getSettingsDir=function() return TESTDIR end} end
 package.preload["ffi/util"]=function() return {} end
 package.preload["ui/widget/infomessage"]=function() return W end
+package.preload["dispatcher"]=function() return {registerAction=function() end} end
+G_reader_settings={isTrue=function() return true end}
 bb={paintRect=function(_,...) render_rect(...) end}
 E=dofile(BASE.."/engine.lua");V=dofile(BASE.."/view.lua")
 Device=require("device")
@@ -442,6 +444,7 @@ check('KOReader events persist reading time, exclude sleep and pet visits, and c
  tapButton(reader.pet_view,'reading',nil);assert(reader.state.reading.enabled)
  reader.pet_view:leave();reader:openPet();reader:syncReading();assert(reader.state.xp==xp+3)
  reader.pet_view:leave();clock=clock+60;reader:onCloseDocument();clock=clock+7200;reader:onClose()
+ reader=P:new{path=BASE,ui={menu={registerToMainMenu=function() end}}}
  reader:openPet();reader:syncReading();assert(reader.state.xp==xp+3 and reader.state.reading.carry==60)
  reader.pet_view:leave();os.time=real_time
 end)

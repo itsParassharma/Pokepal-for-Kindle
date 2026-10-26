@@ -6,7 +6,7 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 [Download 1.0.8](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/tag/v1.0.8) · [Watch the trailer](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/download/v1.0.8/PokePal-trailer.mp4)
 
-The full roster and extra animations below are coming in the next release.
+The full roster, extra animations and KOReader shortcuts below are coming in the next release.
 
 ## Features
 
@@ -42,7 +42,9 @@ You need KOReader installed on your Kindle.
 
 1. Download and unzip **PokePal-v1.0.8-koreader.zip**.
 2. Copy the `koreader` folder onto the Kindle drive. Merge it with the existing folder.
-3. Restart KOReader, then open **Tools > More tools > PokePal**.
+3. Restart KOReader, then open **Tools > More tools > PokePal** in 1.0.8.
+
+The next build puts **PokePal** directly under **Tools**. A one-time welcome offers **Open PokePal**, **Shortcut help** or **Later**. You can assign **Open PokePal** to a gesture or QuickMenu; your existing shortcuts stay as they are. [Shortcut help](docs/koreader-shortcuts.md).
 
 ## Saves
 

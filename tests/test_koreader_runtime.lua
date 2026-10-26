@@ -13,6 +13,13 @@ G_reader_settings=require('luasettings'):open(dir..'/settings.reader.lua')
 G_reader_settings:saveSetting('screensaver_type','disable')
 G_reader_settings:saveSetting('screensaver_show_message',false)
 G_reader_settings:saveSetting('screensaver_delay','disable')
+-- Keep an existing gesture and QuickMenu to check that onboarding leaves them alone.
+local gestures_path=DataStorage:getSettingsDir()..'/gestures.lua'
+local gestures_settings=require('luasettings'):open(gestures_path)
+gestures_settings.data=require('util').tableDeepCopy(dofile('plugins/gestures.koplugin/defaults.lua'))
+gestures_settings.data.gesture_reader.hold_bottom_right_corner={night_mode=true}
+gestures_settings.data.gesture_fm.hold_bottom_right_corner={show_history=true,settings={show_as_quickmenu=true}}
+gestures_settings:flush()
 local Device=require('device')
 require('document/canvascontext'):init(Device)
 require('ui/bidi').setup()
@@ -25,7 +32,8 @@ local Loader=require('pluginloader')
 local plugin_path=assert(arg[1],'Pass the absolute pokepal.koplugin path')
 Loader._discover=function()
  return {{name='pokepal',main=plugin_path..'/main.lua',meta=plugin_path..'/_meta.lua',path=plugin_path},
-  {name='statistics',main='plugins/statistics.koplugin/main.lua',meta='plugins/statistics.koplugin/_meta.lua',path='plugins/statistics.koplugin'}}
+  {name='statistics',main='plugins/statistics.koplugin/main.lua',meta='plugins/statistics.koplugin/_meta.lua',path='plugins/statistics.koplugin'},
+  {name='gestures',main='plugins/gestures.koplugin/main.lua',meta='plugins/gestures.koplugin/_meta.lua',path='plugins/gestures.koplugin'}}
 end
 local FileManager=require('apps/filemanager/filemanager')
 local ReaderUI=require('apps/reader/readerui')
@@ -92,7 +100,149 @@ local function resume(wait)
  assert(not Device.screen_saver_mode,'sleep screen did not close')
 end
 
-local p=shelf();local v=game(p)
+local function button(dialog,label)
+ for _,row in ipairs(dialog.buttons or dialog.buttons_table or {}) do
+  for _,item in ipairs(row) do if item.text==label then return item end end
+ end
+ error('Missing button: '..label)
+end
+local function menuEntry(ui)
+ ui.menu:setUpdateItemTable()
+ local found
+ local function scan(items,parent)
+  for _,item in ipairs(items) do
+   if item.id=='pokepal' then assert(parent=='tools','PokePal is not directly in Tools');assert(not found);found=item end
+   scan(item.sub_item_table or item,item.id)
+  end
+ end
+ scan(ui.menu.tab_item_table)
+ assert(found and found.text=='PokePal','PokePal menu entry missing or misnamed')
+ return found
+end
+local function gesturesUnchanged(ui)
+ assert(ui.gestures.data.gesture_reader.hold_bottom_right_corner.night_mode==true)
+ local quick=ui.gestures.data.gesture_fm.hold_bottom_right_corner
+ assert(quick.show_history and quick.settings.show_as_quickmenu)
+ for _,actions in pairs(ui.gestures.gestures) do
+  assert(type(actions)~='table' or not actions.pokepal_open,'PokePal assigned itself a gesture')
+ end
+end
+local p,v
+check('first launch offers all three buttons and Later stays dismissed after reopening',function()
+ p=shelf()
+ local welcome=assert(p.shortcut_dialog,'no first-launch welcome')
+ assert(U:getTopmostVisibleWidget()==welcome)
+ if os.getenv('POKEPAL_SCREENSHOTS') then Device.screen.bb:writePNG(os.getenv('POKEPAL_SCREENSHOTS')..'/welcome.png') end
+ button(welcome,'Open PokePal');button(welcome,'Shortcut help')
+ button(welcome,'Later').callback()
+ assert(not p.shortcut_dialog and not p.pet_view)
+ assert(not p.fs.mode(p.savepath),'Later created a game save')
+ gesturesUnchanged(p.ui);menuEntry(p.ui)
+ G_reader_settings:flush()
+ assert(require('luasettings'):open(dir..'/settings.reader.lua'):isTrue('pokepal_welcome_seen'))
+ p=shelf();assert(not p.shortcut_dialog,'welcome repeated')
+end)
+
+check('welcome help opens above the browser, and can open the game',function()
+ G_reader_settings:delSetting('pokepal_welcome_seen');p=shelf()
+ button(p.shortcut_dialog,'Shortcut help').callback();pump()
+ local help=assert(p.shortcut_dialog)
+ assert(help.title=='PokePal shortcuts' and U:getTopmostVisibleWidget()==help)
+ gesturesUnchanged(p.ui)
+ button(help,'Open PokePal').callback();pump()
+ assert(not p.shortcut_dialog and p.pet_view);p.pet_view:leave()
+end)
+
+check('welcome Open PokePal opens the game without a second dialog',function()
+ G_reader_settings:delSetting('pokepal_welcome_seen');p=shelf()
+ button(p.shortcut_dialog,'Open PokePal').callback();pump()
+ assert(p.pet_view and not p.shortcut_dialog)
+ p.pet_view:leave();pump();assert(not p.shortcut_dialog)
+end)
+
+check('closing a browser cancels its pending welcome and stale launch callbacks',function()
+ FileManager.instance:onClose();G_reader_settings:delSetting('pokepal_welcome_seen')
+ FileManager:showFiles(dir);local old=FileManager.instance.pokepal
+ local pending=assert(old.welcome_task)
+ FileManager.instance:onClose();pending();pump()
+ assert(not old.welcome_task and not old.shortcut_dialog and not G_reader_settings:isTrue('pokepal_welcome_seen'))
+ p=shelf();local launch=button(p.shortcut_dialog,'Open PokePal').callback
+ FileManager.instance:onClose();launch();pump()
+ assert(not p.pet_view and not p.shortcut_dialog)
+end)
+
+check('opening a book before the welcome appears cancels the old browser prompt',function()
+ G_reader_settings:delSetting('pokepal_welcome_seen')
+ FileManager:showFiles(dir);local background=FileManager.instance.pokepal
+ ReaderUI:showReader(books[1]);pump();pump();p=ReaderUI.instance.pokepal
+ assert(p.shortcut_dialog,'book welcome was not shown')
+ assert(background.closed and not background.shortcut_dialog,'old browser prompt survived')
+ local before=counter(p)
+ now=now+300;ReaderUI.instance.rolling:onGotoViewRel(1)
+ assert(counter(p)==before,'welcome time counted as reading')
+ G_reader_settings:saveSetting('screensaver_type','random_image')
+ G_reader_settings:saveSetting('screensaver_delay','gesture')
+ suspend();resume(300)
+ assert(p.shortcut_dialog and counter(p)==before,'waking at the welcome started the reading timer')
+ button(p.shortcut_dialog,'Later').callback()
+ now=now+60;ReaderUI.instance.rolling:onGotoViewRel(1)
+ assert(counter(p)==before+60,'reading did not resume after Later')
+ ReaderUI.instance:onClose()
+end)
+
+check('a queued welcome waits through sleep and appears after waking',function()
+ G_reader_settings:delSetting('pokepal_welcome_seen')
+ FileManager:showFiles(dir);p=FileManager.instance.pokepal
+ suspend();pump()
+ assert(not p.shortcut_dialog and not G_reader_settings:isTrue('pokepal_welcome_seen'))
+ resume();assert(p.shortcut_dialog)
+ button(p.shortcut_dialog,'Later').callback()
+ FileManager.instance:onClose()
+end)
+
+check('opening the game before the welcome is ready does not show a late prompt',function()
+ G_reader_settings:delSetting('pokepal_welcome_seen')
+ FileManager:showFiles(dir);p=FileManager.instance.pokepal
+ p:openPet();pump();assert(p.pet_view and not p.shortcut_dialog)
+ p.pet_view:leave();pump();assert(not p.shortcut_dialog)
+ p=shelf();assert(not p.shortcut_dialog)
+end)
+
+local Dispatcher=require('dispatcher')
+for _,context in ipairs({'shelf','book'}) do
+check('Tools, gesture action and QuickMenu open PokePal from '..context,function()
+ if context=='shelf' then p=shelf() else local reader;reader,p=openBook(1,'page') end
+ assert(Dispatcher:getNameFromItem('pokepal_open')=='Open PokePal')
+ local entry=menuEntry(p.ui)
+ entry.callback();pump();assert(p.pet_view);p.pet_view:leave()
+ local choices={};Dispatcher:_addItem(p.ui.gestures,choices,{},'test','general')
+ local count=0;for _,item in ipairs(choices) do if item.text=='Open PokePal' then count=count+1 end end
+ assert(count==1,'action missing or registered more than once')
+ local gestures=p.ui.gestures.gestures
+ local previous=gestures.hold_top_right_corner
+ gestures.hold_top_right_corner={pokepal_open=true}
+ p.ui.gestures:gestureAction('hold_top_right_corner',{ges='hold'})
+ gestures.hold_top_right_corner=previous
+ pump();local view=assert(p.pet_view)
+ Dispatcher:execute({pokepal_open=true});assert(p.pet_view==view,'action opened the game twice');view:leave()
+ Dispatcher:execute({pokepal_open=true,settings={show_as_quickmenu=true}});pump()
+ local quick=U:getTopmostVisibleWidget();assert(quick~=p.ui and not p.pet_view)
+ button(quick,'Open PokePal').callback();pump();assert(p.pet_view);p.pet_view:leave()
+ for _,rotation in ipairs({0,1}) do
+  Device.screen:setRotationMode(rotation);U:broadcastEvent(Event:new('SetDimensions',Device.screen:getSize()))
+  entry.hold_callback();pump();local help=assert(p.shortcut_dialog)
+  assert(U:getTopmostVisibleWidget()==help)
+  local size=help:getContentSize()
+  assert(size.w<=Device.screen:getWidth() and size.h<=Device.screen:getHeight(),'shortcut help exceeds screen')
+  if os.getenv('POKEPAL_SCREENSHOTS') then Device.screen.bb:writePNG(os.getenv('POKEPAL_SCREENSHOTS')..'/shortcuts-'..context..'-'..rotation..'.png') end
+  button(help,'Close').callback();assert(not p.shortcut_dialog)
+ end
+ Device.screen:setRotationMode(0);U:broadcastEvent(Event:new('SetDimensions',Device.screen:getSize()))
+ gesturesUnchanged(p.ui)
+end)
+end
+
+p=shelf();v=game(p)
 p.engine.act(p.state,'choose',25,now);p.state.animation='off';assert(p:save());v:leave()
 
 for _,mode in ipairs({'page','scroll'}) do

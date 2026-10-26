@@ -11,11 +11,16 @@ SDL_VIDEODRIVER=dummy SDL_RENDER_DRIVER=software \
 ```
 
 The test creates two books and a game in that directory. It loads PokePal
-and KOReader's statistics plugin through the real plugin loader, then uses
+and KOReader's statistics and gesture plugins through the real plugin loader, then uses
 the book reader, screensaver, window manager, image buffers and file syncs.
 Reading and sleep intervals use a controlled clock; the display uses SDL's
 dummy driver.
 
+- The welcome appears once; all three buttons work, and closing a browser
+  cancels a pending welcome. Existing gesture and QuickMenu choices stay intact.
+- Tools, the dispatcher action and QuickMenu open the game from the browser
+  and a book. Shortcut help fits portrait and landscape screens. Time spent
+  at the welcome does not count as reading.
 - Page turns and scrolling each collect 900 seconds across two books.
   Both advance the egg and reading trip and award 1 berry and 3 XP once.
 - Waiting five minutes at an image or lock-only screensaver earns no
