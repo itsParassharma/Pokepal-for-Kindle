@@ -161,6 +161,7 @@ def start(w=600,h=800):
  g.D.w=w;g.D.h=h
 start()
 lua.execute((REPO/'tests'/'test_reader_lifecycle.lua').read_text())
+lua.execute((REPO/'tests'/'test_koreader_ui.lua').read_text())
 lua.execute(r'''
 local checks=0
 local function check(name,fn) fn();checks=checks+1;print('PASS '..name) end

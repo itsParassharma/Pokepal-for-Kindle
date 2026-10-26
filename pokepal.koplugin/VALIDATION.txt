@@ -12,6 +12,10 @@ Reader lifecycle tests pass KOReader's book view into the plugin, then
 check reading time, sleep/wake, opening the game from a book, trips
 across book changes, and CloseWidget cleanup over repeated visits.
 Sleep-screen failures keep KOReader's normal screen and lock settings.
+Dialog tests follow KOReader v2026.07.1 window stacking and check search,
+nicknames, book titles, dismissal and cleanup when the game closes.
+Landscape tests cover portrait sleep images and touch targets after a
+delayed unlock. Journal filters cover all 18 types in the roster.
 Reading tests also cover same-timestamp Kindle record updates, including
 reloaded caches, and retrying failed disk syncs without duplicate credit.
 On Linux, history dates and totals are checked across both daylight-saving

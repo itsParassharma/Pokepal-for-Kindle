@@ -41,8 +41,8 @@ function View:init()
   UIManager:setDirty(self,"ui",self:stageRegion())
  end
 end
-function View:geometry()
- local w,h=Device.screen:getWidth(),Device.screen:getHeight()
+function View:geometry(w,h)
+ w=w or Device.screen:getWidth();h=h or Device.screen:getHeight()
  self.dimen=Geom:new{x=0,y=0,w=w,h=h};self.scale=math.min(w/600,h/800)
  self.ox=round((w-600*self.scale)/2);self.oy=round((h-800*self.scale)/2)
  -- Font:getFace scales again in KOReader. Our layout already uses screen pixels.
@@ -765,6 +765,7 @@ function View:leave()
 end
 function View:onCloseWidget()
  self:stopAnimation();self.closed=true;self:freeImages();self.owner.pet_view=nil
+ if self.input_dialog then UIManager:close(self.input_dialog);self.input_dialog=nil end
  if self.owner.onPetClosed then self.owner:onPetClosed() end
 end
 function View:onSuspend()
@@ -776,5 +777,11 @@ function View:onResume()
  self.suspended=false;self:freeImages();self:geometry();self.message=self.engine.act(self.state,"check",nil,os.time());UIManager:setDirty(self,"full")
 end
 function View:onSetDimensions() self:stopAnimation();self:freeImages();self:geometry();UIManager:setDirty(self,"full");return true end
+function View:onOutOfScreenSaver()
+ -- With a delayed or locked sleep screen, rotation is restored after Resume.
+ if not self.closed and (self.dimen.w~=Device.screen:getWidth() or self.dimen.h~=Device.screen:getHeight()) then
+  self:onSetDimensions()
+ end
+end
 dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/companion_view.lua")(View,UIManager,BB)
 return View

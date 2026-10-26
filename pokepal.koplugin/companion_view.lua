@@ -27,7 +27,7 @@ return function(View,UIManager,BB)
   local filters={{"All friends","met"},{"Favourites","favourites"},{"Can evolve","ready"},{"Recent","recent"},
    {"Grass","Grass"},{"Fire","Fire"},{"Water","Water"},{"Electric","Electric"},{"Normal","Normal"},{"Bug","Bug"},
    {"Flying","Flying"},{"Poison","Poison"},{"Ground","Ground"},{"Rock","Rock"},{"Psychic","Psychic"},{"Ice","Ice"},
-   {"Fighting","Fighting"},{"Ghost","Ghost"},{"Dragon","Dragon"},{"Fairy","Fairy"},{"Steel","Steel"}}
+   {"Fighting","Fighting"},{"Ghost","Ghost"},{"Dragon","Dragon"},{"Fairy","Fairy"},{"Steel","Steel"},{"Dark","Dark"}}
   for i,f in ipairs(filters) do self:button(bb,f[1],32+(i-1)%3*182,188+math.floor((i-1)/3)*66,172,50,"filter",f[2],nil,false,self.journal_filter==f[2]) end
   self:button(bb,"Back to journal",32,717,536,44,"nav","journal")
  end
@@ -96,18 +96,30 @@ return function(View,UIManager,BB)
   self:button(bb,j.choice and "Collect discoveries" or "Carry on and collect",32,717,536,44,"collect")
  end
  function View:editText(kind,value)
+  if self.closed or self.input_dialog then return end
+  self:stopAnimation()
   self.input_kind=kind;self.input_text=value or "";self.input_limit=kind=="search" and 40 or kind=="nickname" and 12 or 100
   local ok,Dialog=pcall(require,"ui/widget/inputdialog")
   if ok then
    local dialog
-   dialog=Dialog:new{title=kind=="search" and "Find a Pokemon" or kind=="nickname" and "Nickname" or "Book title",input=self.input_text,
-    buttons={{{text="Cancel",callback=function() UIManager:close(dialog) end},
+   dialog=Dialog:new{modal=true,title=kind=="search" and "Find a Pokemon" or kind=="nickname" and "Nickname" or "Book title",input=self.input_text,
+    buttons={{{text="Cancel",callback=function()
+     if self.input_dialog==dialog then UIManager:close(dialog) end
+    end},
      {text="Continue",is_enter_default=true,callback=function()
+      if self.closed or self.input_dialog~=dialog then return end
       local value=dialog:getInputText():gsub("^%s+",""):gsub("%s+$","")
       if value=="" or self.engine.companion.text.valid(value,self.input_limit) then
        UIManager:close(dialog);self.input_text=value;self:finishText()
       else UIManager:show(require("ui/widget/infomessage"):new{text="Use up to "..self.input_limit.." characters, with no line breaks."}) end
      end}}}}
+   -- KOReader closes the keyboard here, including on dismissal with Back.
+   local onCloseWidget=dialog.onCloseWidget
+   dialog.onCloseWidget=function(widget)
+    if self.input_dialog==widget then self.input_dialog=nil end
+    if onCloseWidget then return onCloseWidget(widget) end
+   end
+   self.input_dialog=dialog
    UIManager:show(dialog);dialog:onShowKeyboard()
   else self:go("textentry");self.uppercase=true end
  end

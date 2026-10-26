@@ -55,8 +55,12 @@ function I.attach(PokePal,UIManager)
   local image,preview
   local painted,err=pcall(function()
    local BB=require("ffi/blitbuffer");local Device=require("device")
-   image=BB.new(Device.screen:getWidth(),Device.screen:getHeight(),BB.TYPE_BB8)
+   -- KOReader turns image sleep screens to portrait after setup returns.
+   local w,h=Device.screen:getWidth(),Device.screen:getHeight()
+   if w>h then w,h=h,w end
+   image=BB.new(w,h,BB.TYPE_BB8)
    preview=self.View:new{owner={save=function() return true end},state=s,engine=self.engine,path=self.path}
+   preview:geometry(w,h)
    preview:paintSleep(image,false)
   end)
   if preview then preview:stopAnimation();preview:freeImages() end

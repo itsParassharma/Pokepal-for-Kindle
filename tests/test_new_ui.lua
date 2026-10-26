@@ -40,16 +40,23 @@ local installed=screensaver.setup;reader:installSleepScreen();assert(screensaver
 screensaver:setup('poweroff');assert(screensaver.calls==1 and screensaver.screensaver_type=='disable')
 -- The normal sleep scene replaces only the image and preserves wake handling.
 local BB=require('ffi/blitbuffer');local newBuffer,paintSleep=BB.new,reader.View.paintSleep
-local buffers={};BB.new=function()
- local image={freed=0};function image:free() self.freed=self.freed+1 end
+local buffers={};BB.new=function(w,h)
+ local image={freed=0,w=w,h=h};function image:free() self.freed=self.freed+1 end
  buffers[#buffers+1]=image;return image
 end
-reader.View.paintSleep=function(_,image) image.painted=true end
+reader.View.paintSleep=function(view,image)
+ assert(view.dimen.w==image.w and view.dimen.h==image.h,'sleep layout does not match its image')
+ image.painted=true
+end
 E.act(reader.state,'preference','sleep_screen',os.time());reader.session={}
 local oldImage={freed=0,free=function(self) self.freed=self.freed+1 end}
 screensaver.image=oldImage;screensaver.wake_lock='unchanged'
+D.w=800;D.h=600
 screensaver:setup();assert(oldImage.freed==1 and screensaver.image==buffers[1])
 assert(buffers[1].painted and buffers[1].freed==0 and screensaver.screensaver_type=='cover')
+assert(buffers[1].w==600 and buffers[1].h==800,'KOReader displays image sleep screens in portrait')
+assert(D.w==800 and D.h==600,'drawing a sleep image changed the reader orientation')
+D.w=600;D.h=800
 assert(screensaver.wake_lock=='unchanged')
 active_ui={};screensaver:setup();assert(#buffers==1 and screensaver.screensaver_type=='disable')
 active_ui=reader.ui
