@@ -6,6 +6,8 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 [Download 1.0.9](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/tag/v1.0.9) · [Watch the trailer](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/download/v1.0.9/PokePal-trailer.mp4)
 
+This branch adds an [Explore prototype](docs/explore-prototype.md) with a walkable town and wild battles. It is not included in the 1.0.9 download.
+
 ## Features
 
 - Choose any of the 386 Pokémon from Kanto, Johto and Hoenn, with 11 quick starters.

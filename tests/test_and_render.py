@@ -36,6 +36,7 @@ lua.execute((REPO/'tests'/'test_adventures.lua').read_text())
 lua.execute((REPO/'tests'/'test_companion.lua').read_text())
 lua.execute((REPO/'tests'/'test_backups.lua').read_text())
 lua.execute((REPO/'tests'/'test_improvements.lua').read_text())
+lua.execute((REPO/'tests'/'test_world.lua').read_text())
 
 sprite_index=json.loads((ROOT/'assets/sprite-index.json').read_text())
 def read_sprite(name):
@@ -131,7 +132,7 @@ function U:unschedule(f) for i=#self.queue,1,-1 do if self.queue[i].f==f then ta
 function U:setDirty(widget,mode,region) self.dirty[#self.dirty+1]={mode=mode,region=region} end
 function U:show(v) self.show_count=self.show_count+1 end
 function U:close(v) v:onCloseWidget() end
-function U:drain() local n=0;while #self.queue>0 do n=n+1;assert(n<=10,'unbounded animation');local t=table.remove(self.queue,1);t.f() end;return n end
+function U:drain() local n=0;while #self.queue>0 do n=n+1;assert(n<=100,'unbounded animation or walking');local t=table.remove(self.queue,1);t.f() end;return n end
 package.preload["ui/uimanager"]=function() return U end
 package.preload["datastorage"]=function() return {getSettingsDir=function() return TESTDIR end} end
 package.preload["ffi/util"]=function() return {} end
@@ -184,7 +185,7 @@ check('navigation refreshes and saves elapsed trips and weekly goals once',funct
  local v=newView(4);dofile(BASE..'/reading.lua').init(v.state)
  E.act(v.state,'trip',1,clock);E.act(v.state,'goal',3600,clock)
  v.state.week.seconds=120;local week=v.state.week.start
- clock=clock+900;v:go('explore')
+ clock=clock+900;v:go('expeditions')
  assert(v.state.finds==2 and v.state.berries==7 and v.state.xp==3 and v.owner.saved==1)
  v:go('home');assert(v.state.finds==2 and v.owner.saved==1)
  clock=week+8*86400;v:go('weekly')
@@ -235,7 +236,7 @@ end)
 check('an away partner stays away when the scene or berry basket is tapped',function()
  v=newView(4);dofile(BASE..'/reading.lua').init(v.state);v:act('readingtrip',1);U:drain()
  v:paintTo(bb,0,0);v:onTap(nil,{pos={x=300,y=300}})
- assert(v.screen=='explore' and #U.queue==0)
+ assert(v.screen=='expeditions' and #U.queue==0)
  v:go('home');v:animate('hello');assert(not v.animating and #U.queue==0)
  v.state.gift=os.time()-86400;v:go('home');tapButton(v,'gift',nil)
  assert(v.state.berries==11 and not v.animating and #U.queue==0)
@@ -458,18 +459,18 @@ check('failed KOReader counter promotion retains time for retry without duplicat
 end)
 check('reading trips and timer trips dispatch from the mode picker',function()
  for _,mode in ipairs({'reading','timed'}) do
-  v=newView(4);dofile(BASE..'/reading.lua').init(v.state);v.state.animation='off';v:go('explore')
+  v=newView(4);dofile(BASE..'/reading.lua').init(v.state);v.state.animation='off';v:go('expeditions')
   tapButton(v,'tripmode',mode);tapButton(v,mode=='reading' and 'readingtrip' or 'trip',1)
   assert(v.state.trip==1 and (v.state.trail~=nil)==(mode=='reading'))
-  v:go('explore');tapButton(v,'collect',nil);assert(v.state.trips==0)
+  v:go('expeditions');tapButton(v,'collect',nil);assert(v.state.trips==0)
   if mode=='reading' then E.readingReward(v.state,1800,os.time()) else v.state.due=os.time() end
-  v:go('explore');tapButton(v,'nav','trailstory');tapButton(v,'trailchoice',1);tapButton(v,'collect',nil);assert(v.state.trips==1)
+  v:go('expeditions');tapButton(v,'nav','trailstory');tapButton(v,'trailchoice',1);tapButton(v,'collect',nil);assert(v.state.trips==1)
   v:leave()
  end
 end)
 check('expeditions default to timed trips without requiring reading rewards',function()
  v=newView(4);dofile(BASE..'/reading.lua').init(v.state);v.state.reading.enabled=false
- v:go('explore');tapButton(v,'trip',1)
+ v:go('expeditions');tapButton(v,'trip',1)
  assert(v.state.trip==1 and v.state.trail==nil);v:leave()
 end)
 check('egg controls hatch into a preview and cannot claim twice',function()
@@ -548,6 +549,7 @@ print('UI LIFECYCLE: '..checks..' checks passed (mock KOReader device APIs)')
 ''')
 
 lua.execute((REPO/'tests'/'test_new_ui.lua').read_text())
+lua.execute((REPO/'tests'/'test_world_ui.lua').read_text())
 
 # Check the displayed dates and totals using real daylight-saving transitions.
 if hasattr(time,'tzset'):
@@ -589,6 +591,9 @@ else:
 
 def paint(v,w=600,h=800):
  start(w,h);v.geometry(v);v.paintTo(v,g.bb,0,0);assert not bounds,bounds;return canvas.copy()
+
+import runpy
+runpy.run_path(str(REPO/'tests'/'world_layouts.py'))['run'](globals())
 
 # The reported Pikachu screen must fit at Kindle resolutions and custom DPI.
 text_layouts=0
@@ -698,7 +703,7 @@ for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
    v.screen='egg'
   else:
    g.E.act(v.state,'trip' if scenario=='trip-timed' else 'readingtrip',1,now)
-   g.E.readingReward(v.state,1800 if scenario=='trip-ready' else 900,now);v.screen='explore'
+   g.E.readingReward(v.state,1800 if scenario=='trip-ready' else 900,now);v.screen='expeditions'
   if scenario.endswith('paused'):v.state.reading.enabled=False
   im=paint(v,w,h);assert not truncated,(scenario,truncated)
   if (w,h)==(600,800):im.save(OUT/f'{scenario}.png')

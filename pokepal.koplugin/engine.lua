@@ -4,6 +4,7 @@ local source=debug.getinfo(1,"S").source:sub(2):match("^(.*)/")
 E.species = dofile(source.."/species.lua")
 E.species_count = #E.species
 E.companion = dofile(source.."/companion.lua")
+E.world = dofile(source.."/world.lua")
 E.starters = {1,4,7,25,133,152,155,158,252,255,258}
 E.parents = {}
 for id,p in ipairs(E.species) do
@@ -144,7 +145,7 @@ function E.new(now)
   seed=now % 2147483646 + 1, resting=false, care=0, started=now}
 end
 function E.valid(s)
- if type(s)~="table" or (s.version~=1 and s.version~=2 and s.version~=3 and s.version~=4) then return false end
+ if type(s)~="table" or (s.version~=1 and s.version~=2 and s.version~=3 and s.version~=4 and s.version~=5) then return false end
  for _,k in ipairs({"species","food","joy","energy","bond","xp","berries","last","gift","trained","played","cleaned","dirt","trip","due","trips","seed","care","started"}) do
   local n=s[k]; if type(n)~="number" or n~=n or n<0 or n>1e12 then return false end
  end
@@ -204,7 +205,7 @@ function E.valid(s)
    if type(id)~="string" or not E.species[tonumber(id)] or not s.seen[id] or not E.validNickname(name) then return false end
   end
  end
- return type(s.resting)=="boolean" and E.companion.valid(s.companion,s,E)
+ return type(s.resting)=="boolean" and E.companion.valid(s.companion,s,E) and E.world.valid(s.world,s,E)
 end
 function E.weekStart(now)
  local d=os.date("*t",now)
@@ -398,6 +399,9 @@ function E.act(s,action,arg,now)
   E.companion.mark(s,id,now);local story=E.companion.finishTrip(s,E)
   s.trips=s.trips+1;s.trip=0;s.due=0;s.trail=nil;s.finds=nil
   return done((fresh and "New: " or "Met ")..E.name(id).."! +"..r.berries.." berries, +"..r.xp.." XP."..(story or ""),"explore")
+ end
+ if s.world and s.world.battle and (action=="partner" or action=="evolve" or action=="trip" or action=="readingtrip") then
+  return "Finish or leave the battle under Explore first."
  end
  if s.trip>0 then return "Your partner is exploring. Tap Explore for details." end
  if action=="rest" then

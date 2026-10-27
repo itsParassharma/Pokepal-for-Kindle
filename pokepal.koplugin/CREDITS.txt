@@ -27,11 +27,13 @@ SPECIES DATA
 https://github.com/PokeAPI/pokeapi
 Revision: 2bf639e5572812a67d2b94903fdcb9d095f5aeb2
 Names, types and family relationships come from its CSVs.
+The battle type chart comes from type_efficacy.csv at the same revision.
 XP thresholds, moves, rewards and cooldowns are PokePal rules.
 Legacy starter thresholds are kept for save compatibility.
 
 CODE AND RUNTIME
 Shared game, original pixel icons and UI: MIT (LICENSE-CODE.txt).
+The town tiles and trainer sprites in world_art.lua are original pixel drawings under the same license.
 The KOReader edition uses the separately installed KOReader runtime.
 The standalone host is GPL-3.0-or-later and uses FBInk, Lua, stb and
 Bitstream Vera. Runtime licenses and corresponding source are included

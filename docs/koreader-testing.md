@@ -26,7 +26,9 @@ dummy driver.
 - Waiting five minutes at an image or lock-only screensaver earns no
   reading time. The first minute after unlocking still counts.
 - Disabled sleep features make no game-save calls during suspend.
-- 72 sleep/wake cycles cover bookshelf, book and game views, two
+- Walking and battles save their position and turn. Pausing, closing or sleeping
+  does not count game time as reading. Cancelled walking callbacks stay cancelled after waking.
+- 120 sleep/wake cycles cover bookshelf, book, companion, map and battle views, two
   orientations, all four combinations of sleep preferences, and immediate,
   gesture and timed unlocks. Closing a view removes both sleep hooks.
 

@@ -14,7 +14,7 @@ Weeks start on Monday using the Kindle's clock. Minutes count in the week you co
 
 ## Trips and eggs
 
-Expeditions default to **On a timer**, which uses elapsed time. Choose **Explore > As you read** for a reading trip. Meadow takes 30 recorded minutes, Coast takes 120 and Moon Cave takes 240. Each keeps its usual energy cost, berries, XP and encounters. Trips already in progress keep their original timing.
+Expeditions default to **On a timer**, which uses elapsed time. Choose **Explore > Trips > As you read** for a reading trip. Meadow takes 30 recorded minutes, Coast takes 120 and Moon Cave takes 240. Each keeps its usual energy cost, berries, XP and encounters. Trips already in progress keep their original timing.
 
 New trips have three stops: a berry patch at 25%, footprints at 50% and a campsite at 75%. They give 1 berry, 3 XP and up to 8 energy, respectively. Each stop pays once, including after reopening. Older trips finish with their original rewards. New trips also save a short story with two choices. Make your choice on return, then collect; the extra reward is paid once.
 

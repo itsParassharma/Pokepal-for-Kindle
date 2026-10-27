@@ -303,14 +303,58 @@ check('disabled sleep features do no game-save I/O during suspend',function()
  print(string.format('TIMING disabled features: %.1f ms for desktop sleep preparation; zero game-save calls',elapsed))
 end)
 
+local function gameTap(view,action,arg)
+ view:paintTo(Device.screen.bb,0,0)
+ for _,item in ipairs(view.buttons) do
+  if item.action==action and item.arg==arg then
+   assert(not item.disabled,'control is disabled: '..action)
+   local r=view:region(item.x+item.w/2,item.y+item.h/2,0,0)
+   view:onTap(nil,{pos={x=r.x,y=r.y}});pump();return
+  end
+ end
+ error('Missing game control: '..action)
+end
+local function clearTrip(p)
+ p.state.trip=0;p.state.trail=nil;p.state.finds=nil;p.state.companion.journey=nil
+ p.state.resting=false;p.state.companion.sleep=nil;p.state.world=nil
+end
+check('walking, battles and pause resume work through real widgets without counting reading',function()
+ local reader;reader,p=openBook(1,'scroll');v=game(p);clearTrip(p)
+ p.state.animation='off';local before=counter(p)
+ gameTap(v,'nav','explore');assert(v.state.world.map=='town')
+ if os.getenv('POKEPAL_SCREENSHOTS') then Device.screen.bb:writePNG(os.getenv('POKEPAL_SCREENSHOTS')..'/world-town.png') end
+ gameTap(v,'worldtile',6);assert(v.state.world.map=='meadow')
+ gameTap(v,'worldtile',14);assert(v.screen=='battle')
+ gameTap(v,'battleturn',1);local b=v.state.world.battle
+ local saved=p.engine.companion.encode(v.state.world)
+ if os.getenv('POKEPAL_SCREENSHOTS') then Device.screen.bb:writePNG(os.getenv('POKEPAL_SCREENSHOTS')..'/world-battle.png') end
+ now=now+900;reader.rolling:onGotoViewRel(1);pump()
+ assert(counter(p)==before,'playing counted as reading')
+ v:leave();v=game(p);gameTap(v,'nav','explore')
+ assert(v.screen=='battle' and p.engine.companion.encode(v.state.world)==saved)
+ gameTap(v,'battleflee');gameTap(v,'battlefinish');assert(v.screen=='explore')
+ v:leave();now=now+60;reader.rolling:onGotoViewRel(1)
+ assert(counter(p)==before+60,'reading did not resume after playing')
+end)
+check('real suspend cancels a walking callback, including after waking',function()
+ p=shelf();v=game(p);clearTrip(p);p.state.animation='gentle'
+ v:go('explore');v:walkWorld(6,1);local late=assert(v.world_tick)
+ local saved=p.engine.companion.encode(v.state.world)
+ suspend();resume();late();pump()
+ assert(not v.world_tick and p.engine.companion.encode(v.state.world)==saved)
+ assert(p.engine.valid(p.state));v:leave()
+end)
+
 local cycles,max_sleep=0,0
-for _,context in ipairs({'shelf','book','game'}) do
+for _,context in ipairs({'shelf','book','game','map','battle'}) do
 check('sleep/wake works with every preference and unlock mode from '..context,function()
  local reader
  if context=='shelf' then p=shelf() else reader,p=openBook(1,'page') end
  v=game(p)
- p.state.trip=0;p.state.trail=nil;p.state.finds=nil;p.state.companion.journey=nil
- if context~='game' then v:leave();v=nil end
+ clearTrip(p);p.state.animation='off'
+ if context=='map' or context=='battle' then v:go('explore') end
+ if context=='battle' then gameTap(v,'worldtile',6);gameTap(v,'worldtile',14);assert(v.screen=='battle') end
+ if context=='shelf' or context=='book' then v:leave();v=nil end
  for _,prefs in ipairs({{false,false},{true,false},{false,true},{true,true}}) do
   p.state.companion.prefs.auto_rest=prefs[1];p.state.companion.prefs.sleep_screen=prefs[2];assert(p:save())
   for _,rotation in ipairs({0,1}) do
@@ -319,10 +363,12 @@ check('sleep/wake works with every preference and unlock mode from '..context,fu
    for _,delay in ipairs({'disable','gesture','1'}) do
     G_reader_settings:saveSetting('screensaver_type','random_image')
     G_reader_settings:saveSetting('screensaver_delay',delay)
+    local world=p.state.world and p.engine.companion.encode(p.state.world)
     local start=time.now();suspend();max_sleep=math.max(max_sleep,time.to_ms(time.since(start)))
     resume(delay=='gesture' and 0 or nil);cycles=cycles+1
     assert(not Device.screen_saver_lock and not p.suspended and not p.reading_error)
     assert(p.engine.valid(p.state))
+    if world then assert(p.engine.companion.encode(p.state.world)==world,'sleep advanced the world or battle') end
     if reader then assert(p.view==reader.view,'PokePal replaced KOReader\'s book view') end
     if v then
      assert(not v.suspended and v.dimen.w==Device.screen:getWidth() and v.dimen.h==Device.screen:getHeight())

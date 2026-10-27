@@ -50,7 +50,7 @@ its sleep screen or add a small reading footer. These settings start off.
 KUAL keeps the Kindle's normal sleep screen. No screensaver add-on is needed.
 
 AROUND THE NEST
-Explore > As you read starts a trail that advances with recorded reading.
+Explore > Trips > As you read starts a trail that advances with recorded reading.
 Timed trips are the default and don't need reading rewards.
 More > Reading rewards > Your egg has eggs for 3 berries. Read for 120 minutes, then tap
 Hatch your egg. It joins the journal and keeps your current partner.
