@@ -365,7 +365,7 @@ function View:paintExpeditions(bb)
    local y=253+(i-1)*139
    self:button(bb,r.name.." / "..r.seconds/60 .." min",32,y,536,54,timed and "trip" or "readingtrip",i,"boot")
    self:text(bb,r.energy.." energy   +"..r.berries.." berries   +"..r.xp.." XP",43,y+65,18,513)
-   self:text(bb,i==1 and "Grass, Bug, Fire, Electric and other land Pokemon." or i==2 and "Water and Ice Pokemon live along this trail." or "Rock, Ground, Ghost and Psychic Pokemon.",43,y+94,16,513)
+   self:text(bb,i==1 and "Grass, Bug, Fire, Electric and more." or i==2 and "Water and Ice Pokemon live along this trail." or "Rock, Ground, Ghost and Psychic Pokemon.",43,y+94,16,513)
   end
   self:text(bb,timed and "Trips finish after real time passes." or "Only new recorded reading moves you along the trail.",32,666,17,536,false,true)
  end
