@@ -52,11 +52,12 @@ function W.walkable(map,x,y)
  local tile=W.tile(map,x,y)
  return tile~=nil and tile~="T" and tile~="R" and tile~="W" and tile~="~" and tile~="C" and tile~="#"
 end
-function W.event(map,x,y)
+function W.event(map,x,y,w)
  for i,e in ipairs(W.encounters) do if e.map==map and e.x==x and e.y==y then return "encounter",i end end
  local link=W.links[map] and W.links[map][x..","..y]
  if link then return link[1],link end
  local tile=W.tile(map,x,y)
+ if tile=="L" and w and w.camp and A.has(w.camp.quests,2) then return end
  if map=="town" then return ({H="centre",B="expeditions",D="guide",J="dojo",S="shop",O="tower"})[tile] end
  if map=="centre" or map=="dojo" or map=="shop" or map=="tower" then
   if x==6 and y==8 then return "outside" end
@@ -82,7 +83,7 @@ function W.enter(s)
  end
  if A.init(s) then
   fresh=true
-  if W.event(s.world.map,s.world.x,s.world.y) then s.world.x=6;s.world.y=6 end
+  if W.event(s.world.map,s.world.x,s.world.y,s.world) then s.world.x=6;s.world.y=6 end
   if s.world.battle then s.world.battle.moves={1,2} end
  end
  return fresh
@@ -96,7 +97,7 @@ function W.path(w,x,y)
   local item=queue[head];head=head+1
   for _,d in ipairs({{0,-1},{1,0},{0,1},{-1,0}}) do
    local nx,ny=item.x+d[1],item.y+d[2];local key=ny*11+nx
-   if not seen[key] and W.walkable(w.map,nx,ny) and (not W.event(w.map,nx,ny) or (nx==x and ny==y)) then
+   if not seen[key] and W.walkable(w.map,nx,ny) and (not W.event(w.map,nx,ny,w) or (nx==x and ny==y)) then
     local node={x=nx,y=ny,parent=item};seen[key]=true;queue[#queue+1]=node
     if nx==x and ny==y then found=node;break end
    end
@@ -123,7 +124,7 @@ function W.step(s,x,y)
  local w=s.world
  if not w or w.battle or w.camp and w.camp.tower or math.abs(x-w.x)+math.abs(y-w.y)~=1 or not W.walkable(w.map,x,y) then return false end
  w.facing=x>w.x and "right" or x<w.x and "left" or y>w.y and "down" or "up"
- local event,index=W.event(w.map,x,y)
+ local event,index=W.event(w.map,x,y,w)
  if event=="encounter" then
   local ok,message=W.startBattle(s,index)
   return true,ok and "battle" or "message",message
@@ -132,8 +133,8 @@ function W.step(s,x,y)
   w.map=index[1];w.x=index[2];w.y=index[3]
  elseif event=="heal" then A.heal(w,40);return true,"message","The whole party is rested. Battle HP is full."
  elseif event=="guide" or event=="expeditions" or event=="party" or event=="lessons" or event=="wares" or event=="towerdesk" then return true,event
- elseif event=="lost" then w.camp.quests=A.set(w.camp.quests,1);return true,"message","You found Mira's Pikachu! Report back to the town guide."
- elseif event=="tracks" then w.camp.quests=A.set(w.camp.quests,3);return true,"message","Onix tracks! Tell Theo at the town guide."
+ elseif event=="lost" then w.camp.quests=A.set(w.camp.quests,1);return true,"message","Pikachu is safe. Speak to Mira at the town guide."
+ elseif event=="tracks" then w.camp.quests=A.set(w.camp.quests,3);return true,"message","These are Onix tracks. Tell Theo at the town guide."
  elseif event=="discovery" then
   local bit=({meadow=1,woods=2,coast=3,cave=4})[w.map]
   if A.has(w.camp.finds,bit) then return true,"message","You already explored this spot." end
@@ -183,7 +184,7 @@ function W.valid(w,s,E)
  if s.version<5 or type(w)~="table" then return false end
  local allowed={map=true,x=true,y=true,facing=true,step=true,partner=true,hp=true,cleared=true,battle=true,camp=true}
  for k in pairs(w) do if not allowed[k] then return false end end
- if not W.walkable(w.map,w.x,w.y) or (W.event(w.map,w.x,w.y) and (w.camp or s.version>=6)) or not W.directions[w.facing]
+ if not W.walkable(w.map,w.x,w.y) or (W.event(w.map,w.x,w.y,w) and (w.camp or s.version>=6)) or not W.directions[w.facing]
   or not int(w.step,0,1) or not int(w.partner,1,E.species_count) or not s.seen[tostring(w.partner)]
   or not int(w.hp,0,W.battle.max_hp) or not int(w.cleared,0,w.camp and 4095 or 7) then return false end
  if w.camp and not A.valid(w.camp,s,E) then return false end
@@ -194,7 +195,7 @@ function W.valid(w,s,E)
   if b.floor then
    local t=w.camp and w.camp.tower
    if not t or t.choice or b.floor~=t.floor or b.defense~=t.defense then return false end
-   local foe=t.floor==6 and 18+(t.run-1)%3 or 13+(t.run+t.floor-2)%5
+   local foe=A.towerFoe(t.run,t.floor)
    if b.foe~=foe then return false end
   elseif b.practice then if w.map~="dojo" or not w.camp or b.foe~=2 then return false end
   else

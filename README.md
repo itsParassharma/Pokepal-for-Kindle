@@ -8,6 +8,8 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 This branch adds [Fern Town and Explore](docs/explore-prototype.md): a three-Pokémon party, learned move choices, four outdoor areas, quests, shops and a six-battle Tower run. All 386 Pokémon have directional walking frames. These features are not included in the 1.0.9 download.
 
+Check party HP and moves from the map, follow quest progress at the town guide, and preview Tower opponents before choosing a benefit. Battle buttons explain the current opening, and switching previews the damage your next partner will take. There are 20 more starting move pairs across Pokémon families and evolution branches.
+
 ## Features
 
 - Choose any of the 386 Pokémon from Kanto, Johto and Hoenn, with 11 quick starters.

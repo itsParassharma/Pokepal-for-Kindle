@@ -66,7 +66,8 @@ function A.tile(v,bb,t,x,y,colors)
  end
  if t=="D" or t=="N" then A.trainer(v,bb,x+10,y+7,"down",0,t=="N",white) end
  if t=="P" then A.trainer(v,bb,x+10,y+7,"right",0,false,white) end
- if t=="L" then v:sprite(bb,25,x,y,44,1,"idle") end
+ local camp=v.state.world and v.state.world.camp
+ if t=="L" and not (camp and v.engine.world.town.has(camp.quests,2)) then v:sprite(bb,25,x,y,44,1,"idle") end
  if t=="K" or t=="?" then v:text(bb,t=="K" and ".." or "?",x+10,y+9,19,24,true,true) end
 end
 return A

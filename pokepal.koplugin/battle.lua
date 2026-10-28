@@ -31,6 +31,46 @@ local kits={
       {name="Withdraw",kind="guard",type="Water",power=0}},
  [1]={{name="Vine Whip",kind="quick",type="Grass",power=6},
       {name="Leech Seed",kind="seed",type="Grass",power=2}},
+ [4]={{name="Ember",kind="break",type="Fire",power=8},
+      {name="Smokescreen",kind="guard",type="Normal",power=0}},
+ [27]={{name="Scratch",kind="quick",type="Normal",power=6},
+       {name="Defense Curl",kind="guard",type="Normal",power=0}},
+ [41]={{name="Wing Attack",kind="quick",type="Flying",power=6},
+       {name="Leech Life",kind="drain",type="Bug",power=5}},
+ [43]={{name="Absorb",kind="drain",type="Grass",power=5},
+       {name="Acid",kind="break",type="Poison",power=8}},
+ [63]={{name="Confusion",kind="break",type="Psychic",power=8},
+       {name="Reflect",kind="guard",type="Psychic",power=0}},
+ [66]={{name="Karate Chop",kind="quick",type="Fighting",power=6},
+       {name="Bulk Up",kind="guard",type="Fighting",power=0}},
+ [74]={{name="Rock Throw",kind="break",type="Rock",power=8},
+       {name="Defense Curl",kind="guard",type="Normal",power=0}},
+ [92]={{name="Lick",kind="quick",type="Ghost",power=6},
+       {name="Night Shade",kind="break",type="Ghost",power=8}},
+ [134]={{name="Water Gun",kind="quick",type="Water",power=6},
+        {name="Acid Armor",kind="guard",type="Poison",power=0}},
+ [135]={{name="Pin Missile",kind="quick",type="Bug",power=6},
+        {name="Thunder Shock",kind="break",type="Electric",power=8}},
+ [143]={{name="Body Slam",kind="break",type="Normal",power=8},
+        {name="Amnesia",kind="guard",type="Psychic",power=0}},
+ [152]={{name="Razor Leaf",kind="quick",type="Grass",power=6},
+        {name="Reflect",kind="guard",type="Psychic",power=0}},
+ [158]={{name="Bite",kind="quick",type="Dark",power=6},
+        {name="Water Gun",kind="break",type="Water",power=8}},
+ [252]={{name="Quick Attack",kind="quick",type="Normal",power=6},
+        {name="Mega Drain",kind="drain",type="Grass",power=5}},
+ [255]={{name="Peck",kind="quick",type="Flying",power=6},
+        {name="Ember",kind="break",type="Fire",power=8}},
+ [258]={{name="Water Gun",kind="quick",type="Water",power=6},
+        {name="Mud Slap",kind="break",type="Ground",power=8}},
+ [270]={{name="Water Gun",kind="quick",type="Water",power=6},
+        {name="Mega Drain",kind="drain",type="Grass",power=5}},
+ [285]={{name="Mega Drain",kind="drain",type="Grass",power=5},
+        {name="Leech Seed",kind="seed",type="Grass",power=2}},
+ [304]={{name="Metal Claw",kind="break",type="Steel",power=8},
+        {name="Iron Defense",kind="guard",type="Steel",power=0}},
+ [363]={{name="Powder Snow",kind="quick",type="Ice",power=6},
+        {name="Defense Curl",kind="guard",type="Normal",power=0}},
 }
 kits[172]=kits[25]
 function B.moves(E,id)
@@ -75,6 +115,14 @@ function B.incoming(E,b)
  local foe=B.foes[b.foe]
  return damage((foe.power+(b.floor or 0))*(b.charged and 2 or 1),B.multiplier(E,foe.type,b.ally))
 end
+function B.blockedDamage(E,b)
+ return math.ceil(B.incoming(E,b)*math.max(0.1,0.25-(b.defense or 0)*0.03))
+end
+function B.description(move)
+ return move.kind=="quick" and "Interrupts a charge" or move.kind=="break" and "Breaks a guard"
+  or move.kind=="guard" and "Blocks a hit and strengthens your next attack"
+  or move.kind=="seed" and "Drains up to 3 HP for three turns" or "Restores up to 3 HP when it hits"
+end
 function B.preview(E,b,slot)
  local move=B.equipped(E,b)[slot]
  if not move then return end
@@ -86,6 +134,23 @@ function B.preview(E,b,slot)
  local dealt=move.power==0 and 0 or damage(power,mult)
  if intent=="guard" and move.kind~="break" then dealt=math.floor(dealt/2) end
  return dealt,move,mult
+end
+function B.hint(E,b,slot)
+ local dealt,move,mult=B.preview(E,b,slot);local intent=B.intent(b)
+ if move.power>0 and mult==0 then return "Opponent is immune." end
+ if move.kind=="guard" then
+  if intent~="attack" then return "No attack to block this turn." end
+  local taken=B.blockedDamage(E,b)
+  return taken==0 and "This attack cannot hurt you." or "Take "..taken.." damage. Next hit: +4 power."
+ end
+ if dealt>=b.hp then return "Finishes this battle." end
+ if move.kind=="quick" and intent=="charge" then return "Interrupts this charge." end
+ if move.kind=="break" and intent=="guard" then return "Breaks this guard." end
+ if move.kind=="drain" or move.kind=="seed" then return B.description(move) end
+ if intent=="guard" then return "Their guard reduces this hit." end
+ if mult>1 then return "Strong type match." end
+ if mult<1 then return "This type deals less damage." end
+ return B.description(move)
 end
 function B.new(ally,foe,moves,floor,defense)
  return {ally=ally,foe=foe,hp=B.foes[foe].hp+(floor or 0)*2,turn=1,charged=false,boost=false,moves=moves,floor=floor,defense=defense,
@@ -105,20 +170,22 @@ function B.step(E,b,hp,slot)
   say(move.name..": "..dealt.." damage"..(mult==0 and " (immune)." or mult>1 and " (strong match)." or "."))
  elseif move.kind=="guard" then say(move.name..": ready to block this turn.")
  else say(move.name..". The opponent takes its turn.") end
- if move.kind=="drain" and dealt>0 then hp=math.min(B.max_hp,hp+3);say("Drain strike restored 3 HP.") end
+ if move.kind=="drain" and dealt>0 then
+  local healed=math.min(3,B.max_hp-hp);hp=hp+healed;say(move.name.." restored "..healed.." HP.")
+ end
  if move.kind=="seed" and mult>0 then b.seed=3 end
  if b.hp>0 then
   if intent=="charge" then
    b.charged=move.kind~="quick" or mult==0
-   say(b.charged and "The wild Pokemon charged its next attack." or "Charge interrupted!")
+   say(b.charged and "The opponent charged its next attack." or "Charge interrupted!")
   elseif intent=="guard" then
-   say(move.kind=="break" and "You broke through its guard!" or "The wild Pokemon held its guard.")
+   say(move.kind=="break" and "You broke through its guard!" or "The opponent held its guard.")
   else
-   local taken=B.incoming(E,b);b.charged=false
+   local taken=move.kind=="guard" and B.blockedDamage(E,b) or B.incoming(E,b);b.charged=false
    if move.kind=="guard" then
-    taken=math.ceil(taken*math.max(0.1,0.25-(b.defense or 0)*0.03));b.boost=taken>0
-    say("Blocked! Lost "..taken.." HP. Next hit: +4 power.")
-   else say("The wild Pokemon hit back for "..taken.." HP.") end
+    b.boost=taken>0
+    say(taken==0 and "The attack could not hurt you." or "Blocked! Lost "..taken.." HP. Next hit: +4 power.")
+   else say("The opponent hit back for "..taken.." HP.") end
    hp=math.max(0,hp-taken)
   end
   if hp>0 and b.seed>0 then

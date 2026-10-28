@@ -90,6 +90,15 @@ function A.switch(s,E,id)
  if c.tower then w.hp=math.min(40,w.hp+c.tower.switch*3) end
  w.hp=E.world.battle.step(E,b,w.hp,0);E.world.resolve(s,E,os.time());return true
 end
+function A.switchPreview(s,E,id)
+ local w=s.world;local b={}
+ for k,v in pairs(w.battle) do b[k]=v end
+ b.ally=id;b.moves=A.moves(s,id);b.boost=false
+ local hp=math.min(40,A.hp(w,id)+(w.camp.tower and w.camp.tower.switch*3 or 0))
+ local taken=E.world.battle.intent(b)=="attack" and E.world.battle.incoming(E,b) or 0
+ local after=E.world.battle.step(E,b,hp,0)
+ return taken,after
+end
 function A.potion(s,E)
  local w=s.world;local c=w.camp;local b=w.battle
  if c.potions==0 or w.hp==0 or w.hp==40 or s.resting or s.trip>0 or (b and b.status~="active") then return false end
@@ -139,9 +148,12 @@ function A.practice(s,E)
  if w.map~="dojo" or w.battle or w.camp.tower or s.trip>0 or s.resting or w.hp==0 then return false end
  w.battle=E.world.battle.new(w.partner,2,A.moves(s,w.partner));w.battle.practice=true;return true
 end
+function A.towerFoe(run,floor)
+ return floor==6 and 18+(run-1)%3 or 13+(run+floor-2)%5
+end
 function A.towerBattle(s,E)
  local w=s.world;local c=w.camp;local t=c.tower
- local foe=t.floor==6 and 18+(t.run-1)%3 or 13+(t.run+t.floor-2)%5
+ local foe=A.towerFoe(t.run,t.floor)
  w.battle=E.world.battle.new(w.partner,foe,A.moves(s,w.partner),t.floor,t.defense)
 end
 function A.startTower(s,E)

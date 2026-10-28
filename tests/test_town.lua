@@ -139,6 +139,69 @@ test('a turn-limit draw keeps the bounded battle log saveable after drain effect
  b.turn=100;b.seed=2;assert(W.turn(s,E,1,now))
  assert(b.status=='draw' and #b.log==4 and b.log[4]:find('Time for a break',1,true));copy(s)
 end)
+test('battle hints describe the opening and use the actual guard damage',function()
+ local b=B.new(25,1);assert(B.hint(E,b,1)=='Interrupts this charge.')
+ b.turn=3;assert(B.hint(E,b,2)=='Breaks this guard.')
+ b=B.new(92,2);assert(B.hint(E,b,1)=='Opponent is immune.')
+ b=B.new(7,2,{1,2},3,2);b.charged=true
+ local taken=B.blockedDamage(E,b);local before=E.companion.encode(b)
+ assert(B.hint(E,b,2):find('Take '..taken..' damage.',1,true))
+ assert(E.companion.encode(b)==before)
+ local hp=B.step(E,b,40,2);assert(hp==40-taken and b.boost)
+ b=B.new(7,1);assert(B.hint(E,b,2)=='No attack to block this turn.')
+end)
+
+test('family moves give evolved partners distinct roles and keep two equipped slots',function()
+ local pairs={{6,'Ember','Smokescreen'},{42,'Wing Attack','Leech Life'},{45,'Absorb','Acid'},
+  {65,'Confusion','Reflect'},{68,'Karate Chop','Bulk Up'},{76,'Rock Throw','Defense Curl'},
+  {94,'Lick','Night Shade'},{134,'Water Gun','Acid Armor'},{135,'Pin Missile','Thunder Shock'},
+  {154,'Razor Leaf','Reflect'},{160,'Bite','Water Gun'},{254,'Quick Attack','Mega Drain'},
+  {257,'Peck','Ember'},{260,'Water Gun','Mud Slap'},{272,'Water Gun','Mega Drain'},
+  {286,'Mega Drain','Leech Seed'},{306,'Metal Claw','Iron Defense'},{365,'Powder Snow','Defense Curl'}}
+ for _,row in ipairs(pairs) do
+  local moves=B.moves(E,row[1]);assert(#moves==2 and moves[1].name==row[2] and moves[2].name==row[3])
+ end
+ local s=pet();s.world.map='centre';assert(A.party(s,E,1,42));s.world.map='dojo'
+ assert(A.learn(s,E,42,3) and A.equip(s,42,1,3));s=copy(s)
+ local moves=B.equipped(E,{ally=42,moves=A.moves(s,42)})
+ assert(moves[1].name=='Protect' and moves[2].name=='Leech Life')
+end)
+
+test('switch forecasts match turns with types, charges, seeds and Tower benefits',function()
+ for _,tower in ipairs({false,true}) do for turn=1,4 do for _,id in ipairs({7,92}) do
+  local s=party(pet());assert(A.party(s,E,3,92));local w=s.world
+  if tower then
+   w.map='tower';assert(A.startTower(s,E));w.camp.tower.floor=3;w.camp.tower.switch=2;A.towerBattle(s,E)
+  else adjacent(s,2);assert(W.startBattle(s,2)) end
+  w.battle.turn=turn;w.battle.charged=true;w.battle.seed=2;w.camp.health[tostring(id)]=12
+  local before=S.encode(s);local taken,after=A.switchPreview(s,E,id)
+  assert(S.encode(s)==before,'forecast changed the save')
+  if B.intent(w.battle)~='attack' or not tower and id==92 then assert(taken==0) end
+  assert(A.switch(s,E,id) and w.hp==after);copy(s)
+ end end end
+end)
+
+test('Tower previews match the next trainer and boss across runs',function()
+ for run=1,3 do
+  local s=party(pet());local c=s.world.camp;c.runs=run-1;s.world.map='tower'
+  local first=A.towerFoe(run,1);assert(A.startTower(s,E) and s.world.battle.foe==first)
+  for floor=1,5 do
+   win(s);assert(W.finish(s));local expected=A.towerFoe(run,floor+1)
+   assert(A.benefit(s,E,1) and s.world.battle.foe==expected);copy(s)
+  end
+ end
+end)
+
+test('returning Pikachu removes its encounter and leaves a saveable walking tile',function()
+ local s=pet();s.world.map='woods';s.world.x=4;s.world.y=5
+ assert(W.step(s,4,4) and A.has(s.world.camp.quests,1))
+ assert(W.event('woods',4,4,s.world)=='lost')
+ s.world.map='town';s.world.x=6;s.world.y=6;assert(A.quest(s,1));s=copy(s)
+ s.world.map='woods';s.world.x=4;s.world.y=5;assert(not W.event('woods',4,4,s.world))
+ local path=assert(W.path(s.world,4,3));assert(#path==2 and path[1].x==4 and path[1].y==4)
+ assert(W.step(s,4,4) and s.world.x==4 and s.world.y==4);copy(s)
+end)
+
 test('malformed party, learned moves, inventory and Tower state are rejected',function()
  local original=S.encode(party(pet()))
  local cases={function(c) c.party={25,25} end,function(c) c.party={[1]=25,[3]=1} end,

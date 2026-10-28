@@ -44,7 +44,7 @@ def run(c):
                         image.save(out / f'world-{name}.png')
                     count += 1
                 v.leave(v)
-                for name in ('worldparty', 'worldchoose', 'worldmoves', 'worldshop', 'worldquests', 'worldtower', 'worldswitch', 'tower-benefits'):
+                for name in ('worldparty', 'party-overview', 'worldchoose', 'worldmoves', 'worldshop', 'worldquests', 'quests-return', 'quests-complete', 'worldtower', 'worldswitch', 'tower-benefits', 'tower-boss-preview'):
                     v = g.newView(25)
                     v.state.animation = 'off'
                     v.go(v, 'explore')
@@ -52,16 +52,29 @@ def run(c):
                     w.map = 'centre'
                     assert g.E.world.town.party(v.state, g.E, 2, 7)
                     assert g.E.world.town.party(v.state, g.E, 3, 1)
-                    w.map = 'dojo' if name == 'worldmoves' else 'tower' if name in ('worldtower', 'tower-benefits') else 'shop' if name == 'worldshop' else 'centre'
+                    w.map = 'dojo' if name == 'worldmoves' else 'tower' if name in ('worldtower', 'tower-benefits', 'tower-boss-preview') else 'shop' if name == 'worldshop' else 'woods' if name == 'party-overview' else 'centre'
                     if large:
                         g.E.act(v.state, 'preference', 'large_text', int(v.state.last))
                         g.E.act(v.state, 'preference', 'high_contrast', int(v.state.last))
-                    if name == 'tower-benefits':
+                    if name in ('tower-benefits', 'tower-boss-preview'):
                         assert g.E.world.town.startTower(v.state, g.E)
+                        if name == 'tower-boss-preview':
+                            w.camp.tower.floor = 5
+                            g.E.world.town.towerBattle(v.state, g.E)
                         w.battle.hp = 1
                         assert g.E.world.turn(v.state, g.E, 1, int(v.state.last))
                         assert g.E.world.finish(v.state)
-                    v.go(v, 'worldtower' if name == 'tower-benefits' else name)
+                    if name == 'worldswitch':
+                        assert g.E.world.town.party(v.state, g.E, 3, 92)
+                        w.map, w.x, w.y = 'meadow', 9, 2
+                        assert g.E.world.startBattle(v.state, 2)
+                        w.camp.health['7'] = 1
+                    if name == 'party-overview':
+                        w.hp, w.camp.health['7'] = 23, 0
+                    if name in ('quests-return', 'quests-complete'):
+                        w.camp.quests = 21 if name == 'quests-return' else 63
+                    screen = {'party-overview':'worldparty', 'quests-return':'worldquests', 'quests-complete':'worldquests', 'tower-benefits':'worldtower', 'tower-boss-preview':'worldtower'}.get(name, name)
+                    v.go(v, screen)
                     image = paint(v, width, height)
                     assert not c['truncated'], (name, width, large, dpi, c['truncated'])
                     if width == 600 and not large and dpi == 160:

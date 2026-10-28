@@ -80,7 +80,7 @@ return function(View,UIManager,BB,Device)
   local follow=self.world_follow
   if not follow then
    local d=W.directions[w.facing];local x,y=w.x-d[1],w.y-d[2]
-   if W.walkable(w.map,x,y) and not W.event(w.map,x,y) then follow={x=x,y=y} end
+   if W.walkable(w.map,x,y) and not W.event(w.map,x,y,w) then follow={x=x,y=y} end
   end
   if follow and (follow.x~=w.x or follow.y~=w.y) and self.state.trip==0 and not self.state.resting then
    self:sprite(bb,w.partner or self.state.species,MAP_X+(follow.x-1)*TILE,MAP_Y+(follow.y-1)*TILE,44,
@@ -92,6 +92,7 @@ return function(View,UIManager,BB,Device)
   end
   local hint=W.hints[w.map]
   self:wrapped(bb,self.world_message or hint,551,17)
+  self:button(bb,"Party",32,602,120,42,"nav","worldparty")
   if not w.camp or w.camp.dpad then
   self:button(bb,"Up",261,602,78,42,"worlddir","up")
   self:button(bb,"Left",171,651,78,42,"worlddir","left")
@@ -111,7 +112,7 @@ return function(View,UIManager,BB,Device)
    {"Read the opponent","Quick moves interrupt charges. Bursts break guards. Withdraw blocks a hit."},
    {"Two moves","Learn moves at the dojo. Equip two for each partner. Switching in battle uses your turn."},
    {"Take a break","Pause or close PokePal at any turn. Explore resumes the battle when you return."},
-   {"First wins","Each meadow opponent gives 1 berry, 3 XP and 1 bond once. Rematches are for practice."},
+   {"First wins","Each route opponent gives 1 berry, 3 XP and 1 bond once. Rematches are for practice."},
   }
   for i,t in ipairs(tips) do
    local y=190+(i-1)*83;self:text(bb,t[1],32,y,20,536,true);self:wrapped(bb,t[2],y+30,16)
@@ -146,8 +147,7 @@ return function(View,UIManager,BB,Device)
   if b.status=="active" then
    for slot=1,2 do
     local dealt,move=B.preview(self.engine,b,slot);local y=515+(slot-1)*76
-    local detail=move.kind=="quick" and "Interrupts a charge" or move.kind=="break" and "Breaks a guard"
-     or move.kind=="guard" and "Blocks damage; strengthens your next hit" or move.kind=="seed" and "Drains up to 3 HP for three turns" or "Restores 3 HP when it hits"
+    local detail=B.hint(self.engine,b,slot)
     self:outline(bb,32,y,536,70,blocked and GRAY or nil)
     self:text(bb,move.name..(move.power>0 and " / "..dealt.." damage" or ""),48,y+9,21,504,true)
     self:text(bb,detail,48,y+44,16,504)

@@ -127,5 +127,45 @@ test('reopening moves after replacing a party member trains the current partner'
  assert(w.camp.training['25'] and w.camp.training['25'].slots[1]==3,'move menu kept a removed party member')
  assert(not w.camp.training['7']);v:leave()
 end)
+test('the map party overview shows HP and moves without allowing changes',function()
+ local v=view();local w=v.state.world;local before=S.encode(v.state)
+ tapButton(v,'nav','worldparty');assert(v.screen=='worldparty')
+ local lines={};local text=v.text
+ v.text=function(self,buffer,line,...) lines[line]=true;return text(self,buffer,line,...) end
+ v:paintTo(bb,0,0)
+ assert(lines['40 / 40 HP'] and lines['1. Quick Attack'] and lines['2. Thunder Shock'])
+ for _,button in ipairs(v.buttons) do assert(button.action~='campslot' and button.arg~='worldmoves') end
+ assert(not E.world.town.party(v.state,E,1,7) and not E.world.town.equip(v.state,25,1,2))
+ tapButton(v,'nav','explore');assert(v.screen=='explore' and S.encode(v.state)==before);v:leave()
+end)
+
+test('quest progress changes after each objective and Pikachu leaves the woods',function()
+ local v=view(7);local w=v.state.world;local lines={};local text=v.text;local sprite=v.sprite;local lost=0
+ v.text=function(self,buffer,line,...) lines[line]=true;return text(self,buffer,line,...) end
+ v.sprite=function(self,buffer,id,...) if id==25 then lost=lost+1 end;return sprite(self,buffer,id,...) end
+ w.map='woods';v:paintTo(bb,0,0);assert(lost==1)
+ w.map='town';v:go('worldquests');v:paintTo(bb,0,0)
+ assert(lines["Mira's Pikachu / Find"] and lines['Reward: 4 berries and a ranger outfit'])
+ w.camp.quests=21;lines={};v:paintTo(bb,0,0)
+ assert(lines["Mira's Pikachu / Return"] and lines["Theo's cave tracks / Return"] and lines["Ari's practice / Return"])
+ for i=1,3 do tapButton(v,'campquest',i) end
+ lines={};v:paintTo(bb,0,0);assert(lines["Mira's Pikachu / Completed"] and lines['Received: 4 berries and a ranger outfit'])
+ w.map='woods';v:go('explore');lost=0;v:paintTo(bb,0,0);assert(lost==0);v:leave()
+end)
+
+test('Tower preparation shows moves and benefits preview the next opponent',function()
+ local v=view();local w=v.state.world;local A=E.world.town
+ w.map='centre';assert(A.party(v.state,E,2,7) and A.party(v.state,E,3,1))
+ w.map='tower';v:go('worldtower');local lines={};local text=v.text
+ v.text=function(self,buffer,line,...) lines[line]=true;return text(self,buffer,line,...) end
+ v:paintTo(bb,0,0)
+ assert(lines['1. Quick Attack'] and lines['2. Withdraw'] and lines['2. Leech Seed'])
+ tapButton(v,'camptower');w.battle.hp=1;tapButton(v,'battleturn',1);tapButton(v,'battlefinish')
+ local nextfoe=E.world.battle.foes[A.towerFoe(w.camp.tower.run,2)]
+ lines={};v:paintTo(bb,0,0);assert(lines['Next: '..E.name(nextfoe.id)])
+ assert(lines[E.species[nextfoe.id].types..' / attacks with '..nextfoe.type])
+ tapButton(v,'nav','worldparty');tapButton(v,'nav','worldtower');tapButton(v,'campbenefit',1)
+ assert(w.battle.foe==A.towerFoe(w.camp.tower.run,2));v:leave()
+end)
 print('WORLD UI: '..checks..' movement, lifecycle, save failure and touch checks passed')
 os.time=original_time
