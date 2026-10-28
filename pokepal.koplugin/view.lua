@@ -168,6 +168,7 @@ function View:animate(effect,previous)
 end
 function View:go(screen)
  self:stopAnimation();self:freeImages();self.screen=screen;self.page=1;self.hatched=nil;self.world_follow=nil;UIManager:setDirty(self,"ui")
+ if screen=="worldmoves" then self.party_move_id=nil;self.move_slot=1 end
  if screen=="explore" and self.state.species~=0 then
   if self.engine.world.enter(self.state) then self.world_dirty=true end
   if self.state.world.battle then self.screen="battle" end

@@ -117,6 +117,22 @@ test('all 386 trained parties fit the bounded save codec',function()
  for id=1,E.species_count do s.seen[tostring(id)]=true;c.health[tostring(id)]=id%41;c.training[tostring(id)]={learned=15,slots={3,4}} end
  copy(s)
 end)
+
+test('fainting on the last turn ends a saveable battle even with reserves',function()
+ for _,tower in ipairs({false,true}) do for _,action in ipairs({'move','switch','defeat'}) do
+  local s=party(pet());local w=s.world
+  if tower then w.map='tower';assert(A.startTower(s,E)) else adjacent(s,2);assert(W.startBattle(s,2)) end
+  local b=w.battle;b.turn=100;w.hp=1
+  if action=='switch' then w.camp.health['7']=1;assert(A.switch(s,E,7))
+  else
+   if action=='defeat' then w.camp.health['7']=0;w.camp.health['1']=0 end
+   assert(W.turn(s,E,1,now))
+  end
+  assert(w.hp==0 and b.status==(action=='defeat' and 'lost' or 'draw'),'final-turn faint left an active battle')
+  copy(s);assert(not W.turn(s,E,1,now) and not A.switch(s,E,1))
+  assert(W.finish(s));assert(not w.camp.tower and w.camp.rank==0);copy(s)
+ end end
+end)
 test('a turn-limit draw keeps the bounded battle log saveable after drain effects',function()
  local s=pet();s.world.camp.training['25']={learned=15,slots={4,2}}
  adjacent(s,2);assert(W.startBattle(s,2));local b=s.world.battle

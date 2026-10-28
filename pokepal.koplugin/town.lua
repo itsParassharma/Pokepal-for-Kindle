@@ -74,7 +74,10 @@ function A.reward(s,id,xp,bond)
 end
 function A.settle(s,E)
  local w=s.world;local b=w.battle
- if b.status=="lost" and A.alive(w) then b.status="active";b.log={"Choose another party member to continue."} end
+ if b.status=="lost" and A.alive(w) then
+  b.status=b.turn>100 and "draw" or "active"
+  b.log={b.status=="draw" and "Time for a break. Return to town and try again." or "Choose another party member to continue."}
+ end
  if b.status=="won" and b.practice then w.camp.quests=A.set(w.camp.quests,5) end
 end
 function A.switch(s,E,id)

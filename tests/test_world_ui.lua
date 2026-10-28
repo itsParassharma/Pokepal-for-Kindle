@@ -115,5 +115,17 @@ test('directional pad choice persists and standing still schedules no repaints',
  for _,b in ipairs(v.buttons) do assert(b.action~='worlddir') end
  assert(#U.queue==0);v:leave()
 end)
+
+test('reopening moves after replacing a party member trains the current partner',function()
+ local v=view();local w=v.state.world
+ tapButton(v,'worldtile',25);tapButton(v,'worldtile',37)
+ tapButton(v,'campslot',2);tapButton(v,'campchoose',7)
+ tapButton(v,'nav','worldmoves');tapButton(v,'campmember',7);tapButton(v,'campmoveslot',2)
+ v:go('worldparty');tapButton(v,'campslot',2);tapButton(v,'campchoose',1)
+ v:go('explore');tapButton(v,'worldtile',83);tapButton(v,'worldtile',57);tapButton(v,'worldtile',39)
+ tapButton(v,'camplearn',3);tapButton(v,'campequip',3)
+ assert(w.camp.training['25'] and w.camp.training['25'].slots[1]==3,'move menu kept a removed party member')
+ assert(not w.camp.training['7']);v:leave()
+end)
 print('WORLD UI: '..checks..' movement, lifecycle, save failure and touch checks passed')
 os.time=original_time
