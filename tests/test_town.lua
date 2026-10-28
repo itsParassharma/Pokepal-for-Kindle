@@ -117,6 +117,12 @@ test('all 386 trained parties fit the bounded save codec',function()
  for id=1,E.species_count do s.seen[tostring(id)]=true;c.health[tostring(id)]=id%41;c.training[tostring(id)]={learned=15,slots={3,4}} end
  copy(s)
 end)
+test('a turn-limit draw keeps the bounded battle log saveable after drain effects',function()
+ local s=pet();s.world.camp.training['25']={learned=15,slots={4,2}}
+ adjacent(s,2);assert(W.startBattle(s,2));local b=s.world.battle
+ b.turn=100;b.seed=2;assert(W.turn(s,E,1,now))
+ assert(b.status=='draw' and #b.log==4 and b.log[4]:find('Time for a break',1,true));copy(s)
+end)
 test('malformed party, learned moves, inventory and Tower state are rejected',function()
  local original=S.encode(party(pet()))
  local cases={function(c) c.party={25,25} end,function(c) c.party={[1]=25,[3]=1} end,

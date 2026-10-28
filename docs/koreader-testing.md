@@ -1,7 +1,8 @@
 # KOReader checks
 
 Run `tests/test_koreader_runtime.lua` from an unpacked official KOReader
-Linux build. It was checked with v2026.07.1. Use a new data directory:
+Linux build, inside its `lib/koreader` directory. It was checked with
+v2026.07.1. Use a new data directory:
 
 ```sh
 KO_HOME="$(mktemp -d)" \

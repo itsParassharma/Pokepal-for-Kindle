@@ -129,6 +129,7 @@ function B.step(E,b,hp,slot)
  if hp==0 then b.status="lost"
  elseif b.hp==0 then b.status="won"
  elseif b.turn>=100 then b.status="draw";say("Time for a break. Return to town and try again.") end
+ while #lines>4 do table.remove(lines,1) end
  b.turn=b.turn+1;b.log=lines
  return hp,true
 end
