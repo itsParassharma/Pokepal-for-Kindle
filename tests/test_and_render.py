@@ -91,7 +91,7 @@ for id in range(1,387):
   assert f'{id}-{pose}.png' in classic_index
  for direction in ('down','up','left','right'):
   for step in (0,1):assert f'{id}-walk-{direction}-{step}.png' in classic_index
-print('CLASSIC ART: all 386 front/back sprites, four walking directions and 3941 packed images decode')
+print(f'CLASSIC ART: all 386 front/back sprites, four walking directions and {len(classic_index)} packed images decode')
 
 def image(path,x,y,w,h):
  if '/classic/' in path:

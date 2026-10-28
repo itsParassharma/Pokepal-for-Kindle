@@ -797,6 +797,12 @@
     "gfx/tilesets/house.png": "a085f9eb86e367ce44c8e3120acacc3bce6220cc438bf4cc72d44fa7789324d9",
     "gfx/tilesets/johto_modern.png": "1e311d8dfe5df8aa82a3a3b05c8b95d5df3db9e308507f06d9de13f9a1d33708",
     "gfx/tilesets/mart.png": "01fcafdebca5d49c88ee0b36f982bce0ef44d52b05cb64cd579bf29a974ad573",
-    "gfx/tilesets/pokecenter.png": "17ad170388c939be8566a9c4af37b677d82d6e9bd84662c8624baaaf9184198b"
+    "gfx/tilesets/pokecenter.png": "17ad170388c939be8566a9c4af37b677d82d6e9bd84662c8624baaaf9184198b",
+    "gfx/trainers/blackbelt_t.png": "4cd695b3b18b85793ae14b982f8111644c1a74a828084f2aa9170832231f6121",
+    "gfx/trainers/bug_catcher.png": "5bfbe1c63132b6b9129415d2fdbfb1f9192e587e35ae94e693dcd877833e496a",
+    "gfx/trainers/champion.png": "51b472f0db6e5b59f07508c43fb54bebb7c3fd6a02c5a17200e52ed1d9966444",
+    "gfx/trainers/gentleman.png": "4bb2bf1b068c53e2286928eac65bd16dd4678511a723dce2a6d6cb2f14fcc097",
+    "gfx/trainers/hiker.png": "522c64a7ae74d7056bc8840dfdb49cc3313be50e2ffb6b22070cd9535886f6f5",
+    "gfx/trainers/swimmer_m.png": "cb52adbffbcdb9c44aa7a906cee884bf19d1945da275fcb1af6677e9234d7abf"
   }
 }

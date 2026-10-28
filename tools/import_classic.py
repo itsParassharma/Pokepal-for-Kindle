@@ -137,6 +137,9 @@ for name in ('chris', 'champion', 'ranger', 'nurse', 'youngster', 'scientist', '
                 im = im.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
             add(f'trainer-{name}-{direction}-{step}', im)
 
+for name in ('bug_catcher', 'swimmer_m', 'hiker', 'blackbelt_t', 'gentleman', 'champion'):
+    add('portrait-' + name, transparent_border(png(f'gfx/trainers/{name}.png')))
+
 species = {int(i): name for i, name in re.findall(r'\[(\d+)\]=\{"([^"]+)"', (ROOT / 'species.lua').read_text())}
 special = {29: 'nidoran_f', 32: 'nidoran_m', 83: 'farfetch_d', 122: 'mr__mime', 201: 'unown_a', 351: 'castform/normal'}
 

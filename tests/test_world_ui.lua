@@ -161,6 +161,10 @@ test('Tower preparation shows moves and benefits preview the next opponent',func
  v:paintTo(bb,0,0)
  assert(lines['1. Quick Attack'] and lines['2. Withdraw'] and lines['2. Leech Seed'])
  tapButton(v,'camptower');w.battle.team={10,43,19}
+ local classic=v.classic;local portrait=false
+ v.classic=function(self,buffer,name,...) if name=='portrait-gentleman' then portrait=true end;return classic(self,buffer,name,...) end
+ v:paintTo(bb,0,0);assert(portrait)
+ w.battle.hp=1;tapButton(v,'battleturn',1);portrait=false;v:paintTo(bb,0,0);assert(not portrait)
  while w.battle.status=='active' do w.battle.hp=1;tapButton(v,'battleturn',1) end
  tapButton(v,'battlefinish')
  local team=E.world.battle.rollTeam({seed=v.state.seed},A.towerFoe(w.camp.tower.run,2),3)

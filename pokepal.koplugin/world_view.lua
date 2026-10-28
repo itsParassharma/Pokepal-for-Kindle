@@ -128,6 +128,11 @@ return function(View,UIManager,BB,Device)
   self:progress(bb,44,265,220,b.hp,B.maxFoeHP(b))
   self:outline(bb,36,200,248,94)
   local offset=self.animating and self.frame%2*6 or 0
+  if b.team and b.turn==1 and b.status=="active" then
+   local trainer=b.floor and (b.floor==6 and "champion" or "gentleman") or b.practice and "blackbelt_t"
+    or ({[6]="bug_catcher",[9]="swimmer_m",[12]="hiker"})[b.foe]
+   self:classic(bb,"portrait-"..trainer,304,210,80)
+  end
   self:classic(bb,id.."-front",404-offset,200,112)
   self:classic(bb,b.ally.."-back",76+offset,270,144)
   self:outline(bb,294,314,266,99)
