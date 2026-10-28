@@ -76,7 +76,7 @@ If a restore stops midway, close and reopen PokePal to finish it.
 Copy the pokepal folder to your computer to keep a backup off the Kindle.
 Use matching builds in both readers. Back up the whole pokepal folder
 before updating; older builds cannot read the new save fields.
-Explore upgrades the save to version 6. Visit the Centre to heal and
+Explore upgrades the save to version 7. Visit the Centre to heal and
 choose three Pokemon, the dojo to learn moves, and the Tower for a run.
 The town guide offers quests that open the Coast and cave shortcuts.
 Each battle turn is saved. Return through Explore after sleep or reading.

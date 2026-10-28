@@ -140,9 +140,9 @@ test('the map party overview shows HP and moves without allowing changes',functi
 end)
 
 test('quest progress changes after each objective and Pikachu leaves the woods',function()
- local v=view(7);local w=v.state.world;local lines={};local text=v.text;local sprite=v.sprite;local lost=0
+ local v=view(7);local w=v.state.world;local lines={};local text=v.text;local sprite=v.classic;local lost=0
  v.text=function(self,buffer,line,...) lines[line]=true;return text(self,buffer,line,...) end
- v.sprite=function(self,buffer,id,...) if id==25 then lost=lost+1 end;return sprite(self,buffer,id,...) end
+ v.classic=function(self,buffer,id,...) if id=="25-walk-down-0" then lost=lost+1 end;return sprite(self,buffer,id,...) end
  w.map='woods';v:paintTo(bb,0,0);assert(lost==1)
  w.map='town';v:go('worldquests');v:paintTo(bb,0,0)
  assert(lines["Mira's Pikachu / Find"] and lines['Reward: 4 berries and a ranger outfit'])
@@ -160,12 +160,15 @@ test('Tower preparation shows moves and benefits preview the next opponent',func
  v.text=function(self,buffer,line,...) lines[line]=true;return text(self,buffer,line,...) end
  v:paintTo(bb,0,0)
  assert(lines['1. Quick Attack'] and lines['2. Withdraw'] and lines['2. Leech Seed'])
- tapButton(v,'camptower');w.battle.hp=1;tapButton(v,'battleturn',1);tapButton(v,'battlefinish')
- local nextfoe=E.world.battle.foes[A.towerFoe(w.camp.tower.run,2)]
+ tapButton(v,'camptower');w.battle.team={10,43,19}
+ while w.battle.status=='active' do w.battle.hp=1;tapButton(v,'battleturn',1) end
+ tapButton(v,'battlefinish')
+ local team=E.world.battle.rollTeam({seed=v.state.seed},A.towerFoe(w.camp.tower.run,2),3)
+ local nextfoe={id=team[1],type=E.species[team[1]].types:match('^%a+')}
  lines={};v:paintTo(bb,0,0);assert(lines['Next: '..E.name(nextfoe.id)])
  assert(lines[E.species[nextfoe.id].types..' / attacks with '..nextfoe.type])
  tapButton(v,'nav','worldparty');tapButton(v,'nav','worldtower');tapButton(v,'campbenefit',1)
- assert(w.battle.foe==A.towerFoe(w.camp.tower.run,2));v:leave()
+ assert(w.battle.foe==A.towerFoe(w.camp.tower.run,2) and table.concat(w.battle.team,',')==table.concat(team,','));v:leave()
 end)
 print('WORLD UI: '..checks..' movement, lifecycle, save failure and touch checks passed')
 os.time=original_time

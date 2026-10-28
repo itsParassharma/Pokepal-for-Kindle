@@ -10,13 +10,15 @@ Explore opens where you last stopped. Fern Town is your base; its north path lea
 | Shop | Buy potions, choose an outfit and open the decoration shop |
 | Battle Tower | Bring three Pokémon through five trainers and a boss |
 
-Tap a destination or use the directional pad. Help lets you hide the pad. Each map fits on one screen and changes at an exit. Trainers have standing, walking and battle poses. All 386 Pokémon have separate front, rear, left and right walking frames from the credited SpriteCollab sheets. Movement ends after reaching the destination; standing still schedules no animation.
+Tap a destination or use the directional pad. Help lets you hide the pad. Each map fits on one screen and changes at an exit. The maps use Crystal tiles and directional trainer sprites. Battles show your Pokemon from behind and the opponent from the front, with HP boxes and party markers. All 386 Pokémon keep separate front, rear, left and right walking frames from the credited SpriteCollab sheets. Movement ends after reaching the destination; standing still schedules no animation.
 
 Tap Party on any map to check each partner's HP and two equipped moves. Fainted partners are marked. The Centre still handles healing and party changes; you can equip moves there or at the dojo.
 
 ## Routes and neighbours
 
-Fern Meadow has Caterpie, Rattata and Geodude. Fern Woods adds Oddish, Hoothoot and a trainer with Metapod. The Coast has Wingull, Krabby and a Staryu trainer. Moon Cave has Zubat, Aron and an Onix trainer.
+Fern Meadow has Caterpie, Rattata and Geodude. Fern Woods adds Oddish, Hoothoot and a trainer. The Coast has Wingull, Krabby and a beach trainer. Moon Cave has Zubat, Aron and a cave trainer.
+
+Route trainers bring two different Pokemon, drawn from a pool suited to their area. Dojo partners bring two drawn from all 386. Tower trainers bring three. A new fight rolls a fresh team; your chosen party and equipped moves stay the same. Defeat each opponent before the trainer sends out the next. Rematches can repeat a Pokemon by chance. Only the active fight is kept in the save; there is no matchup history.
 
 Speak to the town guide for three small quests:
 
@@ -81,7 +83,7 @@ Choose three different Pokémon before starting. The party begins at full HP. Al
 
 Before a run, the Tower shows all three partners, their equipped moves and the first opponent's type. After a win, you can see the next opponent's type and attack type before choosing a benefit. You can also check the party's remaining HP from that screen.
 
-There are five trainer battles followed by a boss. Trainer order and the boss change between attempts. After each of the first five wins, choose one temporary benefit:
+There are five trainer battles followed by a boss. Each trainer gets a fresh team of three, including the boss. After each of the first five wins, choose one temporary benefit:
 
 - Restore 16 HP to the whole party.
 - Improve defensive moves for this run.
@@ -91,9 +93,13 @@ Health carries between battles. Outside supplies are unavailable during a run. A
 
 Each turn and benefit choice is saved. Pause, close PokePal or put the Kindle to sleep, then use Explore to resume. Time spent playing stays separate from reading rewards. Existing reading rewards can still supply berries for adventures.
 
+## Artwork
+
+[Crystal](https://github.com/pret/pokecrystal) supplies the map tiles, human sprites and battle sprites for Pokemon 1-251. [Emerald](https://github.com/pret/pokeemerald) supplies battle sprites for 252-386. All are converted to four shades for the Kindle. The smaller field Pokemon use the existing credited SpriteCollab directions. Source revisions and hashes are in `assets/classic/sources.json`; `tools/import_classic.py` rebuilds the packs. The game needs no network access or additional Lua engine.
+
 ## Updating and testing
 
-Back up the entire `pokepal` folder before trying this branch. Opening Explore upgrades the save to version 6. Existing version 5 map and battle saves migrate with their turn and health intact. Older builds cannot read version 6; update both editions, or restore your backup before returning to 1.0.9.
+Back up the entire `pokepal` folder before trying this branch. Opening Explore upgrades the save to version 7. Version 5 and 6 battles keep their opponent, turn and health until that fight ends. Existing town positions move to the central path only if a new building covers them. Older builds cannot read version 7; update both editions, or restore your backup before returning to 1.0.9.
 
 Family move pairs update with this build. Learned dojo moves and equipped slot choices stay saved.
 
@@ -106,6 +112,10 @@ The game code is shared by KUAL and KOReader. Tests cover route navigation, part
 | Tower | Battle |
 | --- | --- |
 | ![Battle Tower](explore-tower.png) | ![Battle](explore-battle.png) |
+
+| Pokemon Centre | Same trainer, new team |
+| --- | --- |
+| ![Pokemon Centre](explore-centre.png) | ![Trainer rematch](explore-rematch.png) |
 
 | Quest progress | Next Tower opponent |
 | --- | --- |

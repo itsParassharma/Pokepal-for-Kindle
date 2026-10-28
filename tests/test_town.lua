@@ -21,16 +21,23 @@ local function adjacent(s,index)
  error('Unreachable encounter')
 end
 local function win(s)
- s.world.battle.hp=1
- local slot=B.preview(E,s.world.battle,1)>0 and 1 or 2
- assert(W.turn(s,E,slot,now));assert(s.world.battle.status=='won');copy(s)
+ while s.world.battle.status=='active' do
+  local b=s.world.battle;b.hp=1
+  local slot=B.preview(E,b,1)>0 and 1 or 2
+  if B.preview(E,b,slot)==0 then
+   -- Fixtures still use real turn resolution when a random foe is immune.
+   s.world.camp.training[tostring(b.ally)]={learned=15,slots={3,4}};b.moves={3,4};slot=2
+  end
+  assert(W.turn(s,E,slot,now));copy(s)
+ end
+ assert(s.world.battle.status=='won')
 end
 
 test('version 5 battles migrate without changing their turn, health or rewards',function()
  local s=pet();adjacent(s,1);assert(W.startBattle(s,1));W.turn(s,E,1,now)
  s.world.camp=nil;s.world.battle.moves=nil;s.version=5
  s=copy(s);local turn,hp,foe=s.world.battle.turn,s.world.hp,s.world.battle.hp
- assert(W.enter(s) and s.version==6 and s.world.battle.turn==turn and s.world.hp==hp and s.world.battle.hp==foe)
+ assert(W.enter(s) and s.version==7 and s.world.battle.turn==turn and s.world.hp==hp and s.world.battle.hp==foe)
  copy(s)
 end)
 test('party selection preserves individual HP and rejects duplicates or gaps',function()
@@ -200,6 +207,66 @@ test('returning Pikachu removes its encounter and leaves a saveable walking tile
  s.world.map='woods';s.world.x=4;s.world.y=5;assert(not W.event('woods',4,4,s.world))
  local path=assert(W.path(s.world,4,3));assert(#path==2 and path[1].x==4 and path[1].y==4)
  assert(W.step(s,4,4) and s.world.x==4 and s.world.y==4);copy(s)
+end)
+
+test('trainer rematches randomize only the opponent team and persist the active fight',function()
+ for _,kind in ipairs({6,9,12,'dojo','tower'}) do
+  local s=party(pet());local w=s.world;local signatures={};local beforeParty=E.companion.encode(w.camp.party)
+  local originalMoves=E.companion.encode(w.camp.training)
+  for attempt=1,12 do
+   A.heal(w,40)
+   if kind=='dojo' then w.map='dojo';assert(A.practice(s,E))
+   elseif kind=='tower' then w.map='tower';assert(A.startTower(s,E))
+   else adjacent(s,kind);assert(W.startBattle(s,kind)) end
+   local b=w.battle;assert(#b.team==(kind=='tower' and 3 or 2))
+   assert(B.validTeam(b.team,E,#b.team))
+   signatures[table.concat(b.team,',')]=true
+   assert(E.companion.encode(w.camp.party)==beforeParty and E.companion.encode(w.camp.training)==originalMoves)
+   local saved=copy(s);assert(E.companion.encode(saved.world.battle.team)==E.companion.encode(b.team))
+   assert(not W.enter(s));b.status='fled';assert(W.finish(s))
+  end
+  local count=0;for _ in pairs(signatures) do count=count+1 end
+  assert(count>=10,'rematches repeated the same roster')
+ end
+end)
+
+test('a trainer sends each reserve without a free hit, seed carryover or early reward',function()
+ local s=party(pet());adjacent(s,6);assert(W.startBattle(s,6));local w=s.world;local b=w.battle
+ b.team={10,43};b.hp=1;b.charged=true;b.seed=3;local hp,berries=w.hp,s.berries
+ assert(W.turn(s,E,1,now));assert(b.status=='active' and b.opponent==2 and b.hp==B.maxFoeHP(b))
+ assert(not b.charged and b.seed==0 and w.hp==hp and s.berries==berries and not W.cleared(w,6));s=copy(s)
+ win(s);assert(s.berries==berries+1 and W.cleared(s.world,6));assert(W.finish(s));copy(s)
+end)
+
+test('last-turn opponent replacement is a saveable draw and malformed rosters fail',function()
+ local s=party(pet());adjacent(s,6);assert(W.startBattle(s,6));local b=s.world.battle
+ b.team={10,43};b.hp=1;b.turn=100;assert(W.turn(s,E,1,now));assert(b.status=='draw' and b.opponent==2);copy(s)
+ local original=S.encode(s)
+ for _,mutate in ipairs({function(b) b.team={10,10} end,function(b) b.team={10,999} end,
+  function(b) b.team={[1]=10,[3]=43} end,function(b) b.opponent=0 end,
+  function(b) b.opponent=3 end,function(b) b.team.extra=true end,
+  function(b) b.team=false;b.opponent=nil end,
+  function(b) b.status='won';b.hp=0;b.opponent=1 end}) do
+  local t=assert(S.decode(original,E));mutate(t.world.battle);assert(not E.valid(t))
+ end
+end)
+
+test('version 6 town positions migrate out of new walls without losing party or progress',function()
+ for y=1,8 do for x=1,11 do
+  local s=party(pet());s.version=6;s.world.map='town';s.world.x=x;s.world.y=y
+  if E.valid(s) then
+   s=copy(s);local party=E.companion.encode(s.world.camp);local hp=s.world.hp
+   assert(W.enter(s) and s.version==7 and W.walkable('town',s.world.x,s.world.y))
+   assert(E.companion.encode(s.world.camp)==party and s.world.hp==hp);copy(s)
+  end
+ end end
+end)
+
+test('bad map coordinates and quest data fail validation without throwing',function()
+ for _,mutate in ipairs({function(w) w.x={} end,function(w) w.y=nil end,function(w) w.map=false end,
+  function(w) w.map='woods';w.x=4;w.y=4;w.camp.quests=nil end}) do
+  local s=pet();mutate(s.world);assert(not E.valid(s))
+ end
 end)
 
 test('malformed party, learned moves, inventory and Tower state are rejected',function()

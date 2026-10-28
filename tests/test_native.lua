@@ -65,7 +65,9 @@ assert(s.world.battle.floor==1);tap('nav','worldswitch');tap('campswitch',7)
 assert(s.world.partner==7 and s.world.battle.turn==2)
 local tower=E.companion.encode(s.world);v:onSuspend();v:onResume();assert(E.companion.encode(s.world)==tower)
 assert(app.owner:save());assert(app.storage.load('data/pokepal.dat',E).world.camp.tower.floor==1)
-s.world.battle.hp=1;tap('battleturn',1);tap('battlefinish');assert(v.screen=='worldtower')
+s.world.battle.team={10,43,19}
+while s.world.battle.status=='active' do s.world.battle.hp=1;tap('battleturn',1) end
+tap('battlefinish');assert(v.screen=='worldtower')
 tap('nav','worldparty');tap('nav','worldtower');tap('campbenefit',1)
 assert(s.world.battle.floor==2 and s.world.battle.foe==E.world.town.towerFoe(s.world.camp.tower.run,2))
 tap('battleflee');tap('battlefinish');tap('nav','home')

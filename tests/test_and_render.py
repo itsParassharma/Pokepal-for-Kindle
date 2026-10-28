@@ -78,7 +78,30 @@ def rect(x,y,w,h,col):
  if w and h:
   if x<0 or y<0 or x+w>canvas.width or y+h>canvas.height:bounds.append((x,y,w,h))
   draw.rectangle((x,y,x+w-1,y+h-1),fill=int(col))
+classic_index=json.loads((ROOT/'assets/classic/index.json').read_text())
+for name, (part, offset, length) in classic_index.items():
+ with (ROOT/'assets/classic'/f'{part:03d}.bin').open('rb') as stream:
+  stream.seek(offset);data=stream.read(length)
+ assert len(data)==length, name
+ img=Image.open(io.BytesIO(data));img.load()
+ assert img.mode=='LA' and img.getchannel('A').getbbox(), name
+ assert set(img.getchannel('L').tobytes()) <= {0,85,170,255}, name
+for id in range(1,387):
+ for pose in ('front','back'):
+  assert f'{id}-{pose}.png' in classic_index
+ for direction in ('down','up','left','right'):
+  for step in (0,1):assert f'{id}-walk-{direction}-{step}.png' in classic_index
+print('CLASSIC ART: all 386 front/back sprites, four walking directions and 3941 packed images decode')
+
 def image(path,x,y,w,h):
+ if '/classic/' in path:
+  name=pathlib.Path(path).name
+  part,offset,length=classic_index[name]
+  with (ROOT/'assets/classic'/f'{part:03d}.bin').open('rb') as f:
+   f.seek(offset);img=Image.open(io.BytesIO(f.read(length)))
+  img=img.convert('LA').resize((int(w),int(h)),Image.Resampling.NEAREST)
+  canvas.paste(img.getchannel('L'),(round(x),round(y)),img.getchannel('A'))
+  return
  painted_sprites.append(int(pathlib.Path(path).name.split('-')[0]))
  img=read_sprite(pathlib.Path(path).name).convert('LA').resize((int(w),int(h)),Image.Resampling.NEAREST)
  canvas.paste(img.getchannel('L'),(round(x),round(y)),img.getchannel('A'))
@@ -108,7 +131,10 @@ package.preload["ui/widget/imagewidget"]=function() return I end
 package.preload["ui/renderimage"]=function()
  local R={}
  local packed=dofile(BASE..'/assets/sprites.lua');local names={}
- for name in pairs(packed.index) do names[packed.read(BASE..'/assets',name)]=BASE..'/assets/'..name end
+ for _,directory in ipairs({'assets','assets/classic'}) do
+  local pack=dofile(BASE..'/'..directory..'/sprites.lua')
+  for name in pairs(pack.index) do names[pack.read(BASE..'/'..directory,name)]=BASE..'/'..directory..'/'..name end
+ end
  function R:renderImageData(data)
   local file=assert(names[data]);local raw={file=file,getWidth=function() return 96 end,getHeight=function() return 96 end,scale=function(self,w,h) return {file=self.file,free=function() end} end,free=function() end}
   return raw

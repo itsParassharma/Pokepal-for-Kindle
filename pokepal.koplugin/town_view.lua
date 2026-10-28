@@ -4,7 +4,7 @@ return function(View,UIManager)
   for i=1,3 do
    local id=w.camp.party[i];local y=190+(i-1)*132
    if id then
-    self:sprite(bb,id,42,y+7,80,1,"idle")
+    self:classic(bb,id.."-front",42,y+7,80)
     self:text(bb,E.name(id),137,y+2,21,editable and 300 or 431,true)
     local hp=A.hp(w,id)
     self:text(bb,tower and "Starts at 40 HP" or hp==0 and "Fainted" or hp.." / 40 HP",137,y+32,16,431)
@@ -34,7 +34,7 @@ return function(View,UIManager)
     local id=first+(page-1)*9+i
     if id<=last then
      local x,y=32+i%3*182,234+math.floor(i/3)*117
-     self:sprite(bb,id,x+52,y,68,1,"idle")
+     self:classic(bb,id.."-front",x+52,y,68)
      self:button(bb,E.name(id),x,y+69,172,40,"campchoose",id,nil,blocked)
     end
    end
@@ -81,7 +81,8 @@ return function(View,UIManager)
    end
   elseif screen=="worldtower" then
    local t=c.tower
-   local nextfoe=W.battle.foes[A.towerFoe(t and t.run or c.runs+1,t and t.floor+1 or 1)]
+   local roster=W.battle.rollTeam({seed=self.state.seed},A.towerFoe(t and t.run or c.runs+1,t and t.floor+1 or 1),3)
+   local nextfoe={id=roster[1],type=E.species[roster[1]].types:match("^%a+")}
    self:title(bb,"Battle Tower",t and "Battle "..t.floor.." won. Choose a benefit." or "Rank "..c.rank..". Five trainers, then a boss.")
    if t and t.choice then
     self:text(bb,"Next: "..E.name(nextfoe.id),32,193,21,536,true)
@@ -93,13 +94,13 @@ return function(View,UIManager)
    else
     self:paintPartyCards(bb,false,true)
     self:text(bb,"First: "..E.name(nextfoe.id).." / "..E.species[nextfoe.id].types,32,573,17,536,true)
-    self:text(bb,"Care levels do not affect battle strength.",32,607,16,536)
+    self:text(bb,"Fresh teams of three. Your party stays with you.",32,607,16,536)
     self:button(bb,"Start a new run",32,640,536,38,"camptower",nil,nil,blocked or #c.party~=3)
    end
   elseif screen=="worldswitch" then
    self:title(bb,"Switch Pokemon","Switching spends a turn.")
    for i,id in ipairs(c.party) do
-    local y=208+(i-1)*135;self:sprite(bb,id,42,y,88,1,"idle")
+    local y=208+(i-1)*135;self:classic(bb,id.."-front",42,y,88)
     self:button(bb,E.name(id).." / "..A.hp(w,id).." HP",147,y+17,421,60,"campswitch",id,nil,blocked or id==w.partner or A.hp(w,id)==0)
     local detail=id==w.partner and "Already battling." or A.hp(w,id)==0 and "Fainted. Needs healing."
     if not detail and w.battle then

@@ -4,10 +4,12 @@ local dir=debug.getinfo(1,"S").source:sub(2):match("^(.*)/")
 W.battle=dofile(dir.."/battle.lua")
 W.town=dofile(dir.."/town.lua")
 local A=W.town
+local oldTown={"TTTTT=TTTTT","TRRR.=.RRRT","TWHW.=.WBWT","T....=....T",
+ "==========T","TJ.D.=.S.OT","T....=....T","TTTTTTTTTTT"}
 W.maps={
  town={name="Fern Town",rows={
-  "TTTTT=TTTTT","TRRR.=.RRRT","TWHW.=.WBWT","T....=....T",
-  "==========T","TJ.D.=.S.OT","T....=....T","TTTTTTTTTTT"}},
+  "TTTTT=TTTTT","TRRR.=....T","TWHW.=..B.T",".....=....T",
+  "=RR..=RRRRT","TJWD.=WSWOT","T....=....T","TTTTTTTTTTT"}},
  meadow={name="Fern Meadow",rows={
   "TTTTT=TTTTT","T,,,..,,,,T","T,,T..,T,,T","T,,?..,,,,T",
   "T...===...T","T,~~.=.,,,T","T,~~.=.,,,T","TTTTT=TTTTT"}},
@@ -29,7 +31,7 @@ end
 W.links={
  town={["6,1"]={"meadow",6,7},["1,5"]={"woods",2,5,"woods-shortcut"}},
  meadow={["6,8"]={"town",6,2},["6,1"]={"woods",6,7}},
- woods={["6,8"]={"meadow",6,2},["1,5"]={"town",2,5,"woods-shortcut"},["11,5"]={"coast",2,5,"coast"}},
+ woods={["6,8"]={"meadow",6,2},["1,5"]={"town",2,4,"woods-shortcut"},["11,5"]={"coast",2,5,"coast"}},
  coast={["1,5"]={"woods",10,5},["6,1"]={"cave",6,7,"cave"}},
  cave={["6,8"]={"coast",6,2},["11,5"]={"meadow",6,2,"cave-shortcut"}},
 }
@@ -44,12 +46,13 @@ W.hints={town="Centre and trail board north. Dojo, shop and Tower south.",
  tower="Speak to the attendant. Five battles, then a boss."}
 W.directions={up={0,-1},down={0,1},left={-1,0},right={1,0}}
 local function int(n,min,max) return type(n)=="number" and n==n and n>=min and n<=max and n%1==0 end
-function W.tile(map,x,y)
+function W.tile(map,x,y,legacy)
  if not W.maps[map] or not int(x,1,11) or not int(y,1,8) then return end
+ if legacy and map=="town" then return oldTown[y]:sub(x,x) end
  return W.maps[map].rows[y]:sub(x,x)
 end
-function W.walkable(map,x,y)
- local tile=W.tile(map,x,y)
+function W.walkable(map,x,y,legacy)
+ local tile=W.tile(map,x,y,legacy)
  return tile~=nil and tile~="T" and tile~="R" and tile~="W" and tile~="~" and tile~="C" and tile~="#"
 end
 function W.event(map,x,y,w)
@@ -86,6 +89,12 @@ function W.enter(s)
   if W.event(s.world.map,s.world.x,s.world.y,s.world) then s.world.x=6;s.world.y=6 end
   if s.world.battle then s.world.battle.moves={1,2} end
  end
+ if s.version<7 then
+  if not W.walkable(s.world.map,s.world.x,s.world.y) or W.event(s.world.map,s.world.x,s.world.y,s.world) then
+   s.world.x=6;s.world.y=6
+  end
+  s.version=7;fresh=true
+ end
  return fresh
 end
 function W.cleared(w,index) return math.floor(w.cleared/2^(index-1))%2==1 end
@@ -117,7 +126,8 @@ function W.startBattle(s,index)
  if s.trip>0 then return false,"Your partner is on an expedition. Collect it at the trail board first." end
  if s.resting then return false,"Your partner is asleep. Wake it at home before battling." end
  if w.hp==0 then return false,"Your partner needs the Pokemon Centre. Speak to the nurse." end
- w.battle=W.battle.new(w.partner,index,w.camp and A.moves(s,w.partner))
+ local team=e.trainer and W.battle.rollTeam(s,index,2) or nil
+ w.battle=W.battle.new(w.partner,index,w.camp and A.moves(s,w.partner),nil,nil,team)
  return true
 end
 function W.step(s,x,y)
@@ -142,7 +152,7 @@ function W.step(s,x,y)
   return true,"message","A small discovery: one berry tucked beside the path."
  elseif event=="centre" or event=="dojo" or event=="shop" or event=="tower" then w.map=event;w.x=6;w.y=7;w.facing="up"
  elseif event=="outside" then
-  local doors={centre={3,4},dojo={2,5},shop={8,5},tower={10,5}}
+  local doors={centre={3,4},dojo={2,7},shop={8,7},tower={10,7}}
   local p=doors[w.map];w.map="town";w.x=p[1];w.y=p[2];w.facing="down"
  else w.x=x;w.y=y end
  w.step=(w.step+1)%2
@@ -154,7 +164,8 @@ function W.resolve(s,E,now)
  if b.status=="won" and not b.floor and not b.practice and not W.cleared(w,b.foe) then
   w.cleared=w.cleared+2^(b.foe-1)
   s.berries=math.min(999,s.berries+1);A.reward(s,b.ally,3,1)
-  local id=W.battle.foes[b.foe].id;s.seen[tostring(id)]=true;E.companion.mark(s,id,now)
+  local id=W.battle.opponent(b)
+  for _,member in ipairs(b.team or {id}) do s.seen[tostring(member)]=true;E.companion.mark(s,member,now) end
   b.log[#b.log+1]="First win: +1 berry, +3 XP, +1 bond."
   while #b.log>4 do table.remove(b.log,1) end
   E.note(s,"Won a route battle with "..E.name(id)..".",now)
@@ -184,11 +195,14 @@ function W.valid(w,s,E)
  if s.version<5 or type(w)~="table" then return false end
  local allowed={map=true,x=true,y=true,facing=true,step=true,partner=true,hp=true,cleared=true,battle=true,camp=true}
  for k in pairs(w) do if not allowed[k] then return false end end
- if not W.walkable(w.map,w.x,w.y) or (W.event(w.map,w.x,w.y,w) and (w.camp or s.version>=6)) or not W.directions[w.facing]
+ if not W.walkable(w.map,w.x,w.y,s.version<7) or not W.directions[w.facing]
   or not int(w.step,0,1) or not int(w.partner,1,E.species_count) or not s.seen[tostring(w.partner)]
   or not int(w.hp,0,W.battle.max_hp) or not int(w.cleared,0,w.camp and 4095 or 7) then return false end
  if w.camp and not A.valid(w.camp,s,E) then return false end
  if not w.camp and s.version>=6 then return false end
+ local event=W.event(w.map,w.x,w.y,w)
+ if s.version<7 and w.map=="town" then event=({H=true,B=true,D=true,J=true,S=true,O=true})[W.tile(w.map,w.x,w.y,true)] end
+ if event and (w.camp or s.version>=6) then return false end
  if w.battle then
   local b=w.battle
   if not W.battle.valid(b,E) or b.ally~=w.partner or (not w.camp and b.ally~=s.species) or s.trip~=0 then return false end

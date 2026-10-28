@@ -2,6 +2,30 @@
 local B={max_hp=40}
 local dir=debug.getinfo(1,"S").source:sub(2):match("^(.*)/")
 local types=dofile(dir.."/battle_types.lua")
+local rng=dofile(dir.."/random.lua")
+local teams={
+ [6]={10,12,13,14,15,43,46,48,114,165,167,193},
+ [9]={7,54,60,72,79,90,98,116,120,170,183,222,258,278},
+ [12]={27,50,74,95,104,111,194,213,246,299,304,328},
+}
+function B.rollTeam(s,foe,count)
+ local pool=teams[foe];local result={};local used={}
+ while #result<count do
+  local id=pool and pool[rng(s,#pool)] or rng(s,386)
+  if not used[id] then result[#result+1]=id;used[id]=true end
+ end
+ return result
+end
+function B.opponent(b) return b.team and b.team[b.opponent] or B.foes[b.foe].id end
+function B.validTeam(team,E,count)
+ if type(team)~="table" or #team~=count then return false end
+ local seen={}
+ for k,id in pairs(team) do
+  if type(k)~="number" or k%1~=0 or k<1 or k>count or type(id)~="number" or not E.species[id] or seen[id] then return false end
+  seen[id]=true
+ end
+ return true
+end
 B.foes={
  {id=10,hp=24,power=5,type="Normal",pattern={"charge","attack","guard","attack"}},
  {id=19,hp=28,power=6,type="Normal",pattern={"attack","guard","charge","attack"}},
@@ -113,7 +137,8 @@ function B.intentText(E,b)
 end
 function B.incoming(E,b)
  local foe=B.foes[b.foe]
- return damage((foe.power+(b.floor or 0))*(b.charged and 2 or 1),B.multiplier(E,foe.type,b.ally))
+ local kind=b.team and E.species[B.opponent(b)].types:match("^%a+") or foe.type
+ return damage((foe.power+(b.floor or 0))*(b.charged and 2 or 1),B.multiplier(E,kind,b.ally))
 end
 function B.blockedDamage(E,b)
  return math.ceil(B.incoming(E,b)*math.max(0.1,0.25-(b.defense or 0)*0.03))
@@ -130,7 +155,7 @@ function B.preview(E,b,slot)
  local power=move.power+(b.boost and move.power>0 and 4 or 0)
  if move.kind=="quick" and intent=="charge" then power=power+2 end
  if move.kind=="break" and intent=="guard" then power=power+6 end
- local mult=B.multiplier(E,move.type,B.foes[b.foe].id)
+ local mult=B.multiplier(E,move.type,B.opponent(b))
  local dealt=move.power==0 and 0 or damage(power,mult)
  if intent=="guard" and move.kind~="break" then dealt=math.floor(dealt/2) end
  return dealt,move,mult
@@ -143,7 +168,7 @@ function B.hint(E,b,slot)
   local taken=B.blockedDamage(E,b)
   return taken==0 and "This attack cannot hurt you." or "Take "..taken.." damage. Next hit: +4 power."
  end
- if dealt>=b.hp then return "Finishes this battle." end
+ if dealt>=b.hp then return b.team and b.opponent<#b.team and "Knocks out this Pokemon." or "Finishes this battle." end
  if move.kind=="quick" and intent=="charge" then return "Interrupts this charge." end
  if move.kind=="break" and intent=="guard" then return "Breaks this guard." end
  if move.kind=="drain" or move.kind=="seed" then return B.description(move) end
@@ -152,9 +177,10 @@ function B.hint(E,b,slot)
  if mult<1 then return "This type deals less damage." end
  return B.description(move)
 end
-function B.new(ally,foe,moves,floor,defense)
+function B.new(ally,foe,moves,floor,defense,team)
  return {ally=ally,foe=foe,hp=B.foes[foe].hp+(floor or 0)*2,turn=1,charged=false,boost=false,moves=moves,floor=floor,defense=defense,
-  seed=0,status="active",last_move=0,log={"Choose a move. Your partner acts first."}}
+  team=team,opponent=team and 1 or nil,
+  seed=0,status="active",last_move=0,log=team and {"The trainer brought "..#team.." Pokemon.","Your party is ready. Choose a move."} or {"Choose a move. Your partner acts first."}}
 end
 function B.step(E,b,hp,slot)
  if b.status~="active" or hp<=0 then return hp,false end
@@ -194,7 +220,13 @@ function B.step(E,b,hp,slot)
   end
  end
  if hp==0 then b.status="lost"
- elseif b.hp==0 then b.status="won"
+ elseif b.hp==0 then
+  if b.team and b.opponent<#b.team then
+   say(E.name(B.opponent(b)).." fainted!")
+   b.opponent=b.opponent+1;b.hp=B.maxFoeHP(b);b.charged=false;b.seed=0
+   say("The trainer sent out "..E.name(B.opponent(b)).."!")
+   if b.turn>=100 then b.status="draw";say("Time for a break. Return to town and try again.") end
+  else b.status="won" end
  elseif b.turn>=100 then b.status="draw";say("Time for a break. Return to town and try again.") end
  while #lines>4 do table.remove(lines,1) end
  b.turn=b.turn+1;b.log=lines
@@ -202,7 +234,7 @@ function B.step(E,b,hp,slot)
 end
 function B.valid(b,E)
  if type(b)~="table" then return false end
- local allowed={ally=true,foe=true,hp=true,turn=true,charged=true,boost=true,seed=true,status=true,last_move=true,log=true,moves=true,floor=true,defense=true,practice=true}
+ local allowed={ally=true,foe=true,hp=true,turn=true,charged=true,boost=true,seed=true,status=true,last_move=true,log=true,moves=true,floor=true,defense=true,practice=true,team=true,opponent=true}
  for k in pairs(b) do if not allowed[k] then return false end end
  local function int(n,min,max) return type(n)=="number" and n==n and n>=min and n<=max and n%1==0 end
  if not int(b.ally,1,E.species_count) or not int(b.foe,1,#B.foes)
@@ -212,6 +244,10 @@ function B.valid(b,E)
   or not int(b.seed,0,3) or not int(b.last_move,0,2)
   or type(b.charged)~="boolean" or type(b.boost)~="boolean" then return false end
  if b.status~="active" and b.status~="won" and b.status~="lost" and b.status~="fled" and b.status~="draw" then return false end
+ if b.team~=nil then
+  if not B.validTeam(b.team,E,b.floor and 3 or 2) or not int(b.opponent,1,#b.team)
+   or not (b.floor or b.practice or teams[b.foe]) or (b.status=="won" and b.opponent~=#b.team) then return false end
+ elseif b.opponent~=nil then return false end
  if (b.status=="won")~=(b.hp==0) or (b.status=="active" and b.turn>100) then return false end
  if b.moves~=nil then
   if type(b.moves)~="table" or not int(b.moves[1],1,4) or not int(b.moves[2],1,4) or b.moves[1]==b.moves[2] then return false end

@@ -146,7 +146,8 @@ end
 function A.practice(s,E)
  local w=s.world
  if w.map~="dojo" or w.battle or w.camp.tower or s.trip>0 or s.resting or w.hp==0 then return false end
- w.battle=E.world.battle.new(w.partner,2,A.moves(s,w.partner));w.battle.practice=true;return true
+ local B=E.world.battle
+ w.battle=B.new(w.partner,2,A.moves(s,w.partner),nil,nil,B.rollTeam(s,2,2));w.battle.practice=true;return true
 end
 function A.towerFoe(run,floor)
  return floor==6 and 18+(run-1)%3 or 13+(run+floor-2)%5
@@ -154,7 +155,8 @@ end
 function A.towerBattle(s,E)
  local w=s.world;local c=w.camp;local t=c.tower
  local foe=A.towerFoe(t.run,t.floor)
- w.battle=E.world.battle.new(w.partner,foe,A.moves(s,w.partner),t.floor,t.defense)
+ local B=E.world.battle
+ w.battle=B.new(w.partner,foe,A.moves(s,w.partner),t.floor,t.defense,B.rollTeam(s,foe,3))
 end
 function A.startTower(s,E)
  local w=s.world;local c=w.camp

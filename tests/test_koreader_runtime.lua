@@ -363,7 +363,9 @@ check('party and Tower widgets preserve turns and exclude playing from reading',
  now=now+900;reader.rolling:onGotoViewRel(1);pump();assert(counter(p)==before)
  suspend();resume();assert(p.engine.companion.encode(p.state.world)==saved)
  v:leave();v=game(p);gameTap(v,'nav','explore');assert(v.screen=='battle' and p.engine.companion.encode(p.state.world)==saved)
- p.state.world.battle.hp=1;gameTap(v,'battleturn',1);gameTap(v,'battlefinish');assert(v.screen=='worldtower')
+ p.state.world.battle.team={10,43,19}
+ while p.state.world.battle.status=='active' do p.state.world.battle.hp=1;gameTap(v,'battleturn',1) end
+ gameTap(v,'battlefinish');assert(v.screen=='worldtower')
  gameTap(v,'nav','worldparty');gameTap(v,'nav','worldtower')
  local expected=p.engine.world.town.towerFoe(p.state.world.camp.tower.run,2)
  gameTap(v,'campbenefit',3);assert(p.state.world.battle.foe==expected)
@@ -383,7 +385,11 @@ check('sleep/wake works with every preference and unlock mode from '..context,fu
   p.engine.act(p.state,'partner',25,now);v:go('explore');local w=p.state.world;local A=p.engine.world.town
   w.map='centre';assert(A.party(p.state,p.engine,2,7));assert(A.party(p.state,p.engine,3,1))
   w.map='tower';assert(A.startTower(p.state,p.engine))
-  if context=='benefit' then w.battle.hp=1;assert(p.engine.world.turn(p.state,p.engine,1,now));assert(p.engine.world.finish(p.state)) end
+  if context=='benefit' then
+   w.battle.team={10,43,19}
+   while w.battle.status=='active' do w.battle.hp=1;assert(p.engine.world.turn(p.state,p.engine,1,now)) end
+   assert(p.engine.world.finish(p.state))
+  end
   v:go('explore')
  end
  if context=='shelf' or context=='book' then v:leave();v=nil end

@@ -145,7 +145,7 @@ function E.new(now)
   seed=now % 2147483646 + 1, resting=false, care=0, started=now}
 end
 function E.valid(s)
- if type(s)~="table" or (s.version~=1 and s.version~=2 and s.version~=3 and s.version~=4 and s.version~=5 and s.version~=6) then return false end
+ if type(s)~="table" or (s.version~=1 and s.version~=2 and s.version~=3 and s.version~=4 and s.version~=5 and s.version~=6 and s.version~=7) then return false end
  for _,k in ipairs({"species","food","joy","energy","bond","xp","berries","last","gift","trained","played","cleaned","dirt","trip","due","trips","seed","care","started"}) do
   local n=s[k]; if type(n)~="number" or n~=n or n<0 or n>1e12 then return false end
  end
@@ -269,10 +269,7 @@ function E.advance(s,now)
  s.last=now
  E.discover(s,now)
 end
-local function rng(s,n)
- s.seed=(s.seed*48271)%2147483647
- return math.floor(s.seed% n)+1
-end
+local rng=dofile(source.."/random.lua")
 function E.count(t) local n=0;for _,v in pairs(t) do if v then n=n+1 end end;return n end
 function E.badges(s,now)
  E.companion.badges(s,E,now)

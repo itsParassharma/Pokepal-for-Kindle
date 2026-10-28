@@ -25,7 +25,7 @@ end
 test('old saves remain byte-identical until entering Explore',function()
  local s=E.new(now);E.act(s,'choose',25,now)
  local data=S.encode(s);assert(not s.world and S.encode(assert(S.decode(data,E)))==data)
- assert(W.enter(s) and s.version==6 and s.world.map=='town');roundtrip(s)
+ assert(W.enter(s) and s.version==7 and s.world.map=='town');roundtrip(s)
  local saved=S.encode(s);assert(not W.enter(s) and S.encode(s)==saved)
 end)
 test('town, meadow and centre connect without putting the player inside an event',function()

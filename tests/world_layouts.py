@@ -61,8 +61,10 @@ def run(c):
                         if name == 'tower-boss-preview':
                             w.camp.tower.floor = 5
                             g.E.world.town.towerBattle(v.state, g.E)
-                        w.battle.hp = 1
-                        assert g.E.world.turn(v.state, g.E, 1, int(v.state.last))
+                        w.battle.team = c['lua'].table_from([10, 43, 19])
+                        while w.battle.status == 'active':
+                            w.battle.hp = 1
+                            assert g.E.world.turn(v.state, g.E, 1, int(v.state.last))
                         assert g.E.world.finish(v.state)
                     if name == 'worldswitch':
                         assert g.E.world.town.party(v.state, g.E, 3, 92)

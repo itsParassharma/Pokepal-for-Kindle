@@ -3,7 +3,7 @@ return function(View,UIManager,BB,Device)
  local WHITE,GRAY,LIGHT=BB.COLOR_WHITE,BB.Color8(150),BB.Color8(238)
  local dir=debug.getinfo(1,"S").source:sub(2):match("^(.*)/")
  local Art=dofile(dir.."/world_art.lua")
- local MAP_X,MAP_Y,TILE=58,181,44
+ local MAP_X,MAP_Y,TILE=36,174,48
  function View:saveWorld()
   local ok=self.owner:save()
   self.world_save_failed=not ok
@@ -58,49 +58,47 @@ return function(View,UIManager,BB,Device)
   local map=W.maps[w.map]
   local wins=0;for i=1,#W.encounters do if W.cleared(w,i) then wins=wins+1 end end
   self:title(bb,map.name,"Battle HP "..w.hp.." / "..W.battle.max_hp.."   /   Route wins "..wins.." / "..#W.encounters)
+  self:classic(bb,"map-"..w.map,MAP_X,MAP_Y,528,384)
   for y,row in ipairs(map.rows) do for x=1,#row do
-   Art.tile(self,bb,row:sub(x,x),MAP_X+(x-1)*TILE,MAP_Y+(y-1)*TILE,{WHITE,GRAY,LIGHT})
-   self.buttons[#self.buttons+1]={x=MAP_X+(x-1)*TILE,y=MAP_Y+(y-1)*TILE,w=TILE,h=TILE,action="worldtile",arg=(y-1)*11+x}
+   local px,py=MAP_X+(x-1)*TILE,MAP_Y+(y-1)*TILE
+   self.buttons[#self.buttons+1]={x=px,y=py,w=TILE,h=TILE,action="worldtile",arg=(y-1)*11+x}
+   local tile=row:sub(x,x)
+   local role=({D="lass",N="nurse",P="scientist"})[tile]
+   if w.map~="town" then role=role or ({J="sage",S="clerk",O="ranger"})[tile] end
+   if role then Art.trainer(self,bb,px+8,py+8,"down",0,role) end
+   if tile=="L" and not W.town.has(w.camp.quests,2) then Art.pokemon(self,bb,25,px+6,py+6) end
   end end
-  self:outline(bb,MAP_X-1,MAP_Y-1,11*TILE+2,8*TILE+2)
+  self:outline(bb,MAP_X-2,MAP_Y-2,11*TILE+4,8*TILE+4)
   for i,e in ipairs(W.encounters) do if e.map==w.map then
-    local x,y=MAP_X+(e.x-1)*TILE,MAP_Y+(e.y-1)*TILE
-    self:rect(bb,x+3,y+3,38,38,WHITE)
-    if e.trainer then Art.trainer(self,bb,x+10,y+7,"down",0,false,WHITE) else self:sprite(bb,W.battle.foes[i].id,x,y,44,1,"idle") end
-    if W.cleared(w,i) then self:rect(bb,x+34,y+34,9,9);self:rect(bb,x+36,y+36,5,5,WHITE) end
-   end
-  end
-  if w.map=="town" then
-   self:rect(bb,MAP_X+TILE+6,MAP_Y+TILE+9,TILE*3-12,24,WHITE)
-   self:rect(bb,MAP_X+TILE*7+6,MAP_Y+TILE+9,TILE*3-12,24,WHITE)
-   self:text(bb,"CENTRE",MAP_X+TILE,MAP_Y+TILE+10,14,TILE*3,true,true)
-   self:text(bb,"TRIPS",MAP_X+TILE*7,MAP_Y+TILE+10,14,TILE*3,true,true)
-   for _,sign in ipairs({{2,"DOJO"},{8,"SHOP"},{10,"TOWER"}}) do self:text(bb,sign[2],MAP_X+(sign[1]-1)*TILE-8,MAP_Y+TILE*6+5,9,60,true,true) end
-  end
+   local x,y=MAP_X+(e.x-1)*TILE,MAP_Y+(e.y-1)*TILE
+   if e.trainer then Art.trainer(self,bb,x+8,y+8,"down",0,e.map=="cave" and "sage" or "youngster")
+   else Art.pokemon(self,bb,W.battle.foes[i].id,x+6,y+6) end
+   if W.cleared(w,i) then self:rect(bb,x+38,y+38,7,7);self:rect(bb,x+40,y+40,3,3,WHITE) end
+  end end
   local follow=self.world_follow
   if not follow then
    local d=W.directions[w.facing];local x,y=w.x-d[1],w.y-d[2]
    if W.walkable(w.map,x,y) and not W.event(w.map,x,y,w) then follow={x=x,y=y} end
   end
   if follow and (follow.x~=w.x or follow.y~=w.y) and self.state.trip==0 and not self.state.resting then
-   self:sprite(bb,w.partner or self.state.species,MAP_X+(follow.x-1)*TILE,MAP_Y+(follow.y-1)*TILE,44,
-    self.world_path and w.step+1 or 1,"walk_"..w.facing)
+   Art.pokemon(self,bb,w.partner or self.state.species,MAP_X+(follow.x-1)*TILE+6,MAP_Y+(follow.y-1)*TILE+6,
+    w.facing,self.world_path and w.step or 0)
   end
-  Art.trainer(self,bb,MAP_X+(w.x-1)*TILE+10,MAP_Y+(w.y-1)*TILE+8,w.facing,self.world_path and w.step or 0,false,WHITE,w.camp and w.camp.outfit)
+  Art.trainer(self,bb,MAP_X+(w.x-1)*TILE+8,MAP_Y+(w.y-1)*TILE+8,w.facing,self.world_path and w.step or 0,nil,w.camp and w.camp.outfit)
   if self.world_target then
-   self:outline(bb,MAP_X+(self.world_target.x-1)*TILE+1,MAP_Y+(self.world_target.y-1)*TILE+1,42,42,GRAY)
+   self:outline(bb,MAP_X+(self.world_target.x-1)*TILE+1,MAP_Y+(self.world_target.y-1)*TILE+1,46,46,GRAY)
   end
   local hint=W.hints[w.map]
-  self:wrapped(bb,self.world_message or hint,551,17)
-  self:button(bb,"Party",32,602,120,42,"nav","worldparty")
+  self:wrapped(bb,self.world_message or hint,565,16)
+  self:button(bb,"Party",32,614,120,42,"nav","worldparty")
   if not w.camp or w.camp.dpad then
-  self:button(bb,"Up",261,602,78,42,"worlddir","up")
-  self:button(bb,"Left",171,651,78,42,"worlddir","left")
-  self:button(bb,"Down",261,651,78,42,"worlddir","down")
-  self:button(bb,"Right",351,651,78,42,"worlddir","right")
+  self:button(bb,"Up",261,614,78,42,"worlddir","up")
+  self:button(bb,"Left",171,662,78,42,"worlddir","left")
+  self:button(bb,"Down",261,662,78,42,"worlddir","down")
+  self:button(bb,"Right",351,662,78,42,"worlddir","right")
   end
-  self:button(bb,"Help",32,651,120,42,"nav","worldhelp")
-  self:button(bb,"Trips",448,651,120,42,"nav","expeditions")
+  self:button(bb,"Help",32,662,120,42,"nav","worldhelp")
+  self:button(bb,"Trips",448,662,120,42,"nav","expeditions")
   if self.world_save_failed or self.owner.save_error then self:button(bb,"Retry save",32,717,536,44,"worldretry")
   else self:backButton(bb) end
  end
@@ -112,7 +110,7 @@ return function(View,UIManager,BB,Device)
    {"Read the opponent","Quick moves interrupt charges. Bursts break guards. Withdraw blocks a hit."},
    {"Two moves","Learn moves at the dojo. Equip two for each partner. Switching in battle uses your turn."},
    {"Take a break","Pause or close PokePal at any turn. Explore resumes the battle when you return."},
-   {"First wins","Each route opponent gives 1 berry, 3 XP and 1 bond once. Rematches are for practice."},
+   {"Trainer teams","Trainers bring a fresh team each fight. Your chosen party stays the same. First route wins give rewards."},
   }
   for i,t in ipairs(tips) do
    local y=190+(i-1)*83;self:text(bb,t[1],32,y,20,536,true);self:wrapped(bb,t[2],y+30,16)
@@ -124,17 +122,26 @@ return function(View,UIManager,BB,Device)
   local B=self.engine.world.battle;local w=self.state.world;local b=w and w.battle
   if not b then return end
   self:rect(bb,32,200,536,215,WHITE)
-  local id=B.foes[b.foe].id
-  self:text(bb,self.engine.displayName(self.state,b.ally),32,204,21,252,true,true)
-  self:text(bb,self.engine.name(id),316,204,21,252,true,true)
-  self:text(bb,w.hp.." / "..B.max_hp.." HP",32,234,17,252,false,true)
-  self:text(bb,b.hp.." / "..B.maxFoeHP(b).." HP",316,234,17,252,false,true)
-  self:progress(bb,63,262,190,w.hp,B.max_hp);self:progress(bb,347,262,190,b.hp,B.maxFoeHP(b))
-  local move=B.equipped(self.engine,b)[b.last_move]
-  local pose=self.animating and (move and move.kind=="guard" and "charge" or "attack") or "idle"
-  Art.trainer(self,bb,45,340,"right",self.animating and 1 or 0,false,WHITE,w.camp and w.camp.outfit,self.animating)
-  self:sprite(bb,b.ally,84,280,132,self.animating and self.frame or 1,pose)
-  self:sprite(bb,id,364,280,132,1,"idle")
+  local id=B.opponent(b)
+  self:text(bb,self.engine.name(id),44,207,21,270,true)
+  self:text(bb,b.hp.." / "..B.maxFoeHP(b).." HP",44,239,16,250)
+  self:progress(bb,44,265,220,b.hp,B.maxFoeHP(b))
+  self:outline(bb,36,200,248,94)
+  local offset=self.animating and self.frame%2*6 or 0
+  self:classic(bb,id.."-front",404-offset,200,112)
+  self:classic(bb,b.ally.."-back",76+offset,270,144)
+  self:outline(bb,294,314,266,99)
+  self:text(bb,self.engine.displayName(self.state,b.ally),308,321,21,240,true)
+  self:text(bb,w.hp.." / "..B.max_hp.." HP",308,353,16,240)
+  self:progress(bb,308,382,236,w.hp,B.max_hp)
+  local function ball(x,y,fainted)
+   self:rect(bb,x+2,y,8,12);self:rect(bb,x,y+2,12,8)
+   self:rect(bb,x+2,y+7,8,3,WHITE);self:rect(bb,x+4,y+4,4,4,WHITE)
+   if fainted then self:rect(bb,x,y+5,12,2,GRAY) end
+  end
+  if b.team then for i=1,#b.team do ball(44+(i-1)*20,280,i<b.opponent or b.status=="won") end end
+  if w.camp then for i,member in ipairs(w.camp.party) do ball(494+(i-1)*20,356,self.engine.world.town.hp(w,member)==0) end end
+
  end
  function View:paintBattle(bb)
   local W=self.engine.world;local B=W.battle;local w=self.state.world;local b=w and w.battle
@@ -142,7 +149,8 @@ return function(View,UIManager,BB,Device)
   self:title(bb,b.floor and "Tower / battle "..b.floor.." of 6" or b.practice and "Dojo practice" or W.encounters[b.foe] and W.encounters[b.foe].trainer and "Trainer battle" or "Wild encounter",b.status=="active" and "Turn "..b.turn.." / Your partner moves first." or "Encounter finished")
   self:text(bb,b.status=="active" and B.intentText(self.engine,b) or b.status=="won" and "You won!" or b.status=="lost" and "Time to visit the Pokemon Centre." or "You left the encounter.",32,176,17,536,true,true)
   self:paintBattleStage(bb)
-  for i,line in ipairs(b.log) do self:text(bb,line,32,421+(i-1)*23,16,536,false,true) end
+  self:outline(bb,32,419,536,90)
+  for i,line in ipairs(b.log) do self:text(bb,line,44,425+(i-1)*21,15,512) end
   local blocked=self.world_save_failed or self.owner.save_error or self.state.resting or w.hp==0
   if b.status=="active" then
    for slot=1,2 do
@@ -161,7 +169,7 @@ return function(View,UIManager,BB,Device)
    end
   else
    self:wrapped(bb,b.status=="lost" and "Your partner will wait at the centre. Speak to the nurse to heal."
-    or b.status=="won" and (b.floor and (b.floor==6 and "Run complete! Continue to claim your rank, outfit and 6 berries." or "Continue to choose one benefit for your next battle.") or b.practice and "Practice complete. Tell Ari at the town guide." or "You can meet this Pokemon again. Rematches do not give extra rewards.")
+    or b.status=="won" and (b.floor and (b.floor==6 and "Run complete! Continue to claim your rank, outfit and 6 berries." or "Continue to choose one benefit for your next battle.") or b.practice and "Practice complete. Tell Ari at the town guide." or "You can battle again. Trainers bring a fresh team each time.")
     or "Your place on the map is saved.",563,20)
    if not self.world_save_failed and not self.owner.save_error then self:button(bb,"Continue",32,717,536,44,"battlefinish",nil,nil,self.world_save_failed or self.owner.save_error or self.state.resting) end
   end

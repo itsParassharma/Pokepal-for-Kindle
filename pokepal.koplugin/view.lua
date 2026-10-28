@@ -114,15 +114,23 @@ function View:sprite(bb,id,x,y,size,frame,pose)
  local pose_list=self.poses[id]
  if pose and (not pose_list or not pose_list[pose]) then pose=pose_list and "idle" or nil end
  frame=math.min(frame or 1,pose and pose_list[pose] or self.frames[id] or 1)
- local key=id.."-"..(pose or "normal").."-"..frame.."-"..round(size*self.scale);local img=self.images[key]
+ local file=id.."-"..(pose and pose.."-" or "")..frame..".png"
+ self:packedImage(bb,self.sprites,"assets",file,x,y,size,size)
+end
+function View:classic(bb,name,x,y,width,height)
+ self.classic_sprites=self.classic_sprites or dofile(self.path.."/assets/classic/sprites.lua")
+ self:packedImage(bb,self.classic_sprites,"assets/classic",name..".png",x,y,width,height or width)
+end
+function View:packedImage(bb,pack,directory,file,x,y,width,height)
+ local pw,ph=round(width*self.scale),round(height*self.scale)
+ local key=directory.."/"..file.."-"..pw.."x"..ph;local img=self.images[key]
  if not img then
-  local file=id.."-"..(pose and pose.."-" or "")..frame..".png"
-  local data=self.sprites.read(self.path.."/assets",file)
+  local data=pack.read(self.path.."/"..directory,file)
   local raw=RenderImage:renderImageData(data,#data,false)
   assert(raw,"Cannot decode PokePal sprite: "..file)
-  local pixels=round(size*self.scale);local scaled=raw
-  if raw:getWidth()~=pixels or raw:getHeight()~=pixels then scaled=raw:scale(pixels,pixels);raw:free() end
-  img=ImageWidget:new{image=scaled,image_disposable=true,alpha=true,width=pixels,height=pixels,scale_for_dpi=false}
+  local scaled=raw
+  if raw:getWidth()~=pw or raw:getHeight()~=ph then scaled=raw:scale(pw,ph);raw:free() end
+  img=ImageWidget:new{image=scaled,image_disposable=true,alpha=true,width=pw,height=ph,scale_for_dpi=false}
   self.images[key]=img
  end
  local r=self:region(x,y,0,0);img:paintTo(bb,r.x,r.y)
@@ -564,7 +572,7 @@ function View:paintProfile(bb)
  elseif #choices==1 then
   local id=choices[1]
   self:button(bb,self.engine.ready(s) and "Evolve into "..self.engine.name(id) or "Growing toward "..self.engine.name(id),32,538,536,56,"evolve",id,"clean",not self.engine.ready(s))
-  self:text(bb,"Feed, play and train together to build your bond.",32,620,17,536,false,true)
+  self:text(bb,"Feed, play and train to build your bond.",32,620,17,536,false,true)
  else self:wrapped(bb,self.engine.name(s.species).." is fully evolved. Keep exploring and fill your field journal together.",465,19) end
  self:text(bb,"Together for "..math.max(0,math.floor((os.time()-s.started)/86400)).." days   /   "..s.trips.." expeditions",32,681,18,536,false,true)
  self:backButton(bb)
