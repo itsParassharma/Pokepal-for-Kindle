@@ -91,7 +91,7 @@ for name, data in world.maps.items():
                 floor = {'centre': 4, 'shop': 4, 'dojo': 0x0F, 'tower': 1}[name]
                 b = floor
                 if tile == 'W':
-                    b = {'centre': 0x13, 'shop': 0x11, 'dojo': 0x12, 'tower': 2}[name]
+                    b = {'centre': 0x13, 'shop': 0x11, 'dojo': 0x03, 'tower': 2}[name]
                 if tile == 'C':
                     b = {'centre': {3: 5, 4: 6, 5: 7, 6: 5}.get(x, 5), 'shop': 0x16, 'dojo': 0x1A, 'tower': {3: 3, 4: 4, 5: 3, 6: 2}.get(x, 2)}[name]
                 cell = block(tileset, b)

@@ -3863,7 +3863,7 @@ local S={index={
  ["map-cave.png"]={5,241238,1659},
  ["map-centre.png"]={5,242897,1465},
  ["map-coast.png"]={5,244362,2926},
- ["map-dojo.png"]={5,247288,1327},
+ ["map-dojo.png"]={5,247288,1245},
  ["map-meadow.png"]={6,0,3530},
  ["map-shop.png"]={6,3530,1451},
  ["map-tower.png"]={6,4981,1395},
