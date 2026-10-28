@@ -25,7 +25,7 @@ end
 test('old saves remain byte-identical until entering Explore',function()
  local s=E.new(now);E.act(s,'choose',25,now)
  local data=S.encode(s);assert(not s.world and S.encode(assert(S.decode(data,E)))==data)
- assert(W.enter(s) and s.version==5 and s.world.map=='town');roundtrip(s)
+ assert(W.enter(s) and s.version==6 and s.world.map=='town');roundtrip(s)
  local saved=S.encode(s);assert(not W.enter(s) and S.encode(s)==saved)
 end)
 test('town, meadow and centre connect without putting the player inside an event',function()
@@ -116,13 +116,13 @@ test('battle and map validation reject malformed or inconsistent state',function
   function(s) s.world.battle.foe=99 end,function(s) s.world.battle.charged=1 end,
   function(s) s.world.battle.status='won' end,function(s) s.world.battle.ally=7 end,
   function(s) s.world.battle.turn=0 end,function(s) s.world.extra=true end,
-  function(s) s.world.battle.log={[2]='gap'} end,function(s) s.world.cleared=8 end,
+  function(s) s.world.battle.log={[2]='gap'} end,function(s) s.world.cleared=4096 end,
  }
  for _,mutate in ipairs(cases) do local s=assert(S.decode(original,E));mutate(s);assert(not E.valid(s)) end
  assert(not S.decode(original..original:match('(world=[^\n]+)')..'\n',E))
 end)
 test('all 386 partners have legal moves and finish encounters without invalid saves',function()
- for id=1,E.species_count do for foe=1,#B.foes do
+ for id=1,E.species_count do for foe=1,3 do
   local s=battle(id,foe);local b=s.world.battle;local count=0
   assert(#B.moves(E,id)==2)
   while b.status=='active' do

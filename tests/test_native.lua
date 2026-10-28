@@ -29,6 +29,12 @@ for _,pose in ipairs({'idle','sleep','walk','attack','eat','hop','rotate','charg
  for frame=1,v.poses[150][pose] do v.frame=frame;app_paint();assert(#v.buttons==14) end
 end
 assert(app.owner:save())
+for id=1,386 do
+ v.detail_id=id
+ for _,direction in ipairs({'down','left','up','right'}) do v.preview_pose='walk_'..direction;v.frame=1;app_paint() end
+ v:freeImages()
+end
+print('NATIVE FOLLOWERS: all 386 Pokemon drawn in four walking directions')
 local save=app.storage.save;app.storage.save=function() return nil,'Test save failure' end
 assert(not app.owner:save() and app.owner.save_error)
 v:go('more');app_paint();v:go('home');app_paint()
@@ -49,6 +55,14 @@ tap('worldtile',83);assert(s.world.map=='town')
 tap('worldtile',25);s.world.hp=1;tap('worldtile',39);assert(s.world.hp==40)
 tap('nav','home')
 print('NATIVE WORLD: walking, battling, healing, save reload and sleep passed')
+v:go('explore');tap('worldtile',37);tap('campslot',2);tap('campchoose',7);tap('campslot',3);tap('campchoose',1)
+v:go('explore');tap('worldtile',83);tap('worldtile',65);tap('worldtile',39);tap('camptower')
+assert(s.world.battle.floor==1);tap('nav','worldswitch');tap('campswitch',7)
+assert(s.world.partner==7 and s.world.battle.turn==2)
+local tower=E.companion.encode(s.world);v:onSuspend();v:onResume();assert(E.companion.encode(s.world)==tower)
+assert(app.owner:save());assert(app.storage.load('data/pokepal.dat',E).world.camp.tower.floor==1)
+tap('battleflee');tap('battlefinish');tap('nav','home')
+print('NATIVE TOWER: party selection, turn-cost switching, save reload and sleep passed')
 BASE='game';TESTDIR=os.tmpname();os.remove(TESTDIR);assert(host_fs('mkdir',TESTDIR))
 dofile('../../../tests/test_reading.lua')
 dofile('../../../tests/test_gen3.lua')
@@ -56,6 +70,7 @@ dofile('../../../tests/test_adventures.lua')
 dofile('../../../tests/test_companion.lua')
 dofile('../../../tests/test_backups.lua')
 dofile('../../../tests/test_improvements.lua')
+dofile('../../../tests/test_town.lua')
 v:go('reading');app_paint();assert(#v.buttons==9)
 dofile('game/reading.lua').init(s);s.berries=6;v:act('egg');v:act('readingtrip',1)
 assert(s.egg and s.trail)

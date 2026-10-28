@@ -15,6 +15,9 @@ Missing eating poses use PokePal's berry and chewing motion, derived from
 the credited idle sprites. Still poses use added breathing motion. These
 additions are recorded in the source manifest. Every species has ten
 moving poses, with at most four frames per animation.
+All 386 species also include down, left, up and right walking frames from
+the cardinal rows of those same sheets. assets/walk-sources.json records
+the rows, sampled frames, source hashes and original per-species credits.
 
 assets/pose-sources.json records sheet URLs, SHA-256, metadata, selected
 frames, motion and per-species credit files. assets/credits/ contains the

@@ -1,35 +1,77 @@
-# Explore prototype
+# Explore
 
-Open Explore to walk around Fern Town with your partner. Tap a destination or use the arrows to move one tile. The Pokemon Centre is on the left, the trail board is on the right, and the north path leads to the meadow.
+Explore opens where you last stopped. Fern Town is your base; its north path leads to the meadow and Fern Woods. Visible Pokémon and trainers wait on the map, so you can approach an encounter or walk past it.
 
-Walk up to the nurse to restore battle HP. The trail board and the Trips button open the existing timed and reading expeditions.
-
-| Town | Battle |
+| Place | What you can do |
 | --- | --- |
-| ![Fern Town](explore-town.png) | ![Pikachu facing Caterpie](explore-battle.png) |
+| Pokémon Centre | Heal the whole party for free; speak to the trainer on the left to choose three different Pokémon |
+| Training dojo | Learn and equip moves, practise a battle, or open the existing care training |
+| Trail board | Start the existing timed or reading expeditions |
+| Shop | Buy potions, choose an outfit and open the decoration shop |
+| Battle Tower | Bring three Pokémon through five trainers and a boss |
 
-Screenshots from the KOReader desktop runtime.
+Tap a destination or use the directional pad. Help lets you hide the pad. Each map fits on one screen and changes at an exit. Trainers have standing, walking and battle poses. All 386 Pokémon have separate front, rear, left and right walking frames from the credited SpriteCollab sheets. Movement ends after reaching the destination; standing still schedules no animation.
 
-## Battles
+## Routes and neighbours
 
-Tap Caterpie, Rattata or Geodude in the meadow to start an encounter. Your partner acts first, and the opponent shows its next action before you choose a move.
+Fern Meadow has Caterpie, Rattata and Geodude. Fern Woods adds Oddish, Hoothoot and a trainer with Metapod. The Coast has Wingull, Krabby and a Staryu trainer. Moon Cave has Zubat, Aron and an Onix trainer.
 
-- Quick moves interrupt a charge. Bursts deal extra damage through a guard.
-- Pikachu's family uses Quick Attack and Thunder Shock.
-- Squirtle's family uses Water Gun and Withdraw. Blocking a hit strengthens the next attack.
-- Bulbasaur's family uses Vine Whip and Leech Seed, which drains HP over three turns.
-- Other partners use Quick strike and a burst of their primary type. All 386 can enter battles, but these move pairs still need balancing.
+Speak to the town guide for three small quests:
 
-Battle HP starts at 40. Levels and care stats do not affect damage in this prototype. Move damage previews include type advantages, guards and any stored boost. These are PokePal rules, separate from the existing training moves.
+- Find Mira's lost Pikachu in the woods and return it. This opens the Coast and the woods shortcut, and rewards four berries and a ranger outfit.
+- Inspect the tracks in Moon Cave and report them to Theo. This opens the cave shortcut and gives you a plant for your room.
+- Win a dojo practice battle to help Ari prepare for the Tower. Return for three berries.
 
-The first win against each opponent gives 1 berry, 3 XP and 1 bond, and records that Pokemon in the journal. Rematches give no extra rewards. Losing takes you to the centre; the nurse heals for free. Leave battle ends an encounter without a reward.
+Defeat the Coast trainer to open Moon Cave. Marked discoveries give a berry once. Quest rewards and first-win rewards cannot be claimed again.
 
-Pause returns to your companion. Explore resumes the saved turn, including after closing PokePal or putting the Kindle to sleep. Time spent playing does not count towards reading rewards.
+## Two moves per Pokémon
 
-## Trying this branch
+Choose three Pokémon at the Centre. All 386 are available. Party battle HP is separate from care stats, and switching companions at home does not erase the party's injuries.
 
-Copy your `pokepal` folder to your computer first. Opening Explore upgrades the save to version 5. Existing progress carries over, but older builds cannot read that save. Update both editions if you use both; restore your backup before returning to 1.0.9.
+Each partner starts with two learned moves. Pikachu's family has Quick Attack and Thunder Shock; Squirtle's has Water Gun and Withdraw; Bulbasaur's has Vine Whip and Leech Seed. Other partners start with Quick strike and a burst of their primary type.
 
-This prototype has one town, a centre and a meadow. The Battle Tower, party switching, shops and more towns are later work. Trainer sprites face four directions; the following Pokemon currently uses the existing front-facing frames.
+The dojo teaches Protect and Drain strike for two berries and six energy each. Drain strike becomes available after a wild or practice win. Choose either equipped slot and tap a learned move to replace it. The two slots must contain different moves.
 
-The map and battle code is shared by KUAL and KOReader. Checks cover save reloads, rewards, failed saves, backup restoration, touch controls and larger text. The KOReader runtime test includes map and battle screens in its sleep/wake checks. Physical Kindle refresh speed and touch response still need a device test.
+| Move kind | Effect and opening |
+| --- | --- |
+| Quick | Interrupts a charging opponent |
+| Burst | Deals extra damage through a guard |
+| Withdraw / Protect | Reduces incoming damage and strengthens the next hit after a successful block |
+| Leech Seed | Drains up to three HP for three turns |
+| Drain strike | Uses the partner's primary type and restores three HP when it hits |
+
+The opponent shows whether it is attacking, guarding or charging before you decide. Type advantages and immunities apply. These are PokePal rules, including the shared dojo moves; they are separate from main-series move legality.
+
+Switching uses a turn, including when replacing a fainted partner. A potion costs two berries, restores up to 16 HP and also uses a turn in battle. Potions cannot revive a fainted partner. The Centre heals everyone for free.
+
+A first win against each route opponent gives one berry, three XP and one bond to the battling partner, and records the opponent in the journal. Rematches and dojo practice do not pay battle rewards. Losing with the whole party sends you to the Centre. Leaving an encounter gives no reward.
+
+## Battle Tower
+
+Choose three different Pokémon before starting. The party begins at full HP. All partners use 40 HP and fixed move power, so care levels do not determine Tower strength.
+
+There are five trainer battles followed by a boss. Trainer order and the boss change between attempts. After each of the first five wins, choose one temporary benefit:
+
+- Restore 16 HP to the whole party.
+- Improve defensive moves for this run.
+- Restore three HP whenever a partner switches in; repeated choices increase the bonus.
+
+Health carries between battles. Outside supplies are unavailable during a run. A completed run awards a rank, six berries and a Tower outfit. Fleeing or a full-party defeat ends the run without those rewards.
+
+Each turn and benefit choice is saved. Pause, close PokePal or put the Kindle to sleep, then use Explore to resume. Time spent playing stays separate from reading rewards. Existing reading rewards can still supply berries for adventures.
+
+## Updating and testing
+
+Back up the entire `pokepal` folder before trying this branch. Opening Explore upgrades the save to version 6. Existing version 5 map and battle saves migrate with their turn and health intact. Older builds cannot read version 6; update both editions, or restore your backup before returning to 1.0.9.
+
+The game code is shared by KUAL and KOReader. Tests cover route navigation, party health, move learning, reward duplication, Tower reloads, failed saves, sleep, touch controls and larger text. The screenshots below come from the desktop test renderer. Physical Kindle refresh speed and touch response still need a device test.
+
+| Town | Party |
+| --- | --- |
+| ![Fern Town](explore-town.png) | ![Party](explore-party.png) |
+
+| Tower | Battle |
+| --- | --- |
+| ![Battle Tower](explore-tower.png) | ![Battle](explore-battle.png) |
+
+The harbour town and mountain village remain later additions. This branch has one town with four outdoor areas.

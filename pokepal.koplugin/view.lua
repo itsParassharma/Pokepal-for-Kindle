@@ -58,7 +58,7 @@ function View:stageRegion()
  if self.screen=="battle" then return self:region(32,200,536,215) end
  return self:region(32,180,536,240)
 end
-function View:animationSpecies() return self.screen=="entry" and self.detail_id or self.state.species end
+function View:animationSpecies() return self.screen=="entry" and self.detail_id or self.screen=="battle" and self.state.world.battle.ally or self.state.species end
 function View:rect(bb,x,y,w,h,color)
  local r=self:region(x,y,w,h);bb:paintRect(r.x,r.y,r.w,r.h,color or BLACK)
 end
@@ -145,7 +145,7 @@ function View:poseFor(effect)
  if effect=="train" then return self.training_pose or "attack" end
  if effect=="battle" then
   local b=self.state.world and self.state.world.battle
-  local move=b and self.engine.world.battle.moves(self.engine,b.ally)[b.last_move]
+  local move=b and self.engine.world.battle.equipped(self.engine,b)[b.last_move]
   return move and move.kind=="guard" and "charge" or "attack"
  end
  if effect=="play" or (effect=="hello" and not self.state.resting) then return "hop" end
@@ -171,6 +171,7 @@ function View:go(screen)
  if screen=="explore" and self.state.species~=0 then
   if self.engine.world.enter(self.state) then self.world_dirty=true end
   if self.state.world.battle then self.screen="battle" end
+  if self.state.world.camp and self.state.world.camp.tower and self.state.world.camp.tower.choice then self.screen="worldtower" end
  end
  local now=os.time()
  if now>self.state.last and not (self.owner.backups and self.owner.backups.blocked) then
@@ -208,6 +209,7 @@ function View:paintTo(bb,x,y)
  elseif self.screen=="explore" then self:paintWorld(bb)
  elseif self.screen=="expeditions" then self:paintExpeditions(bb)
  elseif self.screen=="worldhelp" then self:paintWorldHelp(bb)
+ elseif self.screen:match("^world") then self:paintTownMenu(bb)
  elseif self.screen=="battle" then self:paintBattle(bb)
  elseif self.screen=="journal" or self.screen=="companions" or self.screen=="allcompanions" then self:paintJournal(bb)
  elseif self.screen=="entry" then self:paintEntry(bb)
@@ -804,4 +806,5 @@ function View:onOutOfScreenSaver()
 end
 dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/companion_view.lua")(View,UIManager,BB)
 dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/world_view.lua")(View,UIManager,BB,Device)
+dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/town_view.lua")(View,UIManager)
 return View

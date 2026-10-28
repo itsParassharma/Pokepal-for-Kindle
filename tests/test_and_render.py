@@ -37,6 +37,7 @@ lua.execute((REPO/'tests'/'test_companion.lua').read_text())
 lua.execute((REPO/'tests'/'test_backups.lua').read_text())
 lua.execute((REPO/'tests'/'test_improvements.lua').read_text())
 lua.execute((REPO/'tests'/'test_world.lua').read_text())
+lua.execute((REPO/'tests'/'test_town.lua').read_text())
 
 sprite_index=json.loads((ROOT/'assets/sprite-index.json').read_text())
 def read_sprite(name):
@@ -833,10 +834,17 @@ for record in sources:
 print(f'ASSETS: {count} valid transparent frames; all {len(species_ids)} species have frames and source records')
 poses=lua.execute((ROOT/'assets'/'poses.lua').read_text())
 pose_sources={(r['species'],r['pose'].lower()):r for r in json.loads((ROOT/'assets'/'pose-sources.json').read_text())}
+walk_sources=json.loads((ROOT/'assets'/'walk-sources.json').read_text())
+assert {r['species'] for r in walk_sources}==species_ids and len(walk_sources)==len(species_ids)
+for record in walk_sources:
+ assert record['rows']=={'down':0,'left':2,'up':4,'right':6}
+ assert len(record['source_sha256'])==64
+ for direction in record['rows']:
+  pose_sources[record['species'],'walk_'+direction]={**record,'motion':True}
 assert set(pose_sources)=={(id,pose) for id in species_ids for pose in poses[id].keys()}
 pose_count=0
 for id in poses.keys():
- assert set(poses[id].keys())=={'idle','sleep','walk','attack','eat','hop','rotate','charge','swing','double'}
+ assert set(poses[id].keys())=={'idle','sleep','walk','attack','eat','hop','rotate','charge','swing','double','walk_up','walk_down','walk_left','walk_right'}
  for pose,frames in poses[id].items():
   hashes=[]
   for fr in range(1,frames+1):
@@ -846,7 +854,7 @@ for id in poses.keys():
    hashes.append(img.tobytes());pose_count+=1
   record=pose_sources[id,pose]
   assert len(set(hashes))>=2 and record['motion'],(id,pose)
-print(f'POSES: {pose_count} valid grayscale alpha frames; every species has ten moving poses')
+print(f'POSES: {pose_count} valid grayscale alpha frames; every species has ten action poses and four walking directions')
 compile_lua=lua.eval('function(path) assert(loadfile(path)) end')
 sources=list(ROOT.rglob('*.lua'))
 for path in sources:compile_lua(path.as_posix())

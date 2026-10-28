@@ -345,8 +345,23 @@ check('real suspend cancels a walking callback, including after waking',function
  assert(p.engine.valid(p.state));v:leave()
 end)
 
+check('party and Tower widgets preserve turns and exclude playing from reading',function()
+ local reader;reader,p=openBook(1,'scroll');v=game(p);clearTrip(p)
+ p.engine.act(p.state,'partner',25,now);p.state.animation='off';local before=counter(p)
+ gameTap(v,'nav','explore');gameTap(v,'worldtile',25);gameTap(v,'worldtile',37)
+ gameTap(v,'campslot',2);gameTap(v,'campchoose',7);gameTap(v,'campslot',3);gameTap(v,'campchoose',1)
+ v:go('explore');gameTap(v,'worldtile',83);gameTap(v,'worldtile',65);gameTap(v,'worldtile',39)
+ gameTap(v,'camptower');gameTap(v,'nav','worldswitch');gameTap(v,'campswitch',7)
+ assert(p.state.world.partner==7 and p.state.world.battle.turn==2)
+ local saved=p.engine.companion.encode(p.state.world)
+ now=now+900;reader.rolling:onGotoViewRel(1);pump();assert(counter(p)==before)
+ suspend();resume();assert(p.engine.companion.encode(p.state.world)==saved)
+ v:leave();v=game(p);gameTap(v,'nav','explore');assert(v.screen=='battle' and p.engine.companion.encode(p.state.world)==saved)
+ gameTap(v,'battleflee');gameTap(v,'battlefinish');v:leave()
+end)
+
 local cycles,max_sleep=0,0
-for _,context in ipairs({'shelf','book','game','map','battle'}) do
+for _,context in ipairs({'shelf','book','game','map','battle','tower','benefit'}) do
 check('sleep/wake works with every preference and unlock mode from '..context,function()
  local reader
  if context=='shelf' then p=shelf() else reader,p=openBook(1,'page') end
@@ -354,6 +369,13 @@ check('sleep/wake works with every preference and unlock mode from '..context,fu
  clearTrip(p);p.state.animation='off'
  if context=='map' or context=='battle' then v:go('explore') end
  if context=='battle' then gameTap(v,'worldtile',6);gameTap(v,'worldtile',14);assert(v.screen=='battle') end
+ if context=='tower' or context=='benefit' then
+  p.engine.act(p.state,'partner',25,now);v:go('explore');local w=p.state.world;local A=p.engine.world.town
+  w.map='centre';assert(A.party(p.state,p.engine,2,7));assert(A.party(p.state,p.engine,3,1))
+  w.map='tower';assert(A.startTower(p.state,p.engine))
+  if context=='benefit' then w.battle.hp=1;assert(p.engine.world.turn(p.state,p.engine,1,now));assert(p.engine.world.finish(p.state)) end
+  v:go('explore')
+ end
  if context=='shelf' or context=='book' then v:leave();v=nil end
  for _,prefs in ipairs({{false,false},{true,false},{false,true},{true,true}}) do
   p.state.companion.prefs.auto_rest=prefs[1];p.state.companion.prefs.sleep_screen=prefs[2];assert(p:save())

@@ -28,7 +28,10 @@ dummy driver.
 - Disabled sleep features make no game-save calls during suspend.
 - Walking and battles save their position and turn. Pausing, closing or sleeping
   does not count game time as reading. Cancelled walking callbacks stay cancelled after waking.
-- 120 sleep/wake cycles cover bookshelf, book, companion, map and battle views, two
+- Party selection and Tower switching run through real widgets, preserve the
+  saved turn after reopening, and exclude playing from reading time.
+- 168 sleep/wake cycles cover bookshelf, book, companion, map, wild battle,
+  Tower battle and benefit-choice views, two
   orientations, all four combinations of sleep preferences, and immediate,
   gesture and timed unlocks. Closing a view removes both sleep hooks.
 

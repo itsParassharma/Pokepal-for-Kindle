@@ -15,3 +15,14 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r requirements-dev.txt
       - run: python tests/test_and_render.py
+      - name: Check the real KOReader runtime
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_RENDER_DRIVER: software
+        run: |
+          curl --fail --location --retry 3 --output "$RUNNER_TEMP/koreader.tar.xz" https://github.com/koreader/koreader/releases/download/v2026.07.1/koreader-linux-x86_64-v2026.07.1.tar.xz
+          echo "299aadb28147a25e9432ced1214ea444a4184393b5ae97cf42402c8a61b1a1b0  $RUNNER_TEMP/koreader.tar.xz" | sha256sum --check
+          mkdir "$RUNNER_TEMP/koreader"
+          tar -xJf "$RUNNER_TEMP/koreader.tar.xz" --strip-components=1 -C "$RUNNER_TEMP/koreader"
+          cd "$RUNNER_TEMP/koreader"
+          KO_HOME="$(mktemp -d)" ./luajit "$GITHUB_WORKSPACE/tests/test_koreader_runtime.lua" "$GITHUB_WORKSPACE/pokepal.koplugin"
