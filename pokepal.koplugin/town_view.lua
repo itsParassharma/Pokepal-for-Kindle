@@ -4,7 +4,7 @@ return function(View,UIManager)
   if not c then self:paintWorld(bb);return end
   local screen=self.screen;local blocked=self.world_save_failed or self.owner.save_error
   if screen=="worldparty" then
-   self:title(bb,"Your party","Choose three friends. Each keeps its own battle HP.")
+   self:title(bb,"Your party","Choose up to three different Pokemon.")
    for i=1,3 do
     local id=c.party[i];local y=203+(i-1)*131
     if id then self:sprite(bb,id,42,y,80,1,"idle") end
@@ -12,7 +12,7 @@ return function(View,UIManager)
    end
    self:button(bb,"Equipped moves",32,608,536,44,"nav","worldmoves")
   elseif screen=="worldchoose" then
-   self:title(bb,"Choose party slot "..(self.party_slot or 1),"All 386 are available; a party cannot contain duplicates.")
+   self:title(bb,"Choose party slot "..(self.party_slot or 1),"All 386 available. No duplicates.")
    local region=self.party_region or 1;local first=({1,152,252})[region];local last=({151,251,386})[region]
    for i,name in ipairs({"Kanto","Johto","Hoenn"}) do self:button(bb,name,32+(i-1)*182,181,172,40,"campregion",i,nil,false,i==region) end
    local page=self.party_page or 1;local pages=math.ceil((last-first+1)/9)
@@ -29,7 +29,7 @@ return function(View,UIManager)
    self:button(bb,"Next",396,608,172,42,"camppage",1,nil,page==pages)
   elseif screen=="worldmoves" then
    local id=self.party_move_id or w.partner
-   self:title(bb,"Battle moves","Choose two learned moves. Lessons are at the dojo.")
+   self:title(bb,"Battle moves","Learn at the dojo; equip two moves.")
    for i,member in ipairs(c.party) do self:button(bb,E.name(member),32+(i-1)*182,181,172,42,"campmember",member,nil,false,member==id) end
    local slot=self.move_slot or 1;local r=c.training[tostring(id)] or {learned=3,slots={1,2}}
    for i=1,2 do self:button(bb,"Equip slot "..i,32+(i-1)*274,232,262,40,"campmoveslot",i,nil,false,i==slot) end
@@ -41,14 +41,14 @@ return function(View,UIManager)
    end
    if w.map=="dojo" then self:button(bb,"Practice battle",32,638,262,40,"camppractice",nil,nil,blocked);self:button(bb,"Care training",306,638,262,40,"nav","train") end
   elseif screen=="worldshop" then
-   self:title(bb,"Fern Shop","Berries buy supplies and a place that feels like home.")
+   self:title(bb,"Fern Shop","Supplies, outfits and room decorations.")
    local items={{"Potion / 2 berries / "..c.potions.." packed","potion"},{"Ranger outfit / "..(A.has(c.outfits,1) and "owned" or "5 berries"),1},
     {"Tower outfit / "..(A.has(c.outfits,2) and "owned" or "8 berries"),2},{"Original outfit",0}}
    for i,item in ipairs(items) do self:button(bb,item[1],32,196+(i-1)*83,536,56,"campbuy",item[2],nil,blocked) end
    self:button(bb,"Decorations for your room",32,528,536,54,"nav","decorations")
    self:button(bb,"Use potion / +16 HP",32,605,536,44,"camppotion",nil,nil,blocked or c.potions==0 or w.hp==40 or w.hp==0)
   elseif screen=="worldquests" then
-   self:title(bb,"Town neighbours","Small favours open routes and reward exploration.")
+   self:title(bb,"Town neighbours","Help your neighbours to open new routes.")
    local names={"Mira's lost Pikachu","Theo's cave tracks","Ari's Tower practice"}
    local lines={"Find Pikachu in Fern Woods, then return here.","Inspect Moon Cave's tracks, then report back.","Win a practice battle at the training dojo."}
    for i,name in ipairs(names) do
@@ -70,7 +70,7 @@ return function(View,UIManager)
     self:button(bb,"Start a new run",32,594,536,58,"camptower",nil,nil,blocked or #c.party~=3)
    end
   elseif screen=="worldswitch" then
-   self:title(bb,"Switch Pokemon","Switching uses your turn. Read the next attack first.")
+   self:title(bb,"Switch Pokemon","Switching spends a turn.")
    for i,id in ipairs(c.party) do
     local y=208+(i-1)*135;self:sprite(bb,id,42,y,88,1,"idle")
     self:button(bb,E.name(id).." / "..A.hp(w,id).." HP",147,y+17,421,60,"campswitch",id,nil,blocked or id==w.partner or A.hp(w,id)==0)
