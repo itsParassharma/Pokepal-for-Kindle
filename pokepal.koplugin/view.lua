@@ -56,7 +56,7 @@ end
 function View:stageRegion()
  if self.screen=="entry" then return self:region(120,184,360,280) end
  if self.screen=="battle" then return self:region(32,200,536,215) end
- return self:region(32,180,536,240)
+ return self:region(32,153,536,267)
 end
 function View:animationSpecies() return self.screen=="entry" and self.detail_id or self.screen=="battle" and self.state.world.battle.ally or self.state.species end
 function View:rect(bb,x,y,w,h,color)

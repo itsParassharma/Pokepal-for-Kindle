@@ -622,6 +622,27 @@ else:
 def paint(v,w=600,h=800):
  start(w,h);v.geometry(v);v.paintTo(v,g.bb,0,0);assert not bounds,bounds;return canvas.copy()
 
+# Exercise both real cache paths; normal desktop paints have no buffer cache.
+for host in ('koreader', 'native'):
+ cache={}
+ def save_stage(x,y,w,h):
+  cache['image']=canvas.crop((x,y,x+w,y+h));cache['pos']=(x,y)
+ if host=='native':
+  g.host_stage_save=save_stage;g.host_stage_restore=lambda: canvas.paste(cache['image'],cache['pos'])
+ else:
+  g.bb.copy=lambda *_: lua.table_from({'image':canvas.copy(),'free':lambda *_: None})
+  g.bb.blitFrom=lambda _,source,x,y,sx,sy,w,h: canvas.paste(source.image.crop((sx,sy,sx+w,sy+h)),(x,y))
+ for w,h in ((600,800),(758,1024),(1072,1448),(800,600)):
+  for background in range(1,7):
+   v=g.newView(25);v.state.animation='off';v.state.background=background
+   first=paint(v,w,h);second=paint(v,w,h)
+   assert first.tobytes()==second.tobytes(),(host,background,w,h,'cached repaint changed the home scene')
+   v.onSuspend(v);v.onResume(v);first=paint(v,w,h);second=paint(v,w,h)
+   assert first.tobytes()==second.tobytes(),(host,background,w,h,'cached repaint changed the scene after waking')
+   v.leave(v)
+ g.bb.copy=None;g.bb.blitFrom=None;g.host_stage_save=None;g.host_stage_restore=None
+print('SCENE CACHE: 48 background, size and host combinations preserve full home scenes before and after sleep')
+
 import runpy
 runpy.run_path(str(REPO/'tests'/'world_layouts.py'))['run'](globals())
 
