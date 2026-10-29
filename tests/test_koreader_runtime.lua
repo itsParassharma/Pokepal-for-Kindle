@@ -85,6 +85,10 @@ local function game(p)
  return assert(p.pet_view)
 end
 local function counter(p) return assert(p.reading.counter(p.counterpath))+(p.clock.pending or 0) end
+local function screenBytes()
+ local bb=Device.screen.bb
+ return require('ffi').string(bb.data,bb.stride*bb.h)
+end
 local function suspend()
  Screensaver:setup();Screensaver:show();U:broadcastEvent(Event:new('Suspend'));U:_repaint()
 end
@@ -396,10 +400,11 @@ check('berry recruitment, box controls and badges survive real widget sleep and 
 end)
 
 local cycles,max_sleep=0,0
-for _,context in ipairs({'shelf','book','game','map','battle','tower','benefit'}) do
+for _,context in ipairs({'shelf','book','game','map','battle','tower','benefit','centre','worldparty','worldbox','worldboxsearch','worldboxname','worldmoves','worldshop','worldquests','worldgym','worldbag','worldswitch','worldrevive','resting-battle','resting-result'}) do
 check('sleep/wake works with every preference and unlock mode from '..context,function()
  local reader
  if context=='shelf' then p=shelf() else reader,p=openBook(1,'page') end
+ local behind=U._window_stack[#U._window_stack].widget
  v=game(p)
  clearTrip(p);p.state.animation='off'
  if context=='map' or context=='battle' then v:go('explore') end
@@ -416,7 +421,25 @@ check('sleep/wake works with every preference and unlock mode from '..context,fu
   end
   v:go('explore')
  end
+ if context=='centre' or context:match('^world') or context:match('^resting') then
+  p.engine.act(p.state,'partner',25,now);v:go('explore')
+  local w=p.state.world;local A=p.engine.world.town
+  w.map='centre';w.camp.badges=7;p.state.berries=50
+  for slot,id in ipairs({7,1,133,252,255}) do
+   p.state.seen[tostring(id)]=true;w.camp.box[tostring(id)]=true;assert(A.party(p.state,p.engine,slot+1,id))
+  end
+  w.camp.potions=1;w.camp.revives=1
+  if context=='worldswitch' or context:match('^resting') then
+   w.map='meadow';w.x=3;w.y=3;assert(p.engine.world.startBattle(p.state,1))
+   if context=='resting-result' then w.battle.hp=1;assert(p.engine.world.turn(p.state,p.engine,1,now)) end
+   if context:match('^resting') then p.engine.act(p.state,'rest',nil,now) end
+  elseif context=='worldrevive' then w.camp.health['7']=0
+  else w.map=({worldmoves='dojo',worldshop='shop',worldquests='town',worldgym='gym'})[context] or 'centre' end
+  v:go(context=='centre' and 'explore' or context:match('^resting') and 'battle' or context)
+  v.box_id=7;v.box_text='My Squirtle';v.box_query='squirtle';v.box_type=4;v.box_favourites=false
+ end
  if context=='shelf' or context=='book' then v:leave();v=nil end
+ local reading=counter(p)
  for _,prefs in ipairs({{false,false},{true,false},{false,true},{true,true}}) do
   p.state.companion.prefs.auto_rest=prefs[1];p.state.companion.prefs.sleep_screen=prefs[2];assert(p:save())
   for _,rotation in ipairs({0,1}) do
@@ -426,6 +449,7 @@ check('sleep/wake works with every preference and unlock mode from '..context,fu
     G_reader_settings:saveSetting('screensaver_type','random_image')
     G_reader_settings:saveSetting('screensaver_delay',delay)
     local world=p.state.world and p.engine.companion.encode(p.state.world)
+    local screen=v and v.screen;local input=v and v.box_text
     local start=time.now();suspend();max_sleep=math.max(max_sleep,time.to_ms(time.since(start)))
     resume(delay=='gesture' and 0 or nil);cycles=cycles+1
     assert(not Device.screen_saver_lock and not p.suspended and not p.reading_error)
@@ -434,12 +458,23 @@ check('sleep/wake works with every preference and unlock mode from '..context,fu
     if reader then assert(p.view==reader.view,'PokePal replaced KOReader\'s book view') end
     if v then
      assert(not v.suspended and v.dimen.w==Device.screen:getWidth() and v.dimen.h==Device.screen:getHeight())
+     assert(v.screen==screen and v.box_text==input,'sleep lost the menu or unfinished text')
+     assert(counter(p)==reading and not p.clock.since,'playing or sleeping counted as reading')
+     assert(U._window_stack[#U._window_stack].widget==v,'a sleep overlay remained above the game')
+     local actual=screenBytes()
      v:paintTo(Device.screen.bb,0,0)
+     assert(actual==screenBytes(),'wake left stale pixels on '..context)
     end
    end
   end
  end
- if v then v:leave() end
+ if v then
+  local late=v.tick;v:leave();pump();late();pump()
+  assert(not p.pet_view and not p.session and not p.reading_busy and not v.world_tick and next(v.images)==nil)
+  assert(U._window_stack[#U._window_stack].widget==behind,'a game window survived closing')
+  local actual=screenBytes();U:setDirty(p.ui,'full');pump()
+  assert(actual==screenBytes(),'game pixels remained over the reader after closing '..context)
+ end
 end)
 end
 print(string.format('SLEEP MATRIX: %d real KOReader cycles; slowest desktop sleep preparation %.1f ms',cycles,max_sleep))

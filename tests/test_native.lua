@@ -73,6 +73,13 @@ tap('nav','worldparty');tap('nav','worldtower');tap('campbenefit',1)
 assert(s.world.battle.floor==2 and s.world.battle.foe==E.world.town.towerFoe(s.world.camp.tower.run,2))
 tap('battleflee');tap('battlefinish');tap('nav','home')
 print('NATIVE TOWER: party selection, turn-cost switching, save reload and sleep passed')
+for _,screen in ipairs({'worldparty','worldbox','worldboxsearch','worldboxname','worldmoves','worldshop','worldquests','worldgym','worldbag','worldrevive'}) do
+ v:go(screen);v.box_text='My partner';app_paint()
+ local world=E.companion.encode(s.world);v:onSuspend();v:onResume();app_paint()
+ assert(v.screen==screen and v.box_text=='My partner' and E.companion.encode(s.world)==world and #app.ui.queue==0)
+ local dirty=app_tick();assert(not dirty,'an idle town menu kept repainting')
+end
+print('NATIVE MENUS: ten town and box screens survive sleep without changing the party or scheduling idle repaints')
 BASE='game';TESTDIR=os.tmpname();os.remove(TESTDIR);assert(host_fs('mkdir',TESTDIR))
 dofile('../../../tests/test_reading.lua')
 dofile('../../../tests/test_gen3.lua')

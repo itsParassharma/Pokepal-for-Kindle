@@ -82,7 +82,7 @@ return function(View,UIManager)
     self:paintPartyCards(bb,false,true)
     self:text(bb,"First: "..E.name(nextfoe.id).." / "..E.species[nextfoe.id].types,32,598,17,536,true)
     self:text(bb,"Teams match your party size. Entry: 3 berries.",32,626,16,536)
-    self:button(bb,(A.has(c.badges,3) and "Start / 3 berries" or "Earn the Stone Badge"),32,657,536,38,"camptower",nil,nil,blocked or not A.has(c.badges,3) or self.state.berries<3)
+    self:button(bb,(A.has(c.badges,3) and "Start / 3 berries" or "Earn the Stone Badge"),32,650,536,38,"camptower",nil,nil,blocked or not A.has(c.badges,3) or self.state.berries<3)
    end
   elseif screen=="worldswitch" or screen=="worldrevive" then
    local revive=screen=="worldrevive"
@@ -98,7 +98,7 @@ return function(View,UIManager)
     self:text(bb,detail or "",130,y+49,15,438)
    end
   end
-  if self.world_message then self:wrapped(bb,self.world_message,700,13) end
+  if self.world_message then self:wrapped(bb,self.world_message,687,13) end
   if blocked then self:button(bb,"Retry save",32,733,536,36,"worldretry")
   else
    local towerparty=screen=="worldparty" and c.tower and c.tower.choice

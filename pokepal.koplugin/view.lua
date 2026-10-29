@@ -175,6 +175,7 @@ function View:animate(effect,previous)
  UIManager:scheduleIn(self.interval,self.tick)
 end
 function View:go(screen)
+ self.world_message=nil
  self:stopAnimation();self:freeImages();self.screen=screen;self.page=1;self.hatched=nil;self.world_follow=nil;UIManager:setDirty(self,"ui")
  if screen=="worldmoves" then self.party_move_id=nil;self.move_slot=1 end
  if screen=="explore" and self.state.species~=0 then

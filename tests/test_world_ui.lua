@@ -208,5 +208,30 @@ test('a failed recruitment save blocks duplicate charges until retry',function()
  v.owner.save=function(owner) owner.save_error=nil;return save(owner) end
  tapButton(v,'worldretry');tapButton(v,'campaddrecruit');assert(#w.camp.party==2);v:leave()
 end)
+test('town messages stay on the screen that produced them',function()
+ local v=view();local w=v.state.world
+ tapButton(v,'worldtile',1);assert(v.world_message)
+ tapButton(v,'nav','worldparty');assert(not v.world_message)
+ v:go('worldquests');w.camp.quests=63;tapButton(v,'campquest',1);assert(v.world_message:find('Mira:'))
+ tapButton(v,'nav','explore');assert(not v.world_message)
+ tapButton(v,'worldtile',25);w.hp=1;tapButton(v,'worldtile',39)
+ assert(w.hp==40 and v.world_message:find('rested'),'navigation discarded the healing message')
+ v:leave()
+end)
+
+test('resting partners have a working way home from active and finished battles',function()
+ for _,finished in ipairs({false,true}) do
+  local v=view();encounter(v);local w=v.state.world
+  if finished then w.battle.hp=1;tapButton(v,'battleturn',1);assert(w.battle.status=='won') end
+  v:go('home');tapButton(v,'rest');tapButton(v,'nav','explore');assert(v.screen=='battle')
+  local saved=E.companion.encode(w);v:paintTo(bb,0,0)
+  for _,b in ipairs(v.buttons) do assert(b.action~='battleturn' and b.arg~='worldswitch' and b.arg~='worldbag') end
+  tapButton(v,'nav','home');tapButton(v,'rest');tapButton(v,'nav','explore')
+  assert(not v.state.resting and E.companion.encode(w)==saved)
+  if finished then tapButton(v,'battlefinish');assert(v.screen=='explore') else tapButton(v,'battleturn',1);assert(w.battle.turn==2) end
+  v:leave()
+ end
+end)
+
 print('WORLD UI: '..checks..' movement, lifecycle, save failure and touch checks passed')
 os.time=original_time

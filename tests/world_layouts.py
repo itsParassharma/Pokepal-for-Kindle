@@ -2,6 +2,15 @@
 def run(c):
     g, paint, out = c['g'], c['paint'], c['OUT']
     count = 0
+    def controls_fit(v, scenario):
+        for button in v.buttons.values():
+            r = v.region(v, button.x, button.y, button.w, button.h)
+            labels = []
+            for text, x, y, right, bottom in c['painted_ink']:
+                if max(x, r.x) < min(right, r.x+r.w) and max(y, r.y) < min(bottom, r.y+r.h):
+                    assert x >= r.x and right <= r.x+r.w and y >= r.y and bottom <= r.y+r.h, (scenario, 'text crosses a control', text, button.action, button.arg)
+                    labels.append(text)
+            assert len(labels) <= (2 if button.action == 'battleturn' else 1), (scenario, 'overlapping labels', labels)
     for width, height in [(600, 800), (758, 1024), (1072, 1448), (800, 600)]:
         for large in (False, True):
             for dpi in (160, 300):
@@ -12,8 +21,9 @@ def run(c):
                 if large:
                     g.E.act(v.state, 'preference', 'large_text', int(v.state.last))
                     g.E.act(v.state, 'preference', 'high_contrast', int(v.state.last))
-                for name in ('town', 'meadow', 'centre', 'woods', 'coast', 'cave', 'dojo', 'shop', 'tower', 'gym', 'worldhelp', 'expeditions', 'battle', 'win', 'loss', 'save-error'):
+                for name in ('town', 'meadow', 'centre', 'woods', 'coast', 'cave', 'dojo', 'shop', 'tower', 'gym', 'worldhelp', 'expeditions', 'battle', 'win', 'loss', 'save-error', 'resting-battle', 'resting-win'):
                     w = v.state.world
+                    v.state.resting = False
                     w.battle = None
                     w.hp = 40
                     v.world_follow = None
@@ -27,7 +37,7 @@ def run(c):
                         w.map, w.x, w.y = 'meadow', 3, 3
                         assert g.E.world.startBattle(v.state, 1)
                         v.go(v, 'battle')
-                        if name == 'win':
+                        if name in ('win', 'resting-win'):
                             w.battle.hp = 1
                             g.E.world.turn(v.state, g.E, 1, int(v.state.last))
                         elif name == 'loss':
@@ -35,8 +45,11 @@ def run(c):
                             g.E.world.turn(v.state, g.E, 2, int(v.state.last))
                         elif name == 'save-error':
                             v.world_save_failed = True
+                        if name.startswith('resting-'):
+                            v.state.resting = True
                     image = paint(v, width, height)
                     assert not c['truncated'], (name, width, large, dpi, c['truncated'])
+                    controls_fit(v, (name, width, large, dpi))
                     for button in v.buttons.values():
                         assert button.x >= 0 and button.y >= 0
                         assert button.x + button.w <= 600 and button.y + button.h <= 800
@@ -44,7 +57,7 @@ def run(c):
                         image.save(out / f'world-{name}.png')
                     count += 1
                 v.leave(v)
-                for name in ('worldparty', 'party-overview', 'worldchoose', 'worldboxdetail', 'worldboxsearch', 'worldboxname', 'worldgym', 'worldbag', 'worldrevive', 'worldmoves', 'worldshop', 'worldquests', 'quests-return', 'quests-complete', 'worldtower', 'worldswitch', 'tower-benefits', 'tower-boss-preview'):
+                for name in ('worldparty', 'party-overview', 'worldchoose', 'worldboxdetail', 'worldboxsearch', 'worldboxname', 'worldgym', 'worldbag', 'worldrevive', 'worldmoves', 'worldshop', 'worldquests', 'quests-return', 'quests-complete', 'quest-message', 'worldtower', 'worldswitch', 'tower-benefits', 'tower-boss-preview'):
                     v = g.newView(25)
                     v.state.animation = 'off'
                     v.go(v, 'explore')
@@ -79,15 +92,19 @@ def run(c):
                         w.camp.health['7'] = 1
                     if name == 'party-overview':
                         w.hp, w.camp.health['7'] = 23, 0
-                    if name in ('quests-return', 'quests-complete'):
+                    if name in ('quests-return', 'quests-complete', 'quest-message'):
                         w.camp.quests = 21 if name == 'quests-return' else 63
-                    screen = {'party-overview':'worldparty', 'quests-return':'worldquests', 'quests-complete':'worldquests', 'tower-benefits':'worldtower', 'tower-boss-preview':'worldtower'}.get(name, name)
+                    screen = {'party-overview':'worldparty', 'quests-return':'worldquests', 'quests-complete':'worldquests', 'quest-message':'worldquests', 'tower-benefits':'worldtower', 'tower-boss-preview':'worldtower'}.get(name, name)
                     v.go(v, screen)
+                    if name == 'quest-message':
+                        w.map = 'town'
+                        v.townTap(v, 'campquest', 1)
                     image = paint(v, width, height)
                     assert not c['truncated'], (name, width, large, dpi, c['truncated'])
+                    controls_fit(v, (name, width, large, dpi))
                     if width == 600 and not large and dpi == 160:
                         image.save(out / f'world-{name}.png')
                     count += 1
                     v.leave(v)
     g.D.dpi = None
-    print(f'WORLD LAYOUTS: {count} map, battle, result and error screens fit sizes, DPI and larger text')
+    print(f'WORLD LAYOUTS: {count} map, battle, result and error screens fit sizes, DPI and larger text without overlapping controls')

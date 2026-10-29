@@ -158,6 +158,12 @@ return function(View,UIManager,BB,Device)
   self:paintBattleStage(bb)
   self:outline(bb,32,419,536,90)
   for i,line in ipairs(b.log) do self:text(bb,line,44,425+(i-1)*21,15,512) end
+  if self.state.resting then
+   self:wrapped(bb,"Your partner is resting. Wake it at home to continue this encounter.",535,19)
+   self:button(bb,"Wake at home",32,634,536,48,"nav","home")
+   if self.world_save_failed or self.owner.save_error then self:button(bb,"Retry save",32,717,536,44,"worldretry") end
+   return
+  end
   local blocked=self.world_save_failed or self.owner.save_error or self.state.resting or w.hp==0
   if b.status=="active" then
    for slot=1,2 do
@@ -185,8 +191,7 @@ return function(View,UIManager,BB,Device)
    end
    if not self.world_save_failed and not self.owner.save_error then self:button(bb,"Continue",32,717,536,44,"battlefinish",nil,nil,self.world_save_failed or self.owner.save_error or self.state.resting) end
   end
-  if self.world_save_failed or self.owner.save_error then self:button(bb,"Retry save",32,717,536,44,"worldretry")
-  elseif self.state.resting then self:text(bb,"Pause, then wake your partner at home.",32,692,16,536,false,true) end
+  if self.world_save_failed or self.owner.save_error then self:button(bb,"Retry save",32,717,536,44,"worldretry") end
  end
  function View:worldTap(action,arg)
   if self:townTap(action,arg) then return true end

@@ -48,7 +48,7 @@ def read_sprite(name):
  assert len(data)==length
  return Image.open(io.BytesIO(data))
 
-canvas=None;draw=None;bounds=[];truncated=[];painted_text=[];painted_sprites=[];painted_text_boxes=[]
+canvas=None;draw=None;bounds=[];truncated=[];painted_text=[];painted_sprites=[];painted_text_boxes=[];painted_ink=[]
 def font(size,bold=False):
  choices=(['C:/Windows/Fonts/arialbd.ttf','/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'] if bold
           else ['C:/Windows/Fonts/arial.ttf','/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'])
@@ -73,6 +73,8 @@ def render_text(t,x,y,sz,bold,maxw):
  painted_text.append(t)
  t,f=get_text(t,sz,bold,maxw)
  painted_text_boxes.append((t,x,y,round(draw.textlength(t,font=f)),sum(f.getmetrics()),sz))
+ left,top,right,bottom=f.getbbox(t,anchor='la')
+ painted_ink.append((t,round(x)+left,round(y)+top,round(x)+right,round(y)+bottom))
  draw.text((round(x),round(y)),t,font=f,fill=0,anchor='la')
 def rect(x,y,w,h,col):
  x,y,w,h=map(round,(x,y,w,h))
@@ -187,8 +189,8 @@ function tapButton(view,action,arg)
 end
 ''')
 def start(w=600,h=800):
- global canvas,draw,bounds,truncated,painted_text,painted_sprites,painted_text_boxes
- canvas=Image.new('L',(w,h),255);draw=ImageDraw.Draw(canvas);bounds=[];truncated=[];painted_text=[];painted_sprites=[];painted_text_boxes=[]
+ global canvas,draw,bounds,truncated,painted_text,painted_sprites,painted_text_boxes,painted_ink
+ canvas=Image.new('L',(w,h),255);draw=ImageDraw.Draw(canvas);bounds=[];truncated=[];painted_text=[];painted_sprites=[];painted_text_boxes=[];painted_ink=[]
  g.D.w=w;g.D.h=h
 start()
 lua.execute((REPO/'tests'/'test_reader_lifecycle.lua').read_text())

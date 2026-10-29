@@ -7,8 +7,7 @@ local function keys(t,allowed)
  return true
 end
 function A.has(mask,bit) return math.floor(mask/2^(bit-1))%2==1 end
-function A.set(mask,bit) dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/collection.lua")(A)
-return A.has(mask,bit) and mask or mask+2^(bit-1) end
+function A.set(mask,bit) return A.has(mask,bit) and mask or mask+2^(bit-1) end
 function A.init(s)
  local w=s.world
  if w.camp then return false end
