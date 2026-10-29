@@ -193,6 +193,7 @@ def start(w=600,h=800):
  canvas=Image.new('L',(w,h),255);draw=ImageDraw.Draw(canvas);bounds=[];truncated=[];painted_text=[];painted_sprites=[];painted_text_boxes=[];painted_ink=[]
  g.D.w=w;g.D.h=h
 start()
+lua.execute((REPO/'tests'/'test_bookshelf.lua').read_text())
 lua.execute((REPO/'tests'/'test_reader_lifecycle.lua').read_text())
 lua.execute((REPO/'tests'/'test_koreader_ui.lua').read_text())
 lua.execute(r'''
