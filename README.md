@@ -1,6 +1,6 @@
 # PokePal for Kindle
 
-A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
+A Tamagotchi-style Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 ![PokePal](docs/kindle-preview.png)
 
@@ -10,8 +10,6 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 - Choose any of the 386 Pokémon from Kanto, Johto and Hoenn, with 11 quick starters.
 - Feed, play, train, rest and clean. Collect daily berries, give your partner a nickname and watch it react to its mood.
-- Explore Fern Town and four wild areas, recruit Pokémon with berries.
-- Earn Gym badges and take on trainers.
 - Earn berries and XP, hatch eggs and reach weekly goals as you read.
 - Explore three different trails, find Pokémon and choose what happens on the way home.
 - Help your partner evolve by building XP and bond.
@@ -19,6 +17,8 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 - Search your journal, save favourites and find friends ready to evolve. Earn 14 badges.
 - Turn the screen off and let your Pokémon rest. KOReader can show your partner curled up beside its egg on the sleep screen.
 - Choose larger text, stronger contrast or a small reading footer in settings.
+- Explore Fern Town and four wild areas, recruit Pokémon with berries.
+- Earn Gym badges and take on trainers.
 - Everything works offline.
 
 More:
@@ -29,13 +29,13 @@ See [what changed in 1.1.0](docs/release-v1.1.0.md).
 
 ## Screenshots
 
-| Fern Town | Turn-based battles |
+| Feed your partner | Keep the nest clean |
 | --- | --- |
-| ![Explore Fern Town](docs/explore-town.png) | ![Choose a move in a Gym battle](docs/explore-battle.png) |
+| ![Feed Charmander a berry](docs/care-feeding.png) | ![Clean Pikachu's nest](docs/care-cleaning.png) |
 
-| Pokémon Centre | PC box and party |
+| Play together | A walk through Fern Town |
 | --- | --- |
-| ![Heal and visit the PC at the Pokémon Centre](docs/explore-centre.png) | ![Search and manage your Pokémon collection](docs/explore-box.png) |
+| ![Play the berry memory game with Eevee](docs/care-playing.png) | ![Explore Fern Town](docs/explore-town.png) |
 
 ## Install with KOReader
 
@@ -62,8 +62,6 @@ You need a jailbroken touchscreen Kindle with KUAL installed. KOReader is not re
 ## Saves
 
 Both editions share your save. Use **More > Backups** to save or restore, and copy the `pokepal` folder to your computer before updating.
-
-Opening Explore upgrades the save to version 8. Update both editions if you use both; 1.0.9 cannot read the upgraded save. Keep your backup if you plan to return to an older release.
 
 [Save help](pokepal.koplugin/INSTALL.txt) · [Build and device notes](native/README.md) · [Credits](pokepal.koplugin/CREDITS.txt)
 
