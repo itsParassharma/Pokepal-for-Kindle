@@ -31,11 +31,11 @@ See [what changed in 1.1.0](docs/release-v1.1.0.md).
 
 | Feed your partner | Keep the nest clean |
 | --- | --- |
-| ![Feed Squirtle a berry](docs/care-feeding.png) | ![Clean Pikachu's nest](docs/care-cleaning.png) |
+| ![Feed Squirtle a berry](docs/care-feeding-squirtle.png) | ![Clean Pikachu's nest](docs/care-cleaning.png) |
 
 | Rest while you read | A walk through Fern Town |
 | --- | --- |
-| ![Eevee sleeping while you read](docs/care-resting.png) | ![Explore Fern Town](docs/explore-town.png) |
+| ![Eevee sleeping while you read](docs/care-resting.png) | ![Explore Fern Town](docs/explore-town-preview.png) |
 
 ## Install with KOReader
 
@@ -45,13 +45,16 @@ You need KOReader installed on your Kindle.
 2. Copy the `koreader` folder onto the Kindle drive. Merge it with the existing folder.
 3. Restart KOReader. Choose **Open PokePal** in the welcome, or open **Tools > PokePal**.
 
-You can assign **Open PokePal** to a gesture or QuickMenu. Hold **PokePal** in Tools for help, or read the [shortcut guide](docs/koreader-shortcuts.md).
-
 ---
 
-With [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin) 6.0 or later, your partner can sit on the KOReader home screen. Add **PokePal** in the layout editor and tap it to play. Thanks to [AndyHazz](https://github.com/AndyHazz) for the module.
+With [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin), your partner can sit on the KOReader home screen. Add **PokePal** in the layout editor and tap it to play.
 
-<a href="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd"><img src="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd" alt="Charizard on the Bookshelf home screen" width="300"></a>
+<a href="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd"><img src="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd" alt="Charizard on the Bookshelf home screen" width="300"></a><br>
+<sub>Credit: <a href="https://github.com/AndyHazz">AndyHazz</a></sub>
+
+### KOReader shortcuts
+
+You can assign **Open PokePal** to a gesture or QuickMenu. Hold **PokePal** in Tools for help, or read the [shortcut guide](docs/koreader-shortcuts.md).
 
 ## Install with KUAL
 
