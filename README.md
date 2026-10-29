@@ -31,11 +31,11 @@ See [what changed in 1.1.0](docs/release-v1.1.0.md).
 
 | Feed your partner | Keep the nest clean |
 | --- | --- |
-| ![Feed Squirtle a berry](docs/care-feeding-squirtle.png) | ![Clean Pikachu's nest](docs/care-cleaning.png) |
+| <img src="docs/care-feeding-squirtle.png" alt="Feed Squirtle a berry" width="400"> | <img src="docs/care-cleaning.png" alt="Clean Pikachu's nest" width="400"> |
 
 | Rest while you read | A walk through Fern Town |
 | --- | --- |
-| ![Eevee sleeping while you read](docs/care-resting.png) | ![Explore Fern Town](docs/explore-town-preview.png) |
+| <img src="docs/care-resting.png" alt="Eevee sleeping while you read" width="400"> | <img src="docs/explore-town-preview.png" alt="Explore Fern Town" width="400"> |
 
 ## Install with KOReader
 
