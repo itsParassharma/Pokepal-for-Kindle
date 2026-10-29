@@ -51,6 +51,8 @@ You can assign **Open PokePal** to a gesture or QuickMenu. Hold **PokePal** in T
 
 With [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin) 6.0 or later, your partner can sit on the KOReader home screen. Add **PokePal** in the layout editor and tap it to play. Thanks to [AndyHazz](https://github.com/AndyHazz) for the module.
 
+<a href="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd"><img src="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd" alt="Charizard on the Bookshelf home screen" width="300"></a>
+
 ## Install with KUAL
 
 You need a jailbroken touchscreen Kindle with KUAL installed. KOReader is not required.
