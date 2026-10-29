@@ -4,9 +4,9 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 ![PokePal](docs/kindle-preview.png)
 
-[Download 1.0.9](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/tag/v1.0.9) · [Watch the trailer](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/download/v1.0.9/PokePal-trailer.mp4)
+[Download 1.1.0](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/tag/v1.1.0) · [Watch the care demo](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/download/v1.0.9/PokePal-trailer.mp4)
 
-This branch adds [Fern Town and Explore](docs/explore-prototype.md): a saved Pokémon box, a party of up to six, berry recruitment and supplies, Gym badges, four outdoor areas and a six-battle Tower run. All 386 Pokémon have directional walking frames. These features are not included in the 1.0.9 download.
+[Fern Town and Explore](docs/explore-prototype.md) add a saved Pokémon box, a party of up to six, berry recruitment and supplies, Gym badges, four outdoor areas and a six-battle Tower run. All 386 Pokémon have directional walking frames.
 
 Maps and trainers now use Crystal artwork. Battles show front and back sprites, and trainer teams change with each fight. Your chosen party stays the same. Hoenn battle sprites come from Emerald, converted to the same four shades.
 
@@ -30,13 +30,13 @@ More:
 [Reading rewards guide](docs/reading-rewards.md)
 [Sleep screen setup](docs/companion-update.md#sleep-screen).
 
-See [what changed in 1.0.9](docs/release-v1.0.9.md).
+See [what changed in 1.1.0](docs/release-v1.1.0.md).
 
 ## Install with KUAL
 
 You need a jailbroken touchscreen Kindle with KUAL installed. KOReader is not required.
 
-1. Download and unzip **PokePal-v1.0.9-kual.zip**.
+1. Download and unzip **PokePal-v1.1.0-kual.zip**.
 2. Connect your Kindle by USB. Copy the `extensions` folder onto the Kindle drive, next to `documents`. Merge folders if asked.
 3. Eject your Kindle, then open **KUAL > PokePal > Play PokePal**.
 
@@ -44,7 +44,7 @@ You need a jailbroken touchscreen Kindle with KUAL installed. KOReader is not re
 
 You need KOReader installed on your Kindle.
 
-1. Download and unzip **PokePal-v1.0.9-koreader.zip**.
+1. Download and unzip **PokePal-v1.1.0-koreader.zip**.
 2. Copy the `koreader` folder onto the Kindle drive. Merge it with the existing folder.
 3. Restart KOReader. Choose **Open PokePal** in the welcome, or open **Tools > PokePal**.
 
@@ -55,6 +55,8 @@ You can assign **Open PokePal** to a gesture or QuickMenu. Hold **PokePal** in T
 ## Saves
 
 Both editions share your save. Use **More > Backups** to save or restore, and copy the `pokepal` folder to your computer before updating.
+
+Opening Explore upgrades the save to version 8. Update both editions if you use both; 1.0.9 cannot read the upgraded save. Keep your backup if you plan to return to an older release.
 
 [Save help](pokepal.koplugin/INSTALL.txt) · [Build and device notes](native/README.md) · [Credits](pokepal.koplugin/CREDITS.txt)
 
