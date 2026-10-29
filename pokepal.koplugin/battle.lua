@@ -23,12 +23,12 @@ end
 function B.opponent(b) return b.team and b.team[b.opponent] or b.wildid or B.foes[b.foe].id end
 function B.validTeam(team,E,count)
  if type(team)~="table" or #team~=count then return false end
- local seen={}
+ local seen={};local size=0
  for k,id in pairs(team) do
   if type(k)~="number" or k%1~=0 or k<1 or k>count or type(id)~="number" or not E.species[id] or seen[id] then return false end
-  seen[id]=true
+  seen[id]=true;size=size+1
  end
- return true
+ return size==count
 end
 B.foes={
  {id=10,hp=24,power=5,type="Normal",pattern={"charge","attack","guard","attack"}},

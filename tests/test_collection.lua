@@ -157,4 +157,11 @@ test('home changes require ownership, while eggs and evolution join the box',fun
  E.act(s,'hatch',nil,now);assert(not s.egg and w.camp.box['1'])
  assert(E.companion.encode(w.camp.party)==party);reload(s)
 end)
+test('holes inside a saved six-member roster cannot pass Lua length checks',function()
+ local s=pet();s.world.map='centre'
+ for i,id in ipairs({7,1,133,252,255}) do own(s,id);assert(A.party(s,E,i+1,id)) end
+ reload(s);s.world.camp.party[3]=nil;assert(not E.valid(s))
+ local team={25,7,1,133,252,255};assert(B.validTeam(team,E,6))
+ team[3]=nil;assert(not B.validTeam(team,E,6))
+end)
 print('COLLECTION: '..checks..' party, recruitment, berry, badge and migration checks passed')

@@ -189,13 +189,13 @@ function A.valid(c,s,E)
  if type(c.party)~="table" or #c.party<1 or #c.party>(s.version>=8 and 6 or 3) or type(c.health)~="table" or type(c.training)~="table" then return false end
  if s.version<8 and (c.box~=nil or c.badges~=nil or c.revives~=nil or c.wild~=nil) then return false end
  if s.version>=8 and not A.validCollection(c,s,E) then return false end
- local members={}
+ local members={};local size=0
  for k,id in pairs(c.party) do
   if not int(k,1,#c.party) or not int(id,1,E.species_count) or members[id] or not s.seen[tostring(id)] then return false end
   if s.version>=8 and not c.box[tostring(id)] then return false end
-  members[id]=true
+  members[id]=true;size=size+1
  end
- if not members[s.world.partner] then return false end
+ if size~=#c.party or not members[s.world.partner] then return false end
  for id,hp in pairs(c.health) do if type(id)~="string" or not E.species[tonumber(id)] or tostring(tonumber(id))~=id or not s.seen[id] or not int(hp,0,40) then return false end end
  for id,r in pairs(c.training) do
   if type(id)~="string" or not E.species[tonumber(id)] or tostring(tonumber(id))~=id or not s.seen[id] or not keys(r,{learned=true,slots=true}) or not int(r.learned,3,15) or r.learned%4~=3 then return false end
