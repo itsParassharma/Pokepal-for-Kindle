@@ -4,11 +4,12 @@ Explore opens where you last stopped. Fern Town is your base; its north path lea
 
 | Place | What you can do |
 | --- | --- |
-| Pokémon Centre | Heal the whole party for free; speak to the trainer on the left to choose three different Pokémon |
+| Pokémon Centre | Heal the whole party for free; use the PC on the left to manage your box and party |
 | Training dojo | Learn and equip moves, practise a battle, or open the existing care training |
 | Trail board | Start the existing timed or reading expeditions |
-| Shop | Buy potions, choose an outfit and open the decoration shop |
-| Battle Tower | Bring three Pokémon through five trainers and a boss |
+| Shop | Buy potions and revives, choose an outfit and open the decoration shop |
+| Fern Gym | Challenge three themed leaders; badges open routes and town services |
+| Battle Tower | Bring your chosen party through five trainers and a boss; entry costs three berries |
 
 Tap a destination or use the directional pad. Help lets you hide the pad. Each map fits on one screen and changes at an exit. The maps use Crystal tiles and directional trainer sprites. Battles show your Pokemon from behind and the opponent from the front, with HP boxes and party markers. All 386 Pokémon keep separate front, rear, left and right walking frames from the credited SpriteCollab sheets. Movement ends after reaching the destination; standing still schedules no animation.
 
@@ -16,9 +17,9 @@ Tap Party on any map to check each partner's HP and two equipped moves. Fainted 
 
 ## Routes and neighbours
 
-Fern Meadow has Caterpie, Rattata and Geodude. Fern Woods adds Oddish, Hoothoot and a trainer. The Coast has Wingull, Krabby and a beach trainer. Moon Cave has Zubat, Aron and a cave trainer.
+The first wild encounters are Caterpie, Rattata and Geodude in the meadow; Oddish and Hoothoot in the woods; Wingull and Krabby on the Coast; and Zubat and Aron in Moon Cave. After each encounter, that spot draws another Pokémon from its area's pool. All 386 species are reachable across the four areas. Visible encounters stay the same while you approach them and while the battle is saved.
 
-Route trainers bring two different Pokemon, drawn from a pool suited to their area. Dojo partners bring two drawn from all 386. Tower trainers bring three. A new fight rolls a fresh team; your chosen party and equipped moves stay the same. Defeat each opponent before the trainer sends out the next. Rematches can repeat a Pokemon by chance. Only the active fight is kept in the save; there is no matchup history.
+Every trainer brings the same number of Pokémon as your party, from one to six. Route trainers, Gym leaders, the dojo coach and Tower trainers draw from pools suited to their themes. A new fight rolls a fresh team; your chosen party and equipped moves stay the same. Defeat each opponent before the trainer sends out the next. Rematches can repeat a Pokemon by chance. Only the active fight is kept in the save; there is no matchup history. Route trainers and Gym leaders remember your first victory and greet you differently on a rematch.
 
 Speak to the town guide for three small quests:
 
@@ -30,9 +31,43 @@ Defeat the Coast trainer to open Moon Cave. Marked discoveries give a berry once
 
 The town guide shows each task's progress and reward. Once you finish an objective, its status changes to Return. Claiming the reward marks it Completed. Mira's Pikachu leaves the woods when you return it, and you can walk through its old spot.
 
+## Your collection
+
+Explore starts with the one Pokémon you chose. You can choose any of the 386 as your first companion. Party slots stay empty until you add members yourself, up to six.
+
+To befriend a wild Pokémon, lower its HP to half or win the encounter, then offer three berries from the bag or result screen. The offer succeeds without a random failure. Your new friend goes into the box. The result screen lets you add it to an empty party slot; otherwise, it waits for you at the Centre. Opponents owned by trainers cannot be recruited.
+
+The box stores one of each species. Search by species, nickname or number, filter by type, or show favourites. An “In party” marker identifies active members. At the Centre, you can withdraw, deposit or choose a lead. You must keep at least one party member. HP, learned moves, equipped moves, XP, bond and nicknames stay with each Pokémon. Hatched eggs and evolved companions also join the collection. Choosing a care companion at home uses this collection and does not replace your exploration party.
+
+## Berries and badges
+
+Berries pay for adventure supplies and progression. The daily basket, reading rewards and expeditions provide repeatable income. Discoveries, quests and first victories add rewards along the way. Playing never counts as reading time.
+
+| Use | Cost |
+| --- | --- |
+| Befriend a wild Pokémon | 3 berries |
+| Potion, restoring up to 16 HP | 2 berries |
+| Revive, restoring a fainted member to 20 HP | 4 berries; requires Leaf Badge |
+| Protect lesson | 2 berries |
+| Drain strike lesson | 4 berries; requires Tide Badge |
+| Battle Tower entry | 3 berries; requires Stone Badge |
+| Ranger / Tower outfit | 5 / 8 berries |
+
+Room decorations and eggs keep their existing berry prices. Centre healing, box storage, Gym challenges and practice are free, so running out of berries never strands you.
+
+Fern Gym is northeast of the Centre. Beat its leaders in order. Each first victory awards five berries:
+
+| Leader | Theme | Badge | Opens |
+| --- | --- | --- | --- |
+| Lea | Grass | Leaf | Coast and shop revives |
+| Finn | Water | Tide | Moon Cave and advanced lessons |
+| Petra | Rock | Stone | Battle Tower |
+
+The existing quest and Coast-trainer route unlocks still work. Older saves with Tower runs retain access. Gym rematches do not pay the first-victory reward again.
+
 ## Two moves per Pokémon
 
-Choose three Pokémon at the Centre. All 386 are available. Party battle HP is separate from care stats, and switching companions at home does not erase the party's injuries.
+Party battle HP is separate from care stats. Switching companions at home does not erase the party's injuries.
 
 Each partner starts with two learned moves. Pikachu's family has Quick Attack and Thunder Shock; Squirtle's has Water Gun and Withdraw; Bulbasaur's has Vine Whip and Leech Seed. There are 20 more starting pairs:
 
@@ -61,7 +96,7 @@ Each partner starts with two learned moves. Pikachu's family has Quick Attack an
 
 These pairs carry through each evolution. Zubat can interrupt a charge or recover HP. Geodude can break a guard or block an attack before countering. Shroomish can keep draining HP, but has no quick move to interrupt a charge. Pokémon without a family pair use Quick strike and a burst of their primary type.
 
-The dojo teaches Protect and Drain strike for two berries and six energy each. Drain strike becomes available after a wild or practice win. Choose either equipped slot and tap a learned move to replace it. The two slots must contain different moves.
+The dojo teaches Protect for two berries and Drain strike for four. The Tide Badge unlocks Drain strike. These lessons spend berries without using care energy. Choose either equipped slot and tap a learned move to replace it. The two slots must contain different moves.
 
 | Move kind | Effect and opening |
 | --- | --- |
@@ -73,21 +108,21 @@ The dojo teaches Protect and Drain strike for two berries and six energy each. D
 
 The opponent shows whether it is attacking, guarding or charging before you decide. Move buttons tell you when a hit will interrupt that charge, break that guard or fail against an immune opponent. A defensive move shows how much damage you will take. Type advantages and immunities apply. Move effects follow PokePal's rules, including the family pairs and shared dojo moves.
 
-The switch screen shows how much damage each partner will take and the HP they will have after that turn. It includes type immunity, Leech Seed and Tower healing bonuses. Switching uses a turn, including when replacing a fainted partner. A potion costs two berries, restores up to 16 HP and also uses a turn in battle. Potions cannot revive a fainted partner. The Centre heals everyone for free.
+The switch screen shows how much damage each partner will take and the HP they will have after that turn. It includes type immunity, Leech Seed and Tower healing bonuses. Voluntary switching uses a turn. Replacing a fainted partner is free: no enemy attack, seed tick or turn advance occurs during its entrance. A potion costs two berries, restores up to 16 HP and also uses a turn in battle. Potions cannot revive a fainted partner. A revive restores a chosen fainted party member to 20 HP and uses a turn during battle. After your active partner faints, choose a replacement before using the bag. The Centre heals everyone for free.
 
-A first win against each route opponent gives one berry, three XP and one bond to the battling partner, and records the opponent in the journal. Rematches and dojo practice do not pay battle rewards. Losing with the whole party sends you to the Centre. Leaving an encounter gives no reward.
+The first completed encounter at each wild spot gives one berry, three XP and one bond; befriending also counts. A first route-trainer victory gives three berries, three XP and one bond. The opponent is recorded in the journal. Recruiting after a win cannot pay the reward twice. Rematches and dojo practice do not pay battle rewards. Losing with the whole party sends you to the Centre. Leaving an encounter gives no reward.
 
 ## Battle Tower
 
-Choose three different Pokémon before starting. The party begins at full HP. All partners use 40 HP and fixed move power, so care levels do not determine Tower strength.
+Earn the Stone Badge and pay three berries to enter with your current party. The party begins at full HP. All partners use 40 HP and fixed move power, so care levels do not determine Tower strength.
 
-Before a run, the Tower shows all three partners, their equipped moves and the first opponent's type. After a win, you can see the next opponent's type and attack type before choosing a benefit. You can also check the party's remaining HP from that screen.
+Before a run, the Tower shows your party, their equipped moves and the first opponent's type. After a win, you can see the next opponent's type and attack type before choosing a benefit. You can also check the party's remaining HP from that screen.
 
-There are five trainer battles followed by a boss. Each trainer gets a fresh team of three, including the boss. After each of the first five wins, choose one temporary benefit:
+There are five trainer battles followed by a boss. Each trainer gets a fresh team matching your party size, including the boss. After each of the first five wins, choose one temporary benefit:
 
 - Restore 16 HP to the whole party.
 - Improve defensive moves for this run.
-- Restore three HP whenever a partner switches in; repeated choices increase the bonus.
+- Restore three HP after a voluntary switch; repeated choices increase the bonus.
 
 Health carries between battles. Outside supplies are unavailable during a run. A completed run awards a rank, six berries and a Tower outfit. Fleeing or a full-party defeat ends the run without those rewards.
 
@@ -99,11 +134,15 @@ Each turn and benefit choice is saved. Pause, close PokePal or put the Kindle to
 
 ## Updating and testing
 
-Back up the entire `pokepal` folder before trying this branch. Opening Explore upgrades the save to version 7. Version 5 and 6 battles keep their opponent, turn and health until that fight ends. Existing town positions move to the central path only if a new building covers them. Older builds cannot read version 7; update both editions, or restore your backup before returning to 1.0.9.
+Back up the entire `pokepal` folder before trying this branch. Opening Explore upgrades the save to version 8. Version 5, 6 and 7 battles keep their opponent, turn and health until that fight ends. Existing town positions move to the central path only if a new building covers them. Migration adds your party and previously chosen companions to the box without changing the party. Encountered-only journal entries do not grant ownership. Older builds cannot read version 8; update both editions, or restore your backup before returning to 1.0.9.
 
 Family move pairs update with this build. Learned dojo moves and equipped slot choices stay saved.
 
 The game code is shared by KUAL and KOReader. Tests cover route navigation, party health, move learning, reward duplication, Tower reloads, failed saves, sleep, touch controls and larger text. The screenshots below come from the desktop test renderer. Physical Kindle refresh speed and touch response still need a device test.
+
+| Box | Gym |
+| --- | --- |
+| ![Pokemon box](explore-box.png) | ![Gym leaders](explore-gym.png) |
 
 | Town | Party |
 | --- | --- |

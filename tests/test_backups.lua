@@ -115,6 +115,7 @@ test('a backup restores a battle turn, map and reading counter together',functio
 end)
 test('a Tower backup restores the party, learned moves, benefits and turn together',function()
  local s,b,p=fixture();local W=E.world;local A=W.town;W.enter(s)
+ for _,id in ipairs({1,7}) do s.seen[tostring(id)]=true;s.world.camp.box[tostring(id)]=true end;s.world.camp.badges=7
  s.world.map='centre';assert(A.party(s,E,2,7));assert(A.party(s,E,3,1))
  s.world.map='dojo';assert(A.learn(s,E,s.world.partner,3));assert(A.equip(s,s.world.partner,2,3))
  s.world.map='tower';assert(A.startTower(s,E));assert(b:create(s))

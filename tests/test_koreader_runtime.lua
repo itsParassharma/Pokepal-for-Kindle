@@ -353,7 +353,8 @@ check('party and Tower widgets preserve turns and exclude playing from reading',
  for _,item in ipairs(v.buttons) do assert(item.action~='campslot') end
  gameTap(v,'nav','explore');assert(p.engine.companion.encode(p.state.world)==overview)
  gameTap(v,'worldtile',25);gameTap(v,'worldtile',37)
- gameTap(v,'campslot',2);gameTap(v,'campchoose',7);gameTap(v,'campslot',3);gameTap(v,'campchoose',1)
+ for _,id in ipairs({1,7}) do p.state.seen[tostring(id)]=true;p.state.world.camp.box[tostring(id)]=true end;p.state.world.camp.badges=7
+ gameTap(v,'campslot',2);gameTap(v,'campdetail',7);gameTap(v,'campwithdraw',7);gameTap(v,'campslot',3);gameTap(v,'campdetail',1);gameTap(v,'campwithdraw',1)
  v:go('explore');gameTap(v,'worldtile',83);gameTap(v,'worldtile',65);gameTap(v,'worldtile',39)
  gameTap(v,'camptower');gameTap(v,'nav','worldswitch')
  local _,forecast=p.engine.world.town.switchPreview(p.state,p.engine,7)
@@ -372,6 +373,28 @@ check('party and Tower widgets preserve turns and exclude playing from reading',
  gameTap(v,'battleflee');gameTap(v,'battlefinish');v:leave()
 end)
 
+check('berry recruitment, box controls and badges survive real widget sleep and reload',function()
+ local reader;reader,p=openBook(1,'page');v=game(p);clearTrip(p)
+ p.state.world=nil;p.engine.act(p.state,'partner',25,now);p.state.animation='off';p.state.berries=20
+ v:go('explore');local w=p.state.world;local A=p.engine.world.town;local before=counter(p)
+ w.camp.box['10']=nil;w.camp.health['10']=nil;w.camp.training['10']=nil
+ gameTap(v,'worldtile',6);gameTap(v,'worldtile',14);w.battle.hp=1
+ gameTap(v,'nav','worldbag');gameTap(v,'camprecruit');assert(w.camp.box['10'] and #w.camp.party==1)
+ local saved=p.engine.companion.encode(w);suspend();resume();assert(p.engine.companion.encode(w)==saved)
+ gameTap(v,'campaddrecruit');gameTap(v,'battlefinish');gameTap(v,'worldtile',83)
+ gameTap(v,'worldtile',25);gameTap(v,'worldtile',37);gameTap(v,'nav','worldbox')
+ gameTap(v,'campsearch');for letter in ('caterpie'):gmatch('.') do gameTap(v,'campkey',letter) end
+ gameTap(v,'camptextsave');gameTap(v,'campdetail',10);gameTap(v,'campfavourite',10)
+ gameTap(v,'campdeposit',10);assert(#w.camp.party==1);gameTap(v,'campwithdraw',10);assert(#w.camp.party==2)
+ v:go('explore');gameTap(v,'worldtile',83);gameTap(v,'worldtile',31);gameTap(v,'worldtile',39)
+ gameTap(v,'campgym',1);assert(#w.battle.team==2);w.battle.team={10,43}
+ while w.battle.status=='active' do w.battle.hp=1;gameTap(v,'battleturn',1) end
+ assert(w.camp.badges==1);gameTap(v,'battlefinish');assert(p:save())
+ saved=p.engine.companion.encode(w);v:leave();reader,p=openBook(1,'page');v=game(p);v:go('explore')
+ assert(p.engine.companion.encode(p.state.world)==saved and p.state.companion.favourites['10'])
+ assert(counter(p)==before);v:leave()
+end)
+
 local cycles,max_sleep=0,0
 for _,context in ipairs({'shelf','book','game','map','battle','tower','benefit'}) do
 check('sleep/wake works with every preference and unlock mode from '..context,function()
@@ -383,6 +406,7 @@ check('sleep/wake works with every preference and unlock mode from '..context,fu
  if context=='battle' then gameTap(v,'worldtile',6);gameTap(v,'worldtile',14);assert(v.screen=='battle') end
  if context=='tower' or context=='benefit' then
   p.engine.act(p.state,'partner',25,now);v:go('explore');local w=p.state.world;local A=p.engine.world.town
+  for _,id in ipairs({1,7}) do p.state.seen[tostring(id)]=true;w.camp.box[tostring(id)]=true end;w.camp.badges=7
   w.map='centre';assert(A.party(p.state,p.engine,2,7));assert(A.party(p.state,p.engine,3,1))
   w.map='tower';assert(A.startTower(p.state,p.engine))
   if context=='benefit' then

@@ -5,7 +5,7 @@ local function test(name,fn) fn();checks=checks+1;print('PASS world UI: '..name)
 local function view(id)
  local v=newView(id or 25);v.state.animation='off'
  v.owner.save=function(owner) assert(E.valid(v.state));owner.saved=(owner.saved or 0)+1;return true end
- v:go('explore');return v
+ v:go('explore');for _,id in ipairs({1,7}) do v.state.seen[tostring(id)]=true;v.state.world.camp.box[tostring(id)]=true end;return v
 end
 local function encounter(v,index)
  tapButton(v,'worldtile',6)
@@ -17,7 +17,7 @@ end
 test('home opens the map and the trail board opens existing expeditions',function()
  local v=newView(25);v.state.animation='off'
  tapButton(v,'nav','explore');assert(v.state.world and v.screen=='explore')
- tapButton(v,'worldtile',31);assert(v.screen=='expeditions')
+ tapButton(v,'worldtile',43);assert(v.screen=='expeditions')
  tapButton(v,'tripmode','reading');assert(v.trip_mode=='reading')
  v:go('home');v:go('reading');tapButton(v,'nav','expeditions');assert(v.screen=='expeditions');v:leave()
 end)
@@ -88,14 +88,14 @@ end)
 test('town menus choose a full party, train, equip and start the Tower through touch',function()
  local v=view();local w=v.state.world
  tapButton(v,'worldtile',25);tapButton(v,'worldtile',37);assert(v.screen=='worldparty')
- tapButton(v,'campslot',2);tapButton(v,'campchoose',7);assert(w.camp.party[2]==7)
- tapButton(v,'campslot',3);tapButton(v,'campchoose',1);assert(w.camp.party[3]==1)
+ tapButton(v,'campslot',2);tapButton(v,'campdetail',7);tapButton(v,'campwithdraw',7);assert(w.camp.party[2]==7)
+ tapButton(v,'campslot',3);tapButton(v,'campdetail',1);tapButton(v,'campwithdraw',1);assert(w.camp.party[3]==1)
  v:go('explore');tapButton(v,'worldtile',83);tapButton(v,'worldtile',57);assert(w.map=='dojo')
  tapButton(v,'worldtile',39);assert(v.screen=='worldmoves')
  tapButton(v,'camplearn',3);tapButton(v,'campmoveslot',2);tapButton(v,'campequip',3)
  assert(w.camp.training['25'].slots[2]==3)
  v:go('explore');tapButton(v,'worldtile',83);tapButton(v,'worldtile',65);tapButton(v,'worldtile',39)
- assert(v.screen=='worldtower');tapButton(v,'camptower');assert(v.screen=='battle' and w.camp.tower.floor==1)
+ w.camp.badges=7;assert(v.screen=='worldtower');tapButton(v,'camptower');assert(v.screen=='battle' and w.camp.tower.floor==1)
  tapButton(v,'nav','worldswitch');tapButton(v,'campswitch',7);assert(v.screen=='battle' and w.partner==7 and w.battle.turn==2)
  v:onSuspend();local saved=S.encode(v.state);v:onResume();assert(S.encode(v.state)==saved)
  v:leave()
@@ -119,9 +119,9 @@ end)
 test('reopening moves after replacing a party member trains the current partner',function()
  local v=view();local w=v.state.world
  tapButton(v,'worldtile',25);tapButton(v,'worldtile',37)
- tapButton(v,'campslot',2);tapButton(v,'campchoose',7)
+ tapButton(v,'campslot',2);tapButton(v,'campdetail',7);tapButton(v,'campwithdraw',7)
  tapButton(v,'nav','worldmoves');tapButton(v,'campmember',7);tapButton(v,'campmoveslot',2)
- v:go('worldparty');tapButton(v,'campslot',2);tapButton(v,'campchoose',1)
+ v:go('worldparty');tapButton(v,'campdetail',7);tapButton(v,'campdeposit',7);v:go('worldparty');tapButton(v,'campslot',2);tapButton(v,'campdetail',1);tapButton(v,'campwithdraw',1)
  v:go('explore');tapButton(v,'worldtile',83);tapButton(v,'worldtile',57);tapButton(v,'worldtile',39)
  tapButton(v,'camplearn',3);tapButton(v,'campequip',3)
  assert(w.camp.training['25'] and w.camp.training['25'].slots[1]==3,'move menu kept a removed party member')
@@ -156,7 +156,7 @@ end)
 test('Tower preparation shows moves and benefits preview the next opponent',function()
  local v=view();local w=v.state.world;local A=E.world.town
  w.map='centre';assert(A.party(v.state,E,2,7) and A.party(v.state,E,3,1))
- w.map='tower';v:go('worldtower');local lines={};local text=v.text
+ w.camp.badges=7;w.map='tower';v:go('worldtower');local lines={};local text=v.text
  v.text=function(self,buffer,line,...) lines[line]=true;return text(self,buffer,line,...) end
  v:paintTo(bb,0,0)
  assert(lines['1. Quick Attack'] and lines['2. Withdraw'] and lines['2. Leech Seed'])
@@ -173,6 +173,40 @@ test('Tower preparation shows moves and benefits preview the next opponent',func
  assert(lines[E.species[nextfoe.id].types..' / attacks with '..nextfoe.type])
  tapButton(v,'nav','worldparty');tapButton(v,'nav','worldtower');tapButton(v,'campbenefit',1)
  assert(w.battle.foe==A.towerFoe(w.camp.tower.run,2) and table.concat(w.battle.team,',')==table.concat(team,','));v:leave()
+end)
+test('recruitment, box search, favourites and party controls work through touch',function()
+ local v=view();local w=v.state.world;encounter(v);w.battle.hp=1
+ tapButton(v,'nav','worldbag');local berries=v.state.berries;tapButton(v,'camprecruit')
+ assert(w.camp.box['10'] and #w.camp.party==1 and v.state.berries==berries-2)
+ tapButton(v,'campaddrecruit');assert(#w.camp.party==2);tapButton(v,'battlefinish')
+ w.map='centre';w.x=6;w.y=6;v:go('worldbox');tapButton(v,'campsearch')
+ for letter in ('caterpie'):gmatch('.') do tapButton(v,'campkey',letter) end
+ tapButton(v,'camptextsave');tapButton(v,'campdetail',10);tapButton(v,'campfavourite',10)
+ assert(v.state.companion.favourites['10']);tapButton(v,'campdeposit',10);assert(#w.camp.party==1)
+ tapButton(v,'nav','worldbox');tapButton(v,'campfavourites');tapButton(v,'campdetail',10)
+ tapButton(v,'campname',10);tapButton(v,'campkey','b');tapButton(v,'campkey','u');tapButton(v,'campkey','g');tapButton(v,'camptextsave')
+ assert(E.displayName(v.state,10)=='bug');tapButton(v,'campwithdraw',10);assert(#w.camp.party==2)
+ tapButton(v,'campdetail',10);tapButton(v,'camplead',10);assert(w.partner==10);v:leave()
+end)
+
+test('the Gym door, badge reward and berry shop unlock use real controls',function()
+ local v=view();local w=v.state.world
+ tapButton(v,'worldtile',31);assert(w.map=='gym');tapButton(v,'worldtile',39);assert(v.screen=='worldgym')
+ tapButton(v,'campgym',1);assert(v.screen=='battle' and #w.battle.team==1)
+ w.battle.team={10};w.battle.hp=1;local berries=v.state.berries;tapButton(v,'battleturn',1)
+ assert(w.camp.badges==1 and v.state.berries==berries+5);tapButton(v,'battlefinish')
+ tapButton(v,'worldtile',83);assert(w.map=='town');tapButton(v,'worldtile',63);tapButton(v,'worldtile',39)
+ assert(v.screen=='worldshop');tapButton(v,'campbuy','revive');assert(w.camp.revives==1);v:leave()
+end)
+
+test('a failed recruitment save blocks duplicate charges until retry',function()
+ local v=view();local w=v.state.world;encounter(v);w.battle.hp=1
+ tapButton(v,'nav','worldbag');local save=v.owner.save
+ v.owner.save=function(owner) owner.save_error=true;return nil,'Disk full' end
+ tapButton(v,'camprecruit');assert(v.world_save_failed);local data=S.encode(v.state)
+ v:townTap('camprecruit');v:townTap('campaddrecruit');assert(S.encode(v.state)==data)
+ v.owner.save=function(owner) owner.save_error=nil;return save(owner) end
+ tapButton(v,'worldretry');tapButton(v,'campaddrecruit');assert(#w.camp.party==2);v:leave()
 end)
 print('WORLD UI: '..checks..' movement, lifecycle, save failure and touch checks passed')
 os.time=original_time

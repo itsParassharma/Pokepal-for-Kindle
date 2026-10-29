@@ -38,6 +38,7 @@ lua.execute((REPO/'tests'/'test_backups.lua').read_text())
 lua.execute((REPO/'tests'/'test_improvements.lua').read_text())
 lua.execute((REPO/'tests'/'test_world.lua').read_text())
 lua.execute((REPO/'tests'/'test_town.lua').read_text())
+lua.execute((REPO/'tests'/'test_collection.lua').read_text())
 
 sprite_index=json.loads((ROOT/'assets/sprite-index.json').read_text())
 def read_sprite(name):

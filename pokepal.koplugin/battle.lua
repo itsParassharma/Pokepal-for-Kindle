@@ -4,6 +4,10 @@ local dir=debug.getinfo(1,"S").source:sub(2):match("^(.*)/")
 local types=dofile(dir.."/battle_types.lua")
 local rng=dofile(dir.."/random.lua")
 local teams={
+ [2]={19,56,66,106,107,115,236,237,287,288,296,307},
+ [21]={1,43,69,102,114,152,187,252,270,285,315,331},
+ [22]={7,54,60,72,79,90,98,116,120,170,183,222,258,278},
+ [23]={74,95,111,138,140,142,185,213,246,299,304,345},
  [6]={10,12,13,14,15,43,46,48,114,165,167,193},
  [9]={7,54,60,72,79,90,98,116,120,170,183,222,258,278},
  [12]={27,50,74,95,104,111,194,213,246,299,304,328},
@@ -16,7 +20,7 @@ function B.rollTeam(s,foe,count)
  end
  return result
 end
-function B.opponent(b) return b.team and b.team[b.opponent] or B.foes[b.foe].id end
+function B.opponent(b) return b.team and b.team[b.opponent] or b.wildid or B.foes[b.foe].id end
 function B.validTeam(team,E,count)
  if type(team)~="table" or #team~=count then return false end
  local seen={}
@@ -48,6 +52,25 @@ B.foes={
  {id=282,hp=36,power=5,type="Psychic",pattern={"charge","attack","guard","attack"}},
  {id=376,hp=36,power=5,type="Steel",pattern={"guard","attack","charge","attack"}},
 }
+B.foes[21]={id=1,hp=30,power=5,type="Grass",pattern={"guard","charge","attack","attack"}}
+B.foes[22]={id=7,hp=34,power=6,type="Water",pattern={"charge","attack","guard","attack"}}
+B.foes[23]={id=74,hp=38,power=7,type="Rock",pattern={"guard","attack","charge","attack"}}
+local wildTypes={meadow="Normal Grass Bug Fairy Flying",woods="Bug Grass Poison Psychic Ghost",
+ coast="Water Flying Electric Dragon",cave="Rock Ground Steel Ghost Dark Ice Fire Fighting"}
+local wildPools={}
+local species=dofile(dir.."/species.lua")
+for foe=13,20 do
+ teams[foe]={}
+ for id,p in ipairs(species) do if p.types:find(B.foes[foe].type,1,true) then teams[foe][#teams[foe]+1]=id end end
+end
+for map,kinds in pairs(wildTypes) do
+ wildPools[map]={}
+ for id,p in ipairs(species) do
+  if kinds:find(p.types:match("^%a+"),1,true) then wildPools[map][#wildPools[map]+1]=id end
+ end
+end
+B.wildPools=wildPools
+function B.rollWild(s,map) local pool=wildPools[map];return pool[rng(s,#pool)] end
 local kits={
  [25]={{name="Quick Attack",kind="quick",type="Normal",power=6},
        {name="Thunder Shock",kind="break",type="Electric",power=8}},
@@ -137,7 +160,7 @@ function B.intentText(E,b)
 end
 function B.incoming(E,b)
  local foe=B.foes[b.foe]
- local kind=b.team and E.species[B.opponent(b)].types:match("^%a+") or foe.type
+ local kind=(b.team or b.wildid) and E.species[B.opponent(b)].types:match("^%a+") or foe.type
  return damage((foe.power+(b.floor or 0))*(b.charged and 2 or 1),B.multiplier(E,kind,b.ally))
 end
 function B.blockedDamage(E,b)
@@ -186,7 +209,7 @@ function B.step(E,b,hp,slot)
  if b.status~="active" or hp<=0 then return hp,false end
  local dealt,move,mult=B.preview(E,b,slot)
  if slot==0 then dealt,move,mult=0,{name="Changed partner",kind="switch",power=0},1 end
- if slot==-1 then dealt,move,mult=0,{name="Used a potion",kind="item",power=0},1 end
+ if slot==-1 then dealt,move,mult=0,{name="Used a berry supply",kind="item",power=0},1 end
  if not move then return hp,false end
  local intent=B.intent(b);local lines={}
  local function say(line) lines[#lines+1]=line end
@@ -234,7 +257,7 @@ function B.step(E,b,hp,slot)
 end
 function B.valid(b,E)
  if type(b)~="table" then return false end
- local allowed={ally=true,foe=true,hp=true,turn=true,charged=true,boost=true,seed=true,status=true,last_move=true,log=true,moves=true,floor=true,defense=true,practice=true,team=true,opponent=true}
+ local allowed={ally=true,foe=true,hp=true,turn=true,charged=true,boost=true,seed=true,status=true,last_move=true,log=true,moves=true,floor=true,defense=true,practice=true,team=true,opponent=true,party_size=true,wildid=true,recruited=true,gym=true}
  for k in pairs(b) do if not allowed[k] then return false end end
  local function int(n,min,max) return type(n)=="number" and n==n and n>=min and n<=max and n%1==0 end
  if not int(b.ally,1,E.species_count) or not int(b.foe,1,#B.foes)
@@ -243,12 +266,17 @@ function B.valid(b,E)
   or not int(b.hp,0,B.maxFoeHP(b)) or not int(b.turn,1,101)
   or not int(b.seed,0,3) or not int(b.last_move,0,2)
   or type(b.charged)~="boolean" or type(b.boost)~="boolean" then return false end
- if b.status~="active" and b.status~="won" and b.status~="lost" and b.status~="fled" and b.status~="draw" then return false end
+ if b.status~="active" and b.status~="won" and b.status~="lost" and b.status~="fled" and b.status~="draw" and b.status~="befriended" then return false end
  if b.team~=nil then
-  if not B.validTeam(b.team,E,b.floor and 3 or 2) or not int(b.opponent,1,#b.team)
+  if not B.validTeam(b.team,E,b.party_size or (b.floor and 3 or 2)) or not int(b.opponent,1,#b.team)
    or not (b.floor or b.practice or teams[b.foe]) or (b.status=="won" and b.opponent~=#b.team) then return false end
- elseif b.opponent~=nil then return false end
- if (b.status=="won")~=(b.hp==0) or (b.status=="active" and b.turn>100) then return false end
+ elseif b.opponent~=nil or b.party_size~=nil then return false end
+ if b.party_size~=nil and not int(b.party_size,1,6) then return false end
+ if b.gym~=nil and (not int(b.gym,1,3) or b.foe~=20+b.gym or not b.team or b.floor or b.practice) then return false end
+ if b.wildid~=nil and (not int(b.wildid,1,E.species_count) or b.team or b.floor or b.practice or b.gym) then return false end
+ if b.recruited~=nil and (b.recruited~=true or b.status~="befriended" or not b.wildid) then return false end
+ if b.status=="befriended" and not b.recruited then return false end
+ if (b.status~="befriended" and (b.status=="won")~=(b.hp==0)) or (b.status=="active" and b.turn>100) then return false end
  if b.moves~=nil then
   if type(b.moves)~="table" or not int(b.moves[1],1,4) or not int(b.moves[2],1,4) or b.moves[1]==b.moves[2] then return false end
   for k in pairs(b.moves) do if k~=1 and k~=2 then return false end end

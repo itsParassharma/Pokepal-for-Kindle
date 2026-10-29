@@ -1,5 +1,5 @@
 -- Party, town services and Tower progress live in the same atomic game save.
-local A={}
+local A={cost={recruit=3,lesson=2,advanced=4,potion=2,revive=4,tower=3}}
 local function int(n,a,b) return type(n)=="number" and n==n and n%1==0 and n>=a and n<=b end
 local function keys(t,allowed)
  if type(t)~="table" then return false end
@@ -7,7 +7,8 @@ local function keys(t,allowed)
  return true
 end
 function A.has(mask,bit) return math.floor(mask/2^(bit-1))%2==1 end
-function A.set(mask,bit) return A.has(mask,bit) and mask or mask+2^(bit-1) end
+function A.set(mask,bit) dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/collection.lua")(A)
+return A.has(mask,bit) and mask or mask+2^(bit-1) end
 function A.init(s)
  local w=s.world
  if w.camp then return false end
@@ -34,8 +35,8 @@ function A.heal(w,amount)
 end
 function A.party(s,E,slot,id)
  local w=s.world;local c=w.camp
- if w.map~="centre" or w.battle or c.tower or s.trip>0 or s.resting or not int(slot,1,3) or not int(id,1,E.species_count) then return false end
- if slot>#c.party+1 then return false end
+ if w.map~="centre" or w.battle or c.tower or s.trip>0 or s.resting or not int(slot,1,6) or not int(id,1,E.species_count) then return false end
+ if slot>#c.party+1 or not c.box[tostring(id)] then return false,"Befriend this Pokemon first." end
  for _,member in ipairs(c.party) do if member==id then return false,"Already in your party." end end
  c.health[tostring(w.partner)]=w.hp;c.party[slot]=id
  if slot==1 then w.partner=id;w.hp=c.health[tostring(id)] or 40 end
@@ -51,9 +52,10 @@ function A.learn(s,E,id,index)
  if not member then return false end
  local r=c.training[tostring(id)]
  if r and A.has(r.learned,index) then return false,"Already learned. Equip it below." end
- if index==4 and w.cleared==0 and not A.has(c.quests,5) then return false,"Win a wild or practice battle first." end
- if s.berries<2 or s.energy<6 then return false,"A lesson needs 2 berries and 6 energy." end
- r=A.record(s,id);r.learned=A.set(r.learned,index);s.berries=s.berries-2;s.energy=s.energy-6
+ if index==4 and not A.has(c.badges,2) then return false,"Earn the Tide Badge for advanced lessons." end
+ local cost=index==4 and A.cost.advanced or A.cost.lesson
+ if s.berries<cost then return false,"This lesson costs "..cost.." berries." end
+ r=A.record(s,id);r.learned=A.set(r.learned,index);s.berries=s.berries-cost
  return true,E.world.battle.catalog(E,id)[index].name.." learned."
 end
 function A.equip(s,id,slot,index)
@@ -85,13 +87,16 @@ function A.switch(s,E,id)
  if not b or b.status~="active" or id==w.partner or s.resting or s.trip>0 or A.hp(w,id)<=0 then return false end
  local present=false;for _,v in ipairs(c.party) do if v==id then present=true end end
  if not present then return false end
+ local forced=w.hp==0
  c.health[tostring(w.partner)]=w.hp;w.partner=id;w.hp=A.hp({partner=0,camp=c},id)
  b.ally=id;b.moves=A.moves(s,id);b.boost=false
+ if forced then b.log={E.name(id).." is ready. Choose a move."};return true end
  if c.tower then w.hp=math.min(40,w.hp+c.tower.switch*3) end
  w.hp=E.world.battle.step(E,b,w.hp,0);E.world.resolve(s,E,os.time());return true
 end
 function A.switchPreview(s,E,id)
  local w=s.world;local b={}
+ if w.hp==0 then return 0,A.hp(w,id) end
  for k,v in pairs(w.battle) do b[k]=v end
  b.ally=id;b.moves=A.moves(s,id);b.boost=false
  local hp=math.min(40,A.hp(w,id)+(w.camp.tower and w.camp.tower.switch*3 or 0))
@@ -110,9 +115,11 @@ end
 function A.buy(s,kind)
  local w=s.world;local c=w.camp
  if w.map~="shop" or w.battle or c.tower then return false end
- if kind=="potion" then
-  if c.potions>=9 or s.berries<2 then return false,"Potions cost 2 berries; carry up to 9." end
-  s.berries=s.berries-2;c.potions=c.potions+1;return true,"Potion packed."
+ if kind=="potion" or kind=="revive" then
+  if kind=="revive" and not A.has(c.badges,1) then return false,"Earn the Leaf Badge to buy revives." end
+  local key=kind=="potion" and "potions" or "revives";local cost=A.cost[kind]
+  if c[key]>=9 or s.berries<cost then return false,"Costs "..cost.." berries; carry up to 9." end
+  s.berries=s.berries-cost;c[key]=c[key]+1;return true,kind=="potion" and "Potion packed." or "Revive packed."
  end
  if not int(kind,0,2) then return false end
  if kind>0 and not A.has(c.outfits,kind) then
@@ -147,7 +154,9 @@ function A.practice(s,E)
  local w=s.world
  if w.map~="dojo" or w.battle or w.camp.tower or s.trip>0 or s.resting or w.hp==0 then return false end
  local B=E.world.battle
- w.battle=B.new(w.partner,2,A.moves(s,w.partner),nil,nil,B.rollTeam(s,2,2));w.battle.practice=true;return true
+ w.battle=B.new(w.partner,2,A.moves(s,w.partner),nil,nil,B.rollTeam(s,2,#w.camp.party));w.battle.party_size=#w.camp.party;w.battle.practice=true
+ w.battle.log={A.has(w.camp.quests,5) and "Coach: Ready for another practice?" or "Coach: Let's try your moves in a practice battle.","Each trainer brings "..#w.camp.party.." Pokemon."}
+ return true
 end
 function A.towerFoe(run,floor)
  return floor==6 and 18+(run-1)%3 or 13+(run+floor-2)%5
@@ -156,11 +165,14 @@ function A.towerBattle(s,E)
  local w=s.world;local c=w.camp;local t=c.tower
  local foe=A.towerFoe(t.run,t.floor)
  local B=E.world.battle
- w.battle=B.new(w.partner,foe,A.moves(s,w.partner),t.floor,t.defense,B.rollTeam(s,foe,3))
+ w.battle=B.new(w.partner,foe,A.moves(s,w.partner),t.floor,t.defense,B.rollTeam(s,foe,#c.party));w.battle.party_size=#c.party
 end
 function A.startTower(s,E)
  local w=s.world;local c=w.camp
- if w.map~="tower" or w.battle or c.tower or #c.party~=3 or s.trip>0 or s.resting or c.runs>=1000000 then return false,"Choose three different Pokemon at the Centre first." end
+ if w.map~="tower" or w.battle or c.tower or s.trip>0 or s.resting or c.runs>=1000000 then return false,"Finish your current activity first." end
+ if not A.has(c.badges,3) then return false,"Earn the Stone Badge to enter the Tower." end
+ if s.berries<A.cost.tower then return false,"Tower entry costs 3 berries." end
+ s.berries=s.berries-A.cost.tower
  c.runs=c.runs+1;c.tower={floor=1,run=c.runs,defense=0,switch=0,choice=false}
  A.heal(w,40);A.towerBattle(s,E);return true
 end
@@ -173,11 +185,14 @@ function A.benefit(s,E,index)
  A.towerBattle(s,E);return true
 end
 function A.valid(c,s,E)
- if not keys(c,{party=true,health=true,training=true,quests=true,finds=true,outfits=true,outfit=true,potions=true,rank=true,runs=true,dpad=true,tower=true}) or s.version<6 then return false end
- if type(c.party)~="table" or #c.party<1 or #c.party>3 or type(c.health)~="table" or type(c.training)~="table" then return false end
+ if not keys(c,{party=true,health=true,training=true,quests=true,finds=true,outfits=true,outfit=true,potions=true,rank=true,runs=true,dpad=true,tower=true,box=true,badges=true,revives=true,wild=true}) or s.version<6 then return false end
+ if type(c.party)~="table" or #c.party<1 or #c.party>(s.version>=8 and 6 or 3) or type(c.health)~="table" or type(c.training)~="table" then return false end
+ if s.version<8 and (c.box~=nil or c.badges~=nil or c.revives~=nil or c.wild~=nil) then return false end
+ if s.version>=8 and not A.validCollection(c,s,E) then return false end
  local members={}
  for k,id in pairs(c.party) do
   if not int(k,1,#c.party) or not int(id,1,E.species_count) or members[id] or not s.seen[tostring(id)] then return false end
+  if s.version>=8 and not c.box[tostring(id)] then return false end
   members[id]=true
  end
  if not members[s.world.partner] then return false end
@@ -194,8 +209,9 @@ function A.valid(c,s,E)
   local t=c.tower
   if not keys(t,{floor=true,run=true,defense=true,switch=true,choice=true}) or not int(t.floor,1,6) or t.run~=c.runs or not int(t.run,1,1000000)
    or not int(t.defense,0,5) or not int(t.switch,0,5) or t.defense+t.switch>t.floor-1 or type(t.choice)~="boolean"
-   or s.world.map~="tower" or #c.party~=3 or s.trip>0 or (t.choice and (t.floor==6 or s.world.battle~=nil)) or (not t.choice and not s.world.battle) then return false end
+   or s.world.map~="tower" or (s.version<8 and #c.party~=3) or s.trip>0 or (t.choice and (t.floor==6 or s.world.battle~=nil)) or (not t.choice and not s.world.battle) then return false end
  end
  return true
 end
+dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/collection.lua")(A)
 return A

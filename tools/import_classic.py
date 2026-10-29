@@ -83,17 +83,17 @@ world = lua.execute(f'return dofile("{ROOT.as_posix()}/world.lua")')
 for name, data in world.maps.items():
     rows = list(data.rows.values())
     im = Image.new('L', (352, 256), 255)
-    indoor = name in ('centre', 'dojo', 'shop', 'tower')
-    tileset = {'centre': 'pokecenter', 'shop': 'mart', 'dojo': 'house', 'tower': 'battle_tower_inside'}.get(name, 'johto_modern')
+    indoor = name in ('centre', 'dojo', 'shop', 'tower', 'gym')
+    tileset = {'centre': 'pokecenter', 'shop': 'mart', 'dojo': 'house', 'tower': 'battle_tower_inside', 'gym': 'battle_tower_inside'}.get(name, 'johto_modern')
     for y, row in enumerate(rows):
         for x, tile in enumerate(row):
             if indoor:
-                floor = {'centre': 4, 'shop': 4, 'dojo': 0x0F, 'tower': 1}[name]
+                floor = {'centre': 4, 'shop': 4, 'dojo': 0x0F, 'tower': 1, 'gym': 1}[name]
                 b = floor
                 if tile == 'W':
-                    b = {'centre': 0x13, 'shop': 0x11, 'dojo': 0x03, 'tower': 2}[name]
+                    b = {'centre': 0x13, 'shop': 0x11, 'dojo': 0x03, 'tower': 2, 'gym': 2}[name]
                 if tile == 'C':
-                    b = {'centre': {3: 5, 4: 6, 5: 7, 6: 5}.get(x, 5), 'shop': 0x16, 'dojo': 0x1A, 'tower': {3: 3, 4: 4, 5: 3, 6: 2}.get(x, 2)}[name]
+                    b = {'centre': {3: 5, 4: 6, 5: 7, 6: 5}.get(x, 5), 'gym': 3, 'shop': 0x16, 'dojo': 0x1A, 'tower': {3: 3, 4: 4, 5: 3, 6: 2}.get(x, 2)}[name]
                 cell = block(tileset, b)
                 if tile == '=' and y >= 6:
                     cell = cell.copy()
@@ -117,6 +117,7 @@ for name, data in world.maps.items():
             im.paste(cell, (x * 32, y * 32))
     if name == 'town':
         buildings = [(2, 2, [[0x18, 0x1F, 0x19], [0x20, 0x1A, 0x1B]]),
+                     (8, 2, [[0x18, 0x19], [0x15, 0x16]]),
                      (2, 5, [[0x18, 0x19], [0x14, 0x15]]),
                      (7, 5, [[0x18, 0x19], [0x33, 0x17]]),
                      (9, 5, [[0x08, 0x0F], [0x15, 0x16]])]

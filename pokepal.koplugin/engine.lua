@@ -145,7 +145,7 @@ function E.new(now)
   seed=now % 2147483646 + 1, resting=false, care=0, started=now}
 end
 function E.valid(s)
- if type(s)~="table" or (s.version~=1 and s.version~=2 and s.version~=3 and s.version~=4 and s.version~=5 and s.version~=6 and s.version~=7) then return false end
+ if type(s)~="table" or (s.version~=1 and s.version~=2 and s.version~=3 and s.version~=4 and s.version~=5 and s.version~=6 and s.version~=7 and s.version~=8) then return false end
  for _,k in ipairs({"species","food","joy","energy","bond","xp","berries","last","gift","trained","played","cleaned","dirt","trip","due","trips","seed","care","started"}) do
   local n=s[k]; if type(n)~="number" or n~=n or n<0 or n>1e12 then return false end
  end
@@ -380,6 +380,7 @@ function E.act(s,action,arg,now)
   if not s.egg then return "Pick up an egg first." end
   if E.eggLeft(s)>0 then return "Your egg needs "..math.ceil(E.eggLeft(s)/60).." more reading minutes." end
   local id=s.egg.id;s.seen[tostring(id)]=true;s.egg=nil
+  if s.world and s.world.camp and s.world.camp.box then s.world.camp.box[tostring(id)]=true end
   E.companion.mark(s,id,now);local c=E.companion.get(s);c.hatches=c.hatches+1
   return done(E.name(id).." hatched! Find your new friend in the journal.")
  elseif action=="collect" then
@@ -407,6 +408,7 @@ function E.act(s,action,arg,now)
  end
  if s.resting then return "Your partner is napping. Tap Wake up first." end
  if action=="partner" then
+  if s.world and s.world.camp and s.world.camp.box and not s.world.camp.box[tostring(arg)] then return "Befriend this Pokemon in Explore first." end
   if not E.species[arg] then return "Choose a Pokemon from the list." end
   if arg==s.species then return E.name(arg).." is already with you." end
   s.partners=s.partners or {};s.partners[tostring(s.species)]={xp=s.xp,bond=s.bond}
@@ -467,6 +469,7 @@ function E.act(s,action,arg,now)
    s.nicknames[tostring(id)]=s.nicknames[tostring(s.species)]
   end
   s.species=id;s.seen[tostring(id)]=true
+  if s.world and s.world.camp and s.world.camp.box then s.world.camp.box[tostring(id)]=true end
   E.companion.mark(s,id,now)
   return done("Your partner evolved into "..E.name(id).."!","evolve")
  end

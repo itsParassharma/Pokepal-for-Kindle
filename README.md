@@ -6,7 +6,7 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 [Download 1.0.9](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/tag/v1.0.9) · [Watch the trailer](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/download/v1.0.9/PokePal-trailer.mp4)
 
-This branch adds [Fern Town and Explore](docs/explore-prototype.md): a three-Pokémon party, learned move choices, four outdoor areas, quests, shops and a six-battle Tower run. All 386 Pokémon have directional walking frames. These features are not included in the 1.0.9 download.
+This branch adds [Fern Town and Explore](docs/explore-prototype.md): a saved Pokémon box, a party of up to six, berry recruitment and supplies, Gym badges, four outdoor areas and a six-battle Tower run. All 386 Pokémon have directional walking frames. These features are not included in the 1.0.9 download.
 
 Maps and trainers now use Crystal artwork. Battles show front and back sprites, and trainer teams change with each fight. Your chosen party stays the same. Hoenn battle sprites come from Emerald, converted to the same four shades.
 

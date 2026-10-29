@@ -2,7 +2,7 @@ local E=dofile(BASE..'/engine.lua');local S=dofile(BASE..'/storage.lua')
 local W=E.world;local A=W.town;local B=W.battle;local now=1800000000;local checks=0
 local function test(name,fn) fn();checks=checks+1;print('PASS town: '..name) end
 local function pet()
- local s=E.new(now);E.act(s,'choose',25,now);W.enter(s);return s
+ local s=E.new(now);E.act(s,'choose',25,now);W.enter(s);for _,id in ipairs({1,7,42,92,133}) do s.seen[tostring(id)]=true;s.world.camp.box[tostring(id)]=true end;return s
 end
 local function copy(s)
  assert(E.valid(s),'invalid town state')
@@ -10,7 +10,7 @@ local function copy(s)
  assert(S.encode(restored)==data);return restored
 end
 local function party(s)
- s.world.map='centre';assert(A.party(s,E,2,7));assert(A.party(s,E,3,1));return s
+ s.world.camp.badges=7;s.berries=100;s.world.map='centre';assert(A.party(s,E,2,7));assert(A.party(s,E,3,1));return s
 end
 local function adjacent(s,index)
  local e=W.encounters[index];s.world.map=e.map
@@ -35,14 +35,14 @@ end
 
 test('version 5 battles migrate without changing their turn, health or rewards',function()
  local s=pet();adjacent(s,1);assert(W.startBattle(s,1));W.turn(s,E,1,now)
- s.world.camp=nil;s.world.battle.moves=nil;s.version=5
+ s.world.camp=nil;s.world.battle.moves=nil;s.world.battle.wildid=nil;s.version=5
  s=copy(s);local turn,hp,foe=s.world.battle.turn,s.world.hp,s.world.battle.hp
- assert(W.enter(s) and s.version==7 and s.world.battle.turn==turn and s.world.hp==hp and s.world.battle.hp==foe)
+ assert(W.enter(s) and s.version==8 and s.world.battle.turn==turn and s.world.hp==hp and s.world.battle.hp==foe)
  copy(s)
 end)
 test('party selection preserves individual HP and rejects duplicates or gaps',function()
  local s=party(pet());local before=S.encode(s)
- assert(not A.party(s,E,2,25) and not A.party(s,E,4,133));assert(S.encode(s)==before)
+ assert(not A.party(s,E,2,25) and not A.party(s,E,5,133));assert(S.encode(s)==before)
  s.world.hp=9;assert(A.party(s,E,1,133));assert(s.world.hp==40 and s.world.camp.health['25']==9)
  assert(A.party(s,E,1,25));assert(s.world.hp==9);copy(s)
 end)
@@ -69,8 +69,8 @@ test('every route encounter saves and only rewards its first win',function()
   local e=W.encounters[i];assert(W.walkable(e.map,e.x,e.y),'encounter on blocked tile')
   local path=assert(W.path({map=e.map,x=6,y=6},e.x,e.y),'unreachable encounter');assert(#path>0)
   A.heal(s.world,40);adjacent(s,i);assert(W.startBattle(s,i));local berries=s.berries
-  win(s);assert(s.berries==berries+1);assert(W.finish(s));s=copy(s)
-  assert(W.startBattle(s,i));win(s);assert(s.berries==berries+1);assert(W.finish(s))
+  win(s);assert(s.berries==berries+(e.trainer and 3 or 1));assert(W.finish(s));s=copy(s)
+  assert(W.startBattle(s,i));win(s);assert(s.berries==berries+(e.trainer and 3 or 1));assert(W.finish(s))
  end
  assert(s.world.cleared==4095);copy(s)
 end)
@@ -121,7 +121,7 @@ test('full-party defeat ends the run and common Tower stats ignore care levels',
 end)
 test('all 386 trained parties fit the bounded save codec',function()
  local s=pet();local c=s.world.camp
- for id=1,E.species_count do s.seen[tostring(id)]=true;c.health[tostring(id)]=id%41;c.training[tostring(id)]={learned=15,slots={3,4}} end
+ for id=1,E.species_count do s.seen[tostring(id)]=true;c.box[tostring(id)]=true;c.health[tostring(id)]=id%41;c.training[tostring(id)]={learned=15,slots={3,4}} end
  copy(s)
 end)
 
@@ -168,7 +168,7 @@ test('family moves give evolved partners distinct roles and keep two equipped sl
  for _,row in ipairs(pairs) do
   local moves=B.moves(E,row[1]);assert(#moves==2 and moves[1].name==row[2] and moves[2].name==row[3])
  end
- local s=pet();s.world.map='centre';assert(A.party(s,E,1,42));s.world.map='dojo'
+ local s=pet();s.world.camp.badges=7;s.berries=100;s.world.map='centre';assert(A.party(s,E,1,42));s.world.map='dojo'
  assert(A.learn(s,E,42,3) and A.equip(s,42,1,3));s=copy(s)
  local moves=B.equipped(E,{ally=42,moves=A.moves(s,42)})
  assert(moves[1].name=='Protect' and moves[2].name=='Leech Life')
@@ -218,7 +218,7 @@ test('trainer rematches randomize only the opponent team and persist the active 
    if kind=='dojo' then w.map='dojo';assert(A.practice(s,E))
    elseif kind=='tower' then w.map='tower';assert(A.startTower(s,E))
    else adjacent(s,kind);assert(W.startBattle(s,kind)) end
-   local b=w.battle;assert(#b.team==(kind=='tower' and 3 or 2))
+   local b=w.battle;assert(#b.team==#w.camp.party)
    assert(B.validTeam(b.team,E,#b.team))
    signatures[table.concat(b.team,',')]=true
    assert(E.companion.encode(w.camp.party)==beforeParty and E.companion.encode(w.camp.training)==originalMoves)
@@ -232,19 +232,19 @@ end)
 
 test('a trainer sends each reserve without a free hit, seed carryover or early reward',function()
  local s=party(pet());adjacent(s,6);assert(W.startBattle(s,6));local w=s.world;local b=w.battle
- b.team={10,43};b.hp=1;b.charged=true;b.seed=3;local hp,berries=w.hp,s.berries
+ b.team={10,43,19};b.hp=1;b.charged=true;b.seed=3;local hp,berries=w.hp,s.berries
  assert(W.turn(s,E,1,now));assert(b.status=='active' and b.opponent==2 and b.hp==B.maxFoeHP(b))
  assert(not b.charged and b.seed==0 and w.hp==hp and s.berries==berries and not W.cleared(w,6));s=copy(s)
- win(s);assert(s.berries==berries+1 and W.cleared(s.world,6));assert(W.finish(s));copy(s)
+ win(s);assert(s.berries==berries+3 and W.cleared(s.world,6));assert(W.finish(s));copy(s)
 end)
 
 test('last-turn opponent replacement is a saveable draw and malformed rosters fail',function()
  local s=party(pet());adjacent(s,6);assert(W.startBattle(s,6));local b=s.world.battle
- b.team={10,43};b.hp=1;b.turn=100;assert(W.turn(s,E,1,now));assert(b.status=='draw' and b.opponent==2);copy(s)
+ b.team={10,43,19};b.hp=1;b.turn=100;assert(W.turn(s,E,1,now));assert(b.status=='draw' and b.opponent==2);copy(s)
  local original=S.encode(s)
  for _,mutate in ipairs({function(b) b.team={10,10} end,function(b) b.team={10,999} end,
   function(b) b.team={[1]=10,[3]=43} end,function(b) b.opponent=0 end,
-  function(b) b.opponent=3 end,function(b) b.team.extra=true end,
+  function(b) b.opponent=4 end,function(b) b.team.extra=true end,
   function(b) b.team=false;b.opponent=nil end,
   function(b) b.status='won';b.hp=0;b.opponent=1 end}) do
   local t=assert(S.decode(original,E));mutate(t.world.battle);assert(not E.valid(t))
@@ -254,10 +254,11 @@ end)
 test('version 6 town positions migrate out of new walls without losing party or progress',function()
  for y=1,8 do for x=1,11 do
   local s=party(pet());s.version=6;s.world.map='town';s.world.x=x;s.world.y=y
+  s.world.camp.box=nil;s.world.camp.badges=nil;s.world.camp.revives=nil;s.world.camp.wild=nil
   if E.valid(s) then
-   s=copy(s);local party=E.companion.encode(s.world.camp);local hp=s.world.hp
-   assert(W.enter(s) and s.version==7 and W.walkable('town',s.world.x,s.world.y))
-   assert(E.companion.encode(s.world.camp)==party and s.world.hp==hp);copy(s)
+   s=copy(s);local party=E.companion.encode(s.world.camp.party);local hp=s.world.hp
+   assert(W.enter(s) and s.version==8 and W.walkable('town',s.world.x,s.world.y))
+   assert(E.companion.encode(s.world.camp.party)==party and s.world.hp==hp);copy(s)
   end
  end end
 end)

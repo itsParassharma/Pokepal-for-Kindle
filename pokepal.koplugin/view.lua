@@ -455,6 +455,7 @@ function View:paintDecorations(bb)
 end
 function View:paintJournal(bb)
  local choosing=self.screen=="companions" or self.screen=="allcompanions"
+ local box=self.state.world and self.state.world.camp and self.state.world.camp.box
  local regions={{"All",1,self.engine.species_count},{"Kanto",1,151},{"Johto",152,251},{"Hoenn",252,386}}
  local region=regions[self.chooser_region or 1]
  local ids={}
@@ -462,15 +463,15 @@ function View:paintJournal(bb)
   local starters={};for _,id in ipairs(self.engine.starters) do starters[id]=true end
   for id=1,self.engine.species_count do
    if self.screen=="allcompanions" then
-    if id>=region[2] and id<=region[3] then ids[#ids+1]=id end
-   elseif starters[id] or self.state.seen[tostring(id)] then ids[#ids+1]=id end
+    if id>=region[2] and id<=region[3] and (not box or box[tostring(id)]) then ids[#ids+1]=id end
+   elseif box and box[tostring(id)] or not box and (starters[id] or self.state.seen[tostring(id)]) then ids[#ids+1]=id end
   end
  else ids=self.engine.companion.journal(self.state,self.engine,self.journal_query,self.journal_filter or "met") end
  self.journal_count=#ids
  local pages=math.max(1,math.ceil(#ids/6));self.page=math.min(self.page or 1,pages)
  if choosing then
-  self:title(bb,self.screen=="allcompanions" and "All "..self.engine.species_count.." Pokemon" or "Change companion",
-   self.screen=="allcompanions" and "Every Pokemon is available to choose." or "Starters and friends you've met.")
+  self:title(bb,box and "Your collection" or self.screen=="allcompanions" and "All "..self.engine.species_count.." Pokemon" or "Change companion",
+   box and "Befriend wild Pokemon in Explore to add friends." or self.screen=="allcompanions" and "Every Pokemon is available to choose." or "Starters and friends you've met.")
   if self.screen=="allcompanions" then
    for i,item in ipairs(regions) do
     self:button(bb,item[1],32+(i-1)*137,184,125,42,"chooserregion",i,nil,false,(self.chooser_region or 1)==i)
@@ -492,7 +493,7 @@ function View:paintJournal(bb)
  self:button(bb,"Next",398,597,170,43,"page",1,nil,self.page==pages)
  if choosing then
   if self.screen=="companions" then
-   self:button(bb,"Choose from all "..self.engine.species_count.." Pokemon",32,652,536,44,"nav","allcompanions")
+   self:button(bb,box and "Browse your collection" or "Choose from all "..self.engine.species_count.." Pokemon",32,652,536,44,"nav","allcompanions")
   else self:wrapped(bb,"XP, bond and nicknames stay with each friend.",662,18) end
   local back=self.state.species==0 and "home" or self.screen=="allcompanions" and "companions" or "profile"
   local label=back=="home" and "Back to starters" or back=="companions" and "Back to companions" or "Back to profile"
@@ -513,9 +514,11 @@ function View:paintEntry(bb)
  end
  local p=id==self.state.species and self.state or (self.state.partners and self.state.partners[tostring(id)]) or {xp=0,bond=0}
  self:text(bb,p.xp.." XP   /   Bond "..math.floor(p.bond).."   /   Tap a pose to preview",32,574,17,536,false,true)
- local label=id==self.state.species and "Your current partner" or self.state.trip>0 and "Collect your trip before changing"
+ local box=self.state.world and self.state.world.camp and self.state.world.camp.box
+ local unowned=box and not box[tostring(id)]
+ local label=unowned and "Befriend this Pokemon in Explore" or id==self.state.species and "Your current partner" or self.state.trip>0 and "Collect your trip before changing"
   or self.state.resting and "Wake up before changing" or "Choose "..name
- self:button(bb,label,32,604,536,44,self.state.species==0 and "choose" or "partner",id,"heart",id==self.state.species or self.state.trip>0 or self.state.resting)
+ self:button(bb,label,32,604,536,44,self.state.species==0 and "choose" or "partner",id,"heart",unowned or id==self.state.species or self.state.trip>0 or self.state.resting)
  local C=self.engine.companion;local trait,berry=C.profile(self.state,id,self.engine)
  local c=self.state.companion;local known=c and c.tastes[tostring(id)]
  self:text(bb,trait..(known and " / Likes "..berry or " / Try different berries"),32,658,17,344)

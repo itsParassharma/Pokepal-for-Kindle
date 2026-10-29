@@ -12,13 +12,13 @@ def run(c):
                 if large:
                     g.E.act(v.state, 'preference', 'large_text', int(v.state.last))
                     g.E.act(v.state, 'preference', 'high_contrast', int(v.state.last))
-                for name in ('town', 'meadow', 'centre', 'woods', 'coast', 'cave', 'dojo', 'shop', 'tower', 'worldhelp', 'expeditions', 'battle', 'win', 'loss', 'save-error'):
+                for name in ('town', 'meadow', 'centre', 'woods', 'coast', 'cave', 'dojo', 'shop', 'tower', 'gym', 'worldhelp', 'expeditions', 'battle', 'win', 'loss', 'save-error'):
                     w = v.state.world
                     w.battle = None
                     w.hp = 40
                     v.world_follow = None
                     v.world_save_failed = False
-                    if name in ('town', 'meadow', 'centre', 'woods', 'coast', 'cave', 'dojo', 'shop', 'tower'):
+                    if name in ('town', 'meadow', 'centre', 'woods', 'coast', 'cave', 'dojo', 'shop', 'tower', 'gym'):
                         w.map, w.x, w.y = name, 6, 6
                         v.go(v, 'explore')
                     elif name in ('worldhelp', 'expeditions'):
@@ -44,14 +44,20 @@ def run(c):
                         image.save(out / f'world-{name}.png')
                     count += 1
                 v.leave(v)
-                for name in ('worldparty', 'party-overview', 'worldchoose', 'worldmoves', 'worldshop', 'worldquests', 'quests-return', 'quests-complete', 'worldtower', 'worldswitch', 'tower-benefits', 'tower-boss-preview'):
+                for name in ('worldparty', 'party-overview', 'worldchoose', 'worldboxdetail', 'worldboxsearch', 'worldboxname', 'worldgym', 'worldbag', 'worldrevive', 'worldmoves', 'worldshop', 'worldquests', 'quests-return', 'quests-complete', 'worldtower', 'worldswitch', 'tower-benefits', 'tower-boss-preview'):
                     v = g.newView(25)
                     v.state.animation = 'off'
                     v.go(v, 'explore')
                     w = v.state.world
                     w.map = 'centre'
+                    w.camp.badges = 7
+                    for member in (1, 7, 92, 133, 252, 255):
+                        w.camp.box[str(member)] = True
+                        v.state.seen[str(member)] = True
                     assert g.E.world.town.party(v.state, g.E, 2, 7)
                     assert g.E.world.town.party(v.state, g.E, 3, 1)
+                    for slot, member in enumerate((133, 252, 255), 4):
+                        assert g.E.world.town.party(v.state, g.E, slot, member)
                     w.map = 'dojo' if name == 'worldmoves' else 'tower' if name in ('worldtower', 'tower-benefits', 'tower-boss-preview') else 'shop' if name == 'worldshop' else 'woods' if name == 'party-overview' else 'centre'
                     if large:
                         g.E.act(v.state, 'preference', 'large_text', int(v.state.last))
@@ -61,7 +67,7 @@ def run(c):
                         if name == 'tower-boss-preview':
                             w.camp.tower.floor = 5
                             g.E.world.town.towerBattle(v.state, g.E)
-                        w.battle.team = c['lua'].table_from([10, 43, 19])
+                        w.battle.team = c['lua'].table_from([10, 43, 19, 16, 29, 32])
                         while w.battle.status == 'active':
                             w.battle.hp = 1
                             assert g.E.world.turn(v.state, g.E, 1, int(v.state.last))
