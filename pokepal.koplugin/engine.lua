@@ -4,6 +4,7 @@ local source=debug.getinfo(1,"S").source:sub(2):match("^(.*)/")
 E.species = dofile(source.."/species.lua")
 E.species_count = #E.species
 E.companion = dofile(source.."/companion.lua")
+E.world = dofile(source.."/world.lua")
 E.starters = {1,4,7,25,133,152,155,158,252,255,258}
 E.parents = {}
 for id,p in ipairs(E.species) do
@@ -144,7 +145,7 @@ function E.new(now)
   seed=now % 2147483646 + 1, resting=false, care=0, started=now}
 end
 function E.valid(s)
- if type(s)~="table" or (s.version~=1 and s.version~=2 and s.version~=3 and s.version~=4) then return false end
+ if type(s)~="table" or (s.version~=1 and s.version~=2 and s.version~=3 and s.version~=4 and s.version~=5 and s.version~=6 and s.version~=7 and s.version~=8) then return false end
  for _,k in ipairs({"species","food","joy","energy","bond","xp","berries","last","gift","trained","played","cleaned","dirt","trip","due","trips","seed","care","started"}) do
   local n=s[k]; if type(n)~="number" or n~=n or n<0 or n>1e12 then return false end
  end
@@ -204,7 +205,7 @@ function E.valid(s)
    if type(id)~="string" or not E.species[tonumber(id)] or not s.seen[id] or not E.validNickname(name) then return false end
   end
  end
- return type(s.resting)=="boolean" and E.companion.valid(s.companion,s,E)
+ return type(s.resting)=="boolean" and E.companion.valid(s.companion,s,E) and E.world.valid(s.world,s,E)
 end
 function E.weekStart(now)
  local d=os.date("*t",now)
@@ -268,10 +269,7 @@ function E.advance(s,now)
  s.last=now
  E.discover(s,now)
 end
-local function rng(s,n)
- s.seed=(s.seed*48271)%2147483647
- return math.floor(s.seed% n)+1
-end
+local rng=dofile(source.."/random.lua")
 function E.count(t) local n=0;for _,v in pairs(t) do if v then n=n+1 end end;return n end
 function E.badges(s,now)
  E.companion.badges(s,E,now)
@@ -382,6 +380,7 @@ function E.act(s,action,arg,now)
   if not s.egg then return "Pick up an egg first." end
   if E.eggLeft(s)>0 then return "Your egg needs "..math.ceil(E.eggLeft(s)/60).." more reading minutes." end
   local id=s.egg.id;s.seen[tostring(id)]=true;s.egg=nil
+  if s.world and s.world.camp and s.world.camp.box then s.world.camp.box[tostring(id)]=true end
   E.companion.mark(s,id,now);local c=E.companion.get(s);c.hatches=c.hatches+1
   return done(E.name(id).." hatched! Find your new friend in the journal.")
  elseif action=="collect" then
@@ -399,6 +398,9 @@ function E.act(s,action,arg,now)
   s.trips=s.trips+1;s.trip=0;s.due=0;s.trail=nil;s.finds=nil
   return done((fresh and "New: " or "Met ")..E.name(id).."! +"..r.berries.." berries, +"..r.xp.." XP."..(story or ""),"explore")
  end
+ if s.world and (s.world.battle or s.world.camp and s.world.camp.tower) and (action=="partner" or action=="evolve" or action=="trip" or action=="readingtrip") then
+  return "Finish or leave the battle under Explore first."
+ end
  if s.trip>0 then return "Your partner is exploring. Tap Explore for details." end
  if action=="rest" then
   s.resting=not s.resting
@@ -406,6 +408,7 @@ function E.act(s,action,arg,now)
  end
  if s.resting then return "Your partner is napping. Tap Wake up first." end
  if action=="partner" then
+  if s.world and s.world.camp and s.world.camp.box and not s.world.camp.box[tostring(arg)] then return "Befriend this Pokemon in Explore first." end
   if not E.species[arg] then return "Choose a Pokemon from the list." end
   if arg==s.species then return E.name(arg).." is already with you." end
   s.partners=s.partners or {};s.partners[tostring(s.species)]={xp=s.xp,bond=s.bond}
@@ -466,6 +469,7 @@ function E.act(s,action,arg,now)
    s.nicknames[tostring(id)]=s.nicknames[tostring(s.species)]
   end
   s.species=id;s.seen[tostring(id)]=true
+  if s.world and s.world.camp and s.world.camp.box then s.world.camp.box[tostring(id)]=true end
   E.companion.mark(s,id,now)
   return done("Your partner evolved into "..E.name(id).."!","evolve")
  end

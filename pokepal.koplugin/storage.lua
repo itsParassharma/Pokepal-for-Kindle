@@ -39,6 +39,7 @@ function S.encode(s)
   for _,key in ipairs(keys) do lines[#lines+1]="book="..key..","..string.format("%.0f",r.kindle[key]) end
  end
  if s.companion then lines[#lines+1]="companion="..C.encode(s.companion) end
+ if s.world then lines[#lines+1]="world="..C.encode(s.world) end
  return table.concat(lines,"\n").."\n"
 end
 function S.decode(data,engine)
@@ -91,6 +92,8 @@ function S.decode(data,engine)
    s.reading.kindle[key]=tonumber(seconds)
   elseif k=="companion" then
    if s.companion then return nil end;s.companion=C.decode(v);if not s.companion then return nil end
+  elseif k=="world" then
+   if s.world then return nil end;s.world=C.decode(v);if not s.world then return nil end
   elseif k=="badge" then if #v>40 then return nil end;s.badges[v]=true
   elseif k=="log" then if #v>200 or #s.log>=24 then return nil end;s.log[#s.log+1]=v
   else return nil end

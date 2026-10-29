@@ -36,6 +36,9 @@ lua.execute((REPO/'tests'/'test_adventures.lua').read_text())
 lua.execute((REPO/'tests'/'test_companion.lua').read_text())
 lua.execute((REPO/'tests'/'test_backups.lua').read_text())
 lua.execute((REPO/'tests'/'test_improvements.lua').read_text())
+lua.execute((REPO/'tests'/'test_world.lua').read_text())
+lua.execute((REPO/'tests'/'test_town.lua').read_text())
+lua.execute((REPO/'tests'/'test_collection.lua').read_text())
 
 sprite_index=json.loads((ROOT/'assets/sprite-index.json').read_text())
 def read_sprite(name):
@@ -45,7 +48,7 @@ def read_sprite(name):
  assert len(data)==length
  return Image.open(io.BytesIO(data))
 
-canvas=None;draw=None;bounds=[];truncated=[];painted_text=[];painted_sprites=[];painted_text_boxes=[]
+canvas=None;draw=None;bounds=[];truncated=[];painted_text=[];painted_sprites=[];painted_text_boxes=[];painted_ink=[]
 def font(size,bold=False):
  choices=(['C:/Windows/Fonts/arialbd.ttf','/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'] if bold
           else ['C:/Windows/Fonts/arial.ttf','/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'])
@@ -70,13 +73,38 @@ def render_text(t,x,y,sz,bold,maxw):
  painted_text.append(t)
  t,f=get_text(t,sz,bold,maxw)
  painted_text_boxes.append((t,x,y,round(draw.textlength(t,font=f)),sum(f.getmetrics()),sz))
+ left,top,right,bottom=f.getbbox(t,anchor='la')
+ painted_ink.append((t,round(x)+left,round(y)+top,round(x)+right,round(y)+bottom))
  draw.text((round(x),round(y)),t,font=f,fill=0,anchor='la')
 def rect(x,y,w,h,col):
  x,y,w,h=map(round,(x,y,w,h))
  if w and h:
   if x<0 or y<0 or x+w>canvas.width or y+h>canvas.height:bounds.append((x,y,w,h))
   draw.rectangle((x,y,x+w-1,y+h-1),fill=int(col))
+classic_index=json.loads((ROOT/'assets/classic/index.json').read_text())
+for name, (part, offset, length) in classic_index.items():
+ with (ROOT/'assets/classic'/f'{part:03d}.bin').open('rb') as stream:
+  stream.seek(offset);data=stream.read(length)
+ assert len(data)==length, name
+ img=Image.open(io.BytesIO(data));img.load()
+ assert img.mode=='LA' and img.getchannel('A').getbbox(), name
+ assert set(img.getchannel('L').tobytes()) <= {0,85,170,255}, name
+for id in range(1,387):
+ for pose in ('front','back'):
+  assert f'{id}-{pose}.png' in classic_index
+ for direction in ('down','up','left','right'):
+  for step in (0,1):assert f'{id}-walk-{direction}-{step}.png' in classic_index
+print(f'CLASSIC ART: all 386 front/back sprites, four walking directions and {len(classic_index)} packed images decode')
+
 def image(path,x,y,w,h):
+ if '/classic/' in path:
+  name=pathlib.Path(path).name
+  part,offset,length=classic_index[name]
+  with (ROOT/'assets/classic'/f'{part:03d}.bin').open('rb') as f:
+   f.seek(offset);img=Image.open(io.BytesIO(f.read(length)))
+  img=img.convert('LA').resize((int(w),int(h)),Image.Resampling.NEAREST)
+  canvas.paste(img.getchannel('L'),(round(x),round(y)),img.getchannel('A'))
+  return
  painted_sprites.append(int(pathlib.Path(path).name.split('-')[0]))
  img=read_sprite(pathlib.Path(path).name).convert('LA').resize((int(w),int(h)),Image.Resampling.NEAREST)
  canvas.paste(img.getchannel('L'),(round(x),round(y)),img.getchannel('A'))
@@ -106,7 +134,10 @@ package.preload["ui/widget/imagewidget"]=function() return I end
 package.preload["ui/renderimage"]=function()
  local R={}
  local packed=dofile(BASE..'/assets/sprites.lua');local names={}
- for name in pairs(packed.index) do names[packed.read(BASE..'/assets',name)]=BASE..'/assets/'..name end
+ for _,directory in ipairs({'assets','assets/classic'}) do
+  local pack=dofile(BASE..'/'..directory..'/sprites.lua')
+  for name in pairs(pack.index) do names[pack.read(BASE..'/'..directory,name)]=BASE..'/'..directory..'/'..name end
+ end
  function R:renderImageData(data)
   local file=assert(names[data]);local raw={file=file,getWidth=function() return 96 end,getHeight=function() return 96 end,scale=function(self,w,h) return {file=self.file,free=function() end} end,free=function() end}
   return raw
@@ -131,7 +162,7 @@ function U:unschedule(f) for i=#self.queue,1,-1 do if self.queue[i].f==f then ta
 function U:setDirty(widget,mode,region) self.dirty[#self.dirty+1]={mode=mode,region=region} end
 function U:show(v) self.show_count=self.show_count+1 end
 function U:close(v) v:onCloseWidget() end
-function U:drain() local n=0;while #self.queue>0 do n=n+1;assert(n<=10,'unbounded animation');local t=table.remove(self.queue,1);t.f() end;return n end
+function U:drain() local n=0;while #self.queue>0 do n=n+1;assert(n<=100,'unbounded animation or walking');local t=table.remove(self.queue,1);t.f() end;return n end
 package.preload["ui/uimanager"]=function() return U end
 package.preload["datastorage"]=function() return {getSettingsDir=function() return TESTDIR end} end
 package.preload["ffi/util"]=function() return {} end
@@ -158,8 +189,8 @@ function tapButton(view,action,arg)
 end
 ''')
 def start(w=600,h=800):
- global canvas,draw,bounds,truncated,painted_text,painted_sprites,painted_text_boxes
- canvas=Image.new('L',(w,h),255);draw=ImageDraw.Draw(canvas);bounds=[];truncated=[];painted_text=[];painted_sprites=[];painted_text_boxes=[]
+ global canvas,draw,bounds,truncated,painted_text,painted_sprites,painted_text_boxes,painted_ink
+ canvas=Image.new('L',(w,h),255);draw=ImageDraw.Draw(canvas);bounds=[];truncated=[];painted_text=[];painted_sprites=[];painted_text_boxes=[];painted_ink=[]
  g.D.w=w;g.D.h=h
 start()
 lua.execute((REPO/'tests'/'test_reader_lifecycle.lua').read_text())
@@ -184,7 +215,7 @@ check('navigation refreshes and saves elapsed trips and weekly goals once',funct
  local v=newView(4);dofile(BASE..'/reading.lua').init(v.state)
  E.act(v.state,'trip',1,clock);E.act(v.state,'goal',3600,clock)
  v.state.week.seconds=120;local week=v.state.week.start
- clock=clock+900;v:go('explore')
+ clock=clock+900;v:go('expeditions')
  assert(v.state.finds==2 and v.state.berries==7 and v.state.xp==3 and v.owner.saved==1)
  v:go('home');assert(v.state.finds==2 and v.owner.saved==1)
  clock=week+8*86400;v:go('weekly')
@@ -235,7 +266,7 @@ end)
 check('an away partner stays away when the scene or berry basket is tapped',function()
  v=newView(4);dofile(BASE..'/reading.lua').init(v.state);v:act('readingtrip',1);U:drain()
  v:paintTo(bb,0,0);v:onTap(nil,{pos={x=300,y=300}})
- assert(v.screen=='explore' and #U.queue==0)
+ assert(v.screen=='expeditions' and #U.queue==0)
  v:go('home');v:animate('hello');assert(not v.animating and #U.queue==0)
  v.state.gift=os.time()-86400;v:go('home');tapButton(v,'gift',nil)
  assert(v.state.berries==11 and not v.animating and #U.queue==0)
@@ -458,18 +489,18 @@ check('failed KOReader counter promotion retains time for retry without duplicat
 end)
 check('reading trips and timer trips dispatch from the mode picker',function()
  for _,mode in ipairs({'reading','timed'}) do
-  v=newView(4);dofile(BASE..'/reading.lua').init(v.state);v.state.animation='off';v:go('explore')
+  v=newView(4);dofile(BASE..'/reading.lua').init(v.state);v.state.animation='off';v:go('expeditions')
   tapButton(v,'tripmode',mode);tapButton(v,mode=='reading' and 'readingtrip' or 'trip',1)
   assert(v.state.trip==1 and (v.state.trail~=nil)==(mode=='reading'))
-  v:go('explore');tapButton(v,'collect',nil);assert(v.state.trips==0)
+  v:go('expeditions');tapButton(v,'collect',nil);assert(v.state.trips==0)
   if mode=='reading' then E.readingReward(v.state,1800,os.time()) else v.state.due=os.time() end
-  v:go('explore');tapButton(v,'nav','trailstory');tapButton(v,'trailchoice',1);tapButton(v,'collect',nil);assert(v.state.trips==1)
+  v:go('expeditions');tapButton(v,'nav','trailstory');tapButton(v,'trailchoice',1);tapButton(v,'collect',nil);assert(v.state.trips==1)
   v:leave()
  end
 end)
 check('expeditions default to timed trips without requiring reading rewards',function()
  v=newView(4);dofile(BASE..'/reading.lua').init(v.state);v.state.reading.enabled=false
- v:go('explore');tapButton(v,'trip',1)
+ v:go('expeditions');tapButton(v,'trip',1)
  assert(v.state.trip==1 and v.state.trail==nil);v:leave()
 end)
 check('egg controls hatch into a preview and cannot claim twice',function()
@@ -548,6 +579,7 @@ print('UI LIFECYCLE: '..checks..' checks passed (mock KOReader device APIs)')
 ''')
 
 lua.execute((REPO/'tests'/'test_new_ui.lua').read_text())
+lua.execute((REPO/'tests'/'test_world_ui.lua').read_text())
 
 # Check the displayed dates and totals using real daylight-saving transitions.
 if hasattr(time,'tzset'):
@@ -589,6 +621,30 @@ else:
 
 def paint(v,w=600,h=800):
  start(w,h);v.geometry(v);v.paintTo(v,g.bb,0,0);assert not bounds,bounds;return canvas.copy()
+
+# Exercise both real cache paths; normal desktop paints have no buffer cache.
+for host in ('koreader', 'native'):
+ cache={}
+ def save_stage(x,y,w,h):
+  cache['image']=canvas.crop((x,y,x+w,y+h));cache['pos']=(x,y)
+ if host=='native':
+  g.host_stage_save=save_stage;g.host_stage_restore=lambda: canvas.paste(cache['image'],cache['pos'])
+ else:
+  g.bb.copy=lambda *_: lua.table_from({'image':canvas.copy(),'free':lambda *_: None})
+  g.bb.blitFrom=lambda _,source,x,y,sx,sy,w,h: canvas.paste(source.image.crop((sx,sy,sx+w,sy+h)),(x,y))
+ for w,h in ((600,800),(758,1024),(1072,1448),(800,600)):
+  for background in range(1,7):
+   v=g.newView(25);v.state.animation='off';v.state.background=background
+   first=paint(v,w,h);second=paint(v,w,h)
+   assert first.tobytes()==second.tobytes(),(host,background,w,h,'cached repaint changed the home scene')
+   v.onSuspend(v);v.onResume(v);first=paint(v,w,h);second=paint(v,w,h)
+   assert first.tobytes()==second.tobytes(),(host,background,w,h,'cached repaint changed the scene after waking')
+   v.leave(v)
+ g.bb.copy=None;g.bb.blitFrom=None;g.host_stage_save=None;g.host_stage_restore=None
+print('SCENE CACHE: 48 background, size and host combinations preserve full home scenes before and after sleep')
+
+import runpy
+runpy.run_path(str(REPO/'tests'/'world_layouts.py'))['run'](globals())
 
 # The reported Pikachu screen must fit at Kindle resolutions and custom DPI.
 text_layouts=0
@@ -698,7 +754,7 @@ for w,h in [(600,800),(1072,1448),(1264,1680),(800,600)]:
    v.screen='egg'
   else:
    g.E.act(v.state,'trip' if scenario=='trip-timed' else 'readingtrip',1,now)
-   g.E.readingReward(v.state,1800 if scenario=='trip-ready' else 900,now);v.screen='explore'
+   g.E.readingReward(v.state,1800 if scenario=='trip-ready' else 900,now);v.screen='expeditions'
   if scenario.endswith('paused'):v.state.reading.enabled=False
   im=paint(v,w,h);assert not truncated,(scenario,truncated)
   if (w,h)==(600,800):im.save(OUT/f'{scenario}.png')
@@ -828,10 +884,17 @@ for record in sources:
 print(f'ASSETS: {count} valid transparent frames; all {len(species_ids)} species have frames and source records')
 poses=lua.execute((ROOT/'assets'/'poses.lua').read_text())
 pose_sources={(r['species'],r['pose'].lower()):r for r in json.loads((ROOT/'assets'/'pose-sources.json').read_text())}
+walk_sources=json.loads((ROOT/'assets'/'walk-sources.json').read_text())
+assert {r['species'] for r in walk_sources}==species_ids and len(walk_sources)==len(species_ids)
+for record in walk_sources:
+ assert record['rows']=={'down':0,'left':2,'up':4,'right':6}
+ assert len(record['source_sha256'])==64
+ for direction in record['rows']:
+  pose_sources[record['species'],'walk_'+direction]={**record,'motion':True}
 assert set(pose_sources)=={(id,pose) for id in species_ids for pose in poses[id].keys()}
 pose_count=0
 for id in poses.keys():
- assert set(poses[id].keys())=={'idle','sleep','walk','attack','eat','hop','rotate','charge','swing','double'}
+ assert set(poses[id].keys())=={'idle','sleep','walk','attack','eat','hop','rotate','charge','swing','double','walk_up','walk_down','walk_left','walk_right'}
  for pose,frames in poses[id].items():
   hashes=[]
   for fr in range(1,frames+1):
@@ -841,7 +904,7 @@ for id in poses.keys():
    hashes.append(img.tobytes());pose_count+=1
   record=pose_sources[id,pose]
   assert len(set(hashes))>=2 and record['motion'],(id,pose)
-print(f'POSES: {pose_count} valid grayscale alpha frames; every species has ten moving poses')
+print(f'POSES: {pose_count} valid grayscale alpha frames; every species has ten action poses and four walking directions')
 compile_lua=lua.eval('function(path) assert(loadfile(path)) end')
 sources=list(ROOT.rglob('*.lua'))
 for path in sources:compile_lua(path.as_posix())

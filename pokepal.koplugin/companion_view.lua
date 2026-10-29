@@ -87,7 +87,7 @@ return function(View,UIManager,BB)
  end
  function View:paintTrailStory(bb)
   local j=self.state.companion and self.state.companion.journey
-  if not j then self:paintExplore(bb);return end
+  if not j then self:paintExpeditions(bb);return end
   local event=self.engine.companion.events[j.event]
   self:title(bb,event.title,"Something happened on the way home.")
   self:sprite(bb,self.state.species,204,205,192,1,"walk")

@@ -50,7 +50,7 @@ its sleep screen or add a small reading footer. These settings start off.
 KUAL keeps the Kindle's normal sleep screen. No screensaver add-on is needed.
 
 AROUND THE NEST
-Explore > As you read starts a trail that advances with recorded reading.
+Explore > Trips > As you read starts a trail that advances with recorded reading.
 Timed trips are the default and don't need reading rewards.
 More > Reading rewards > Your egg has eggs for 3 berries. Read for 120 minutes, then tap
 Hatch your egg. It joins the journal and keeps your current partner.
@@ -60,10 +60,10 @@ Feed, play, train, rest, clean and collect daily berries from home.
 More holds reading rewards, backgrounds, decorations and backups.
 Decorations cost berries once and can be placed or hidden in any background.
 Profile > Nickname lets you name your partner. The name stays when it evolves.
-Profile > Change companion lets you switch partners. Choose from all 386
-Pokemon opens the full list, even for Pokemon you haven't met. Tap one and
-confirm. Each keeps its XP, bond and nickname. The full list is also
-available when starting a new game, alongside the 11 quick starters.
+Profile > Change companion lets you switch partners. Once Explore is open,
+choose from your saved collection. Befriend wild Pokemon with berries or
+hatch eggs to add friends. Each keeps its XP, bond and nickname. All 386
+remain available as your first companion, alongside the 11 quick starters.
 Use the Kanto, Johto and Hoenn tabs to browse by region. Every Pokemon has
 ten animation previews. Training moves use different poses as they unlock.
 More > Animation lets you choose Gentle, Eco or Off.
@@ -76,6 +76,12 @@ If a restore stops midway, close and reopen PokePal to finish it.
 Copy the pokepal folder to your computer to keep a backup off the Kindle.
 Use matching builds in both readers. Back up the whole pokepal folder
 before updating; older builds cannot read the new save fields.
+Explore upgrades the save to version 8. Start with one chosen Pokemon and
+build a party of up to six. The Centre heals for free and holds your box.
+Offer 3 berries to a weakened wild Pokemon to befriend it. Gym badges open
+routes, lessons, revives and the Tower. Berries pay for supplies and entry.
+The town guide offers quests that open the Coast and cave shortcuts.
+Each battle turn is saved. Return through Explore after sleep or reading.
 
 HELP
 Missing from KUAL? Check extensions/pokepal/menu.json is on your Kindle.

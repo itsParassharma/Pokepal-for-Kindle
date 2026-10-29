@@ -69,7 +69,7 @@ function C.decode(hex)
  local data=hex:gsub("..",function(c) return string.char(tonumber(c,16)) end)
  local pos,nodes=1,0
  local function dec(depth)
-  nodes=nodes+1;if depth>8 or nodes>4096 then error("Data limit") end
+  nodes=nodes+1;if depth>8 or nodes>8192 then error("Data limit") end
   local kind=data:sub(pos,pos);pos=pos+1
   if kind=="b" then local b=data:sub(pos,pos);pos=pos+1;if b~="0" and b~="1" then error("Boolean") end;return b=="1" end
   local ending=data:find(":",pos,true);if not ending or ending-pos>13 then error("Length") end

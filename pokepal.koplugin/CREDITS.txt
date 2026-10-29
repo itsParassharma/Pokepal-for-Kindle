@@ -15,6 +15,9 @@ Missing eating poses use PokePal's berry and chewing motion, derived from
 the credited idle sprites. Still poses use added breathing motion. These
 additions are recorded in the source manifest. Every species has ten
 moving poses, with at most four frames per animation.
+All 386 species also include down, left, up and right walking frames from
+the cardinal rows of those same sheets. assets/walk-sources.json records
+the rows, sampled frames, source hashes and original per-species credits.
 
 assets/pose-sources.json records sheet URLs, SHA-256, metadata, selected
 frames, motion and per-species credit files. assets/credits/ contains the
@@ -27,11 +30,26 @@ SPECIES DATA
 https://github.com/PokeAPI/pokeapi
 Revision: 2bf639e5572812a67d2b94903fdcb9d095f5aeb2
 Names, types and family relationships come from its CSVs.
+The battle type chart comes from type_efficacy.csv at the same revision.
 XP thresholds, moves, rewards and cooldowns are PokePal rules.
 Legacy starter thresholds are kept for save compatibility.
 
 CODE AND RUNTIME
 Shared game, original pixel icons and UI: MIT (LICENSE-CODE.txt).
+Classic map tiles, trainers and battle sprites are original Pokemon game art.
+They are not covered by the code's MIT license. Pokemon game artwork belongs
+to Nintendo, Game Freak and Creatures. Sources and conversion records:
+https://github.com/pret/pokecrystal
+Revision: 5c877ef55197039c9676e8e3eec6d254b1c40fe8
+Crystal supplies map tiles, trainers and front/back sprites for Pokemon 1-251.
+https://github.com/pret/pokeemerald
+Revision: 731ad5bfd6e6f265508d0efcca0ba42f9dcf5881
+Emerald supplies front/back sprites for Pokemon 252-386, reduced to four shades.
+assets/classic/sources.json records the source paths and SHA-256 hashes.
+tools/import_classic.py builds the maps and PNG packs used by both Lua hosts.
+Field Pokemon keep the credited SpriteCollab walking directions, resized to
+24-pixel canvases and the same four shades. Their upstream terms still apply.
+
 The KOReader edition uses the separately installed KOReader runtime.
 The standalone host is GPL-3.0-or-later and uses FBInk, Lua, stb and
 Bitstream Vera. Runtime licenses and corresponding source are included

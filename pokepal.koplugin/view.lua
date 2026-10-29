@@ -55,9 +55,10 @@ function View:region(x,y,w,h)
 end
 function View:stageRegion()
  if self.screen=="entry" then return self:region(120,184,360,280) end
- return self:region(32,180,536,240)
+ if self.screen=="battle" then return self:region(32,200,536,215) end
+ return self:region(32,153,536,267)
 end
-function View:animationSpecies() return self.screen=="entry" and self.detail_id or self.state.species end
+function View:animationSpecies() return self.screen=="entry" and self.detail_id or self.screen=="battle" and self.state.world.battle.ally or self.state.species end
 function View:rect(bb,x,y,w,h,color)
  local r=self:region(x,y,w,h);bb:paintRect(r.x,r.y,r.w,r.h,color or BLACK)
 end
@@ -113,15 +114,23 @@ function View:sprite(bb,id,x,y,size,frame,pose)
  local pose_list=self.poses[id]
  if pose and (not pose_list or not pose_list[pose]) then pose=pose_list and "idle" or nil end
  frame=math.min(frame or 1,pose and pose_list[pose] or self.frames[id] or 1)
- local key=id.."-"..(pose or "normal").."-"..frame.."-"..round(size*self.scale);local img=self.images[key]
+ local file=id.."-"..(pose and pose.."-" or "")..frame..".png"
+ self:packedImage(bb,self.sprites,"assets",file,x,y,size,size)
+end
+function View:classic(bb,name,x,y,width,height)
+ self.classic_sprites=self.classic_sprites or dofile(self.path.."/assets/classic/sprites.lua")
+ self:packedImage(bb,self.classic_sprites,"assets/classic",name..".png",x,y,width,height or width)
+end
+function View:packedImage(bb,pack,directory,file,x,y,width,height)
+ local pw,ph=round(width*self.scale),round(height*self.scale)
+ local key=directory.."/"..file.."-"..pw.."x"..ph;local img=self.images[key]
  if not img then
-  local file=id.."-"..(pose and pose.."-" or "")..frame..".png"
-  local data=self.sprites.read(self.path.."/assets",file)
+  local data=pack.read(self.path.."/"..directory,file)
   local raw=RenderImage:renderImageData(data,#data,false)
   assert(raw,"Cannot decode PokePal sprite: "..file)
-  local pixels=round(size*self.scale);local scaled=raw
-  if raw:getWidth()~=pixels or raw:getHeight()~=pixels then scaled=raw:scale(pixels,pixels);raw:free() end
-  img=ImageWidget:new{image=scaled,image_disposable=true,alpha=true,width=pixels,height=pixels,scale_for_dpi=false}
+  local scaled=raw
+  if raw:getWidth()~=pw or raw:getHeight()~=ph then scaled=raw:scale(pw,ph);raw:free() end
+  img=ImageWidget:new{image=scaled,image_disposable=true,alpha=true,width=pw,height=ph,scale_for_dpi=false}
   self.images[key]=img
  end
  local r=self:region(x,y,0,0);img:paintTo(bb,r.x,r.y)
@@ -133,6 +142,7 @@ function View:freeImages()
 end
 function View:stopAnimation()
  UIManager:unschedule(self.tick);self.animating=false;self.frame=1;self.effect=nil;self.previous_species=nil
+ self:stopWorldWalk()
 end
 function View:poseFor(effect)
  local id=self:animationSpecies()
@@ -141,6 +151,11 @@ function View:poseFor(effect)
  if effect=="rest" or effect=="ambient_sleep" then return self.state.resting and "sleep" or "idle" end
  if effect=="feed" then return self.poses[self:animationSpecies()].eat and "eat" or "idle" end
  if effect=="train" then return self.training_pose or "attack" end
+ if effect=="battle" then
+  local b=self.state.world and self.state.world.battle
+  local move=b and self.engine.world.battle.equipped(self.engine,b)[b.last_move]
+  return move and move.kind=="guard" and "charge" or "attack"
+ end
  if effect=="play" or (effect=="hello" and not self.state.resting) then return "hop" end
  if effect=="clean" then return "rotate" end
  if effect=="evolve" then return "charge" end
@@ -160,10 +175,19 @@ function View:animate(effect,previous)
  UIManager:scheduleIn(self.interval,self.tick)
 end
 function View:go(screen)
- self:stopAnimation();self:freeImages();self.screen=screen;self.page=1;self.hatched=nil;UIManager:setDirty(self,"ui")
+ self.world_message=nil
+ self:stopAnimation();self:freeImages();self.screen=screen;self.page=1;self.hatched=nil;self.world_follow=nil;UIManager:setDirty(self,"ui")
+ if screen=="worldmoves" then self.party_move_id=nil;self.move_slot=1 end
+ if screen=="explore" and self.state.species~=0 then
+  if self.engine.world.enter(self.state) then self.world_dirty=true end
+  if self.state.world.battle then self.screen="battle" end
+  if self.state.world.camp and self.state.world.camp.tower and self.state.world.camp.tower.choice then self.screen="worldtower" end
+ end
  local now=os.time()
  if now>self.state.last and not (self.owner.backups and self.owner.backups.blocked) then
-  self.engine.advance(self.state,now);self.owner:save()
+  self.engine.advance(self.state,now)
+  if self.world_dirty then self:saveWorld() else self.owner:save() end
+ elseif self.world_dirty and not (self.owner.backups and self.owner.backups.blocked) then self:saveWorld()
  end
  if screen=="nickname" then self.nickname_text=self.state.nicknames and self.state.nicknames[tostring(self.state.species)] or "";self.uppercase=true end
  if screen=="backups" then self:loadBackups() end
@@ -192,7 +216,11 @@ function View:paintTo(bb,x,y)
  self:rect(bb,32,75,536,1)
  if self.state.species==0 and self.screen~="allcompanions" and self.screen~="entry" then self:paintWelcome(bb)
  elseif self.screen=="home" then self:paintHome(bb)
- elseif self.screen=="explore" then self:paintExplore(bb)
+ elseif self.screen=="explore" then self:paintWorld(bb)
+ elseif self.screen=="expeditions" then self:paintExpeditions(bb)
+ elseif self.screen=="worldhelp" then self:paintWorldHelp(bb)
+ elseif self.screen:match("^world") then self:paintTownMenu(bb)
+ elseif self.screen=="battle" then self:paintBattle(bb)
  elseif self.screen=="journal" or self.screen=="companions" or self.screen=="allcompanions" then self:paintJournal(bb)
  elseif self.screen=="entry" then self:paintEntry(bb)
  elseif self.screen=="history" then self:paintHistory(bb)
@@ -261,11 +289,11 @@ function View:paintHome(bb)
  self:text(bb,self.engine.ready(s) and "Evolution is ready!" or "Bond "..math.floor(s.bond).." / 100   |   "..s.xp.." XP",32,559,17,350)
  self:button(bb,"Profile",431,547,137,36,"nav","profile")
  local buttons={{"Feed","feed",nil,"berry"},{readyLabel("Play",s.played+1800-now),"startplay",nil,"ball"},{readyLabel("Train",s.trained+3600-now),"nav","train","ball"},
-  {s.resting and "Wake" or "Rest","rest",nil,"moon"},{s.trip>0 and left==0 and "Collect!" or "Explore","nav","explore","boot"},{"Journal","nav","journal","book"},
+  {s.resting and "Wake" or "Rest","rest",nil,"moon"},{s.trip>0 and left==0 and "Collect!" or "Explore","nav",s.trip>0 and left==0 and "expeditions" or "explore","boot"},{"Journal","nav","journal","book"},
   {"Clean","clean",nil,"clean"},{readyLabel("Basket",s.gift+86400-now),"gift",nil,"berry"},{"More","nav","more","settings"}}
  for i,b in ipairs(buttons) do self:button(bb,b[1],32+(i-1)%3*182,596+math.floor((i-1)/3)*57,172,48,b[2],b[3],b[4]) end
  if s.egg then self.buttons[#self.buttons+1]={x=416,y=344,w=60,h=67,action="nav",arg="egg"} end
- self.buttons[#self.buttons+1]={x=168,y=211,w=264,h=204,action=s.trip>0 and "nav" or "hello",arg=s.trip>0 and "explore" or nil}
+ self.buttons[#self.buttons+1]={x=168,y=211,w=264,h=204,action=s.trip>0 and "nav" or "hello",arg=s.trip>0 and "expeditions" or nil}
 end
 function View:paintHomeStage(bb)
  local s=self.state;local now=os.time();local left=self.engine.tripLeft(s,now)
@@ -305,6 +333,7 @@ end
 function View:paintStage(bb)
  if self.screen=="home" then self:paintHomeStage(bb)
  elseif self.screen=="entry" then self:rect(bb,120,184,360,280,WHITE);self:sprite(bb,self.detail_id,174,196,252,self.frame,self.preview_pose or "idle")
+ elseif self.screen=="battle" then self:paintBattleStage(bb)
  else self:paintTo(bb,0,0) end
 end
 function View:paintEffect(bb)
@@ -320,7 +349,7 @@ function View:backButton(bb) self:button(bb,"Back to companion",32,717,536,44,"n
 function View:title(bb,title,subtitle)
  self:text(bb,title,32,101,29,536,true);if subtitle then self:text(bb,subtitle,32,145,17,536) end
 end
-function View:paintExplore(bb)
+function View:paintExpeditions(bb)
  local s=self.state
  self:title(bb,"Expeditions","Pick a trail and see who you meet.")
  if s.trip>0 then
@@ -348,7 +377,7 @@ function View:paintExplore(bb)
    local y=253+(i-1)*139
    self:button(bb,r.name.." / "..r.seconds/60 .." min",32,y,536,54,timed and "trip" or "readingtrip",i,"boot")
    self:text(bb,r.energy.." energy   +"..r.berries.." berries   +"..r.xp.." XP",43,y+65,18,513)
-   self:text(bb,i==1 and "Grass, Bug, Fire, Electric and other land Pokemon." or i==2 and "Water and Ice Pokemon live along this trail." or "Rock, Ground, Ghost and Psychic Pokemon.",43,y+94,16,513)
+   self:text(bb,i==1 and "Grass, Bug, Fire, Electric and more." or i==2 and "Water and Ice Pokemon live along this trail." or "Rock, Ground, Ghost and Psychic Pokemon.",43,y+94,16,513)
   end
   self:text(bb,timed and "Trips finish after real time passes." or "Only new recorded reading moves you along the trail.",32,666,17,536,false,true)
  end
@@ -379,7 +408,7 @@ function View:paintRecap(bb)
    self:text(bb,self.engine.routes[r.route].name,46,336,21,508,true)
    self:text(bb,math.floor(100*r.trip_before/total).."% to "..math.floor(100*r.trip_after/total).."% of the trail",46,370,18,508)
    self:progress(bb,46,406,508,r.trip_after,total)
-  else self:text(bb,"Pick a trail under Explore for your next chapter.",46,370,18,508) end
+  else self:text(bb,"Pick a trail under Explore > Trips.",46,370,18,508) end
   if r.egg then
    local percent=math.floor(100*r.egg_after/self.engine.egg_seconds)
    self:text(bb,percent==100 and "Your egg is ready to hatch!" or "Your egg is "..percent.."% of the way there",46,464,21,508,true)
@@ -427,6 +456,7 @@ function View:paintDecorations(bb)
 end
 function View:paintJournal(bb)
  local choosing=self.screen=="companions" or self.screen=="allcompanions"
+ local box=self.state.world and self.state.world.camp and self.state.world.camp.box
  local regions={{"All",1,self.engine.species_count},{"Kanto",1,151},{"Johto",152,251},{"Hoenn",252,386}}
  local region=regions[self.chooser_region or 1]
  local ids={}
@@ -434,15 +464,15 @@ function View:paintJournal(bb)
   local starters={};for _,id in ipairs(self.engine.starters) do starters[id]=true end
   for id=1,self.engine.species_count do
    if self.screen=="allcompanions" then
-    if id>=region[2] and id<=region[3] then ids[#ids+1]=id end
-   elseif starters[id] or self.state.seen[tostring(id)] then ids[#ids+1]=id end
+    if id>=region[2] and id<=region[3] and (not box or box[tostring(id)]) then ids[#ids+1]=id end
+   elseif box and box[tostring(id)] or not box and (starters[id] or self.state.seen[tostring(id)]) then ids[#ids+1]=id end
   end
  else ids=self.engine.companion.journal(self.state,self.engine,self.journal_query,self.journal_filter or "met") end
  self.journal_count=#ids
  local pages=math.max(1,math.ceil(#ids/6));self.page=math.min(self.page or 1,pages)
  if choosing then
-  self:title(bb,self.screen=="allcompanions" and "All "..self.engine.species_count.." Pokemon" or "Change companion",
-   self.screen=="allcompanions" and "Every Pokemon is available to choose." or "Starters and friends you've met.")
+  self:title(bb,box and "Your collection" or self.screen=="allcompanions" and "All "..self.engine.species_count.." Pokemon" or "Change companion",
+   box and "Befriend wild Pokemon in Explore to add friends." or self.screen=="allcompanions" and "Every Pokemon is available to choose." or "Starters and friends you've met.")
   if self.screen=="allcompanions" then
    for i,item in ipairs(regions) do
     self:button(bb,item[1],32+(i-1)*137,184,125,42,"chooserregion",i,nil,false,(self.chooser_region or 1)==i)
@@ -464,7 +494,7 @@ function View:paintJournal(bb)
  self:button(bb,"Next",398,597,170,43,"page",1,nil,self.page==pages)
  if choosing then
   if self.screen=="companions" then
-   self:button(bb,"Choose from all "..self.engine.species_count.." Pokemon",32,652,536,44,"nav","allcompanions")
+   self:button(bb,box and "Browse your collection" or "Choose from all "..self.engine.species_count.." Pokemon",32,652,536,44,"nav","allcompanions")
   else self:wrapped(bb,"XP, bond and nicknames stay with each friend.",662,18) end
   local back=self.state.species==0 and "home" or self.screen=="allcompanions" and "companions" or "profile"
   local label=back=="home" and "Back to starters" or back=="companions" and "Back to companions" or "Back to profile"
@@ -485,9 +515,11 @@ function View:paintEntry(bb)
  end
  local p=id==self.state.species and self.state or (self.state.partners and self.state.partners[tostring(id)]) or {xp=0,bond=0}
  self:text(bb,p.xp.." XP   /   Bond "..math.floor(p.bond).."   /   Tap a pose to preview",32,574,17,536,false,true)
- local label=id==self.state.species and "Your current partner" or self.state.trip>0 and "Collect your trip before changing"
+ local box=self.state.world and self.state.world.camp and self.state.world.camp.box
+ local unowned=box and not box[tostring(id)]
+ local label=unowned and "Befriend this Pokemon in Explore" or id==self.state.species and "Your current partner" or self.state.trip>0 and "Collect your trip before changing"
   or self.state.resting and "Wake up before changing" or "Choose "..name
- self:button(bb,label,32,604,536,44,self.state.species==0 and "choose" or "partner",id,"heart",id==self.state.species or self.state.trip>0 or self.state.resting)
+ self:button(bb,label,32,604,536,44,self.state.species==0 and "choose" or "partner",id,"heart",unowned or id==self.state.species or self.state.trip>0 or self.state.resting)
  local C=self.engine.companion;local trait,berry=C.profile(self.state,id,self.engine)
  local c=self.state.companion;local known=c and c.tastes[tostring(id)]
  self:text(bb,trait..(known and " / Likes "..berry or " / Try different berries"),32,658,17,344)
@@ -544,7 +576,7 @@ function View:paintProfile(bb)
  elseif #choices==1 then
   local id=choices[1]
   self:button(bb,self.engine.ready(s) and "Evolve into "..self.engine.name(id) or "Growing toward "..self.engine.name(id),32,538,536,56,"evolve",id,"clean",not self.engine.ready(s))
-  self:text(bb,"Feed, play and train together to build your bond.",32,620,17,536,false,true)
+  self:text(bb,"Feed, play and train to build your bond.",32,620,17,536,false,true)
  else self:wrapped(bb,self.engine.name(s.species).." is fully evolved. Keep exploring and fill your field journal together.",465,19) end
  self:text(bb,"Together for "..math.max(0,math.floor((os.time()-s.started)/86400)).." days   /   "..s.trips.." expeditions",32,681,18,536,false,true)
  self:backButton(bb)
@@ -670,7 +702,7 @@ function View:paintReading(bb)
  self:progress(bb,62,267,476,r.carry%900,900)
  self:text(bb,math.ceil((900-r.carry%900)/60).." min to the next reward",32,304,20,536,false,true)
  self:text(bb,"15 minutes = 1 berry + 3 XP",32,347,17,536,false,true)
- self:button(bb,"Expeditions",32,411,262,54,"nav","explore","boot")
+ self:button(bb,"Expeditions",32,411,262,54,"nav","expeditions","boot")
  self:button(bb,self.state.egg and self.engine.eggLeft(self.state)==0 and "Hatch your egg" or "Your egg",306,411,262,54,"nav","egg")
  self:button(bb,"Weekly goal",32,487,262,54,"nav","weekly")
  self:button(bb,"Last visit",306,487,262,54,"nav","recap",nil,not self.owner.recap)
@@ -689,13 +721,14 @@ function View:paintHelp(bb)
  self:backButton(bb)
 end
 function View:onTap(_,ges)
- if self.closed or self.suspended then return true end
+ if self.closed or self.suspended or Device.screen_saver_mode then return true end
  local x=(ges.pos.x-self.ox)/self.scale;local y=(ges.pos.y-self.oy)/self.scale
  for _,b in ipairs(self.buttons) do if x>=b.x and x<b.x+b.w and y>=b.y and y<b.y+b.h then
   if b.action=="exit" then self:leave()
   elseif self.owner.backups and self.owner.backups.blocked then return true
   elseif self.owner.reading_busy and b.action~="nav" and b.action~="page" then return true
   elseif b.disabled then return true
+  elseif self:worldTap(b.action,b.arg) then return true
   elseif self:companionTap(b.action,b.arg) then return true
   elseif b.action=="chooserregion" then
    self.chooser_region=b.arg;self.page=1;self:freeImages();UIManager:setDirty(self,"ui")
@@ -750,6 +783,7 @@ end
 function View:onSwipe() return true end
 function View:onBack()
  if self.screen=="home" or (self.owner.backups and self.owner.backups.blocked) then self:leave()
+ elseif self.screen=="worldhelp" then self:go("explore")
  elseif self.screen=="companions" then self:go("profile")
  elseif self.screen=="allcompanions" then self:go(self.state.species==0 and "home" or "companions")
  elseif self.screen=="entry" and self.entry_from and self.entry_from~="journal" then self:go(self.entry_from)
@@ -784,4 +818,6 @@ function View:onOutOfScreenSaver()
  end
 end
 dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/companion_view.lua")(View,UIManager,BB)
+dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/world_view.lua")(View,UIManager,BB,Device)
+dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/town_view.lua")(View,UIManager)
 return View

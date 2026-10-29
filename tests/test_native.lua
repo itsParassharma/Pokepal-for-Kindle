@@ -29,6 +29,12 @@ for _,pose in ipairs({'idle','sleep','walk','attack','eat','hop','rotate','charg
  for frame=1,v.poses[150][pose] do v.frame=frame;app_paint();assert(#v.buttons==14) end
 end
 assert(app.owner:save())
+for id=1,386 do
+ v.detail_id=id
+ for _,direction in ipairs({'down','left','up','right'}) do v.preview_pose='walk_'..direction;v.frame=1;app_paint() end
+ v:freeImages()
+end
+print('NATIVE FOLLOWERS: all 386 Pokemon drawn in four walking directions')
 local save=app.storage.save;app.storage.save=function() return nil,'Test save failure' end
 assert(not app.owner:save() and app.owner.save_error)
 v:go('more');app_paint();v:go('home');app_paint()
@@ -36,6 +42,44 @@ app.storage.save=save;assert(app.owner:save() and not app.owner.save_error)
 local loaded=app.storage.load('data/pokepal.dat',E);assert(loaded.species==150 and loaded.partners['4'])
 v:onSuspend();assert(#app.ui.queue==0);v:onResume()
 print('NATIVE: drawing, actions, partner progress, save reload and suspend passed')
+v:act('partner',25);s.animation='off';v:go('explore')
+local overview=E.companion.encode(s.world)
+tap('nav','worldparty');app_paint()
+for _,button in ipairs(v.buttons) do assert(button.action~='campslot') end
+tap('nav','explore');assert(E.companion.encode(s.world)==overview)
+tap('worldtile',6);assert(s.world.map=='meadow')
+tap('worldtile',14);assert(v.screen=='battle')
+tap('battleturn',1);assert(s.world.battle.turn==2)
+local world=E.companion.encode(s.world)
+v:onSuspend();v:onResume();assert(E.companion.encode(s.world)==world)
+assert(app.storage.load('data/pokepal.dat',E).world.battle.turn==2)
+tap('nav','home');tap('nav','explore');assert(v.screen=='battle')
+tap('battleflee');tap('battlefinish');assert(v.screen=='explore')
+tap('worldtile',83);assert(s.world.map=='town')
+tap('worldtile',25);s.world.hp=1;tap('worldtile',39);assert(s.world.hp==40)
+tap('nav','home')
+print('NATIVE WORLD: walking, battling, healing, save reload and sleep passed')
+for _,id in ipairs({1,7}) do s.seen[tostring(id)]=true;s.world.camp.box[tostring(id)]=true end;s.world.camp.badges=7
+ v:go('explore');tap('worldtile',37);tap('campslot',2);tap('campdetail',7);tap('campwithdraw',7);tap('campslot',3);tap('campdetail',1);tap('campwithdraw',1)
+v:go('explore');tap('worldtile',83);tap('worldtile',65);tap('worldtile',39);tap('camptower')
+assert(s.world.battle.floor==1);tap('nav','worldswitch');tap('campswitch',7)
+assert(s.world.partner==7 and s.world.battle.turn==2)
+local tower=E.companion.encode(s.world);v:onSuspend();v:onResume();assert(E.companion.encode(s.world)==tower)
+assert(app.owner:save());assert(app.storage.load('data/pokepal.dat',E).world.camp.tower.floor==1)
+s.world.battle.team={10,43,19}
+while s.world.battle.status=='active' do s.world.battle.hp=1;tap('battleturn',1) end
+tap('battlefinish');assert(v.screen=='worldtower')
+tap('nav','worldparty');tap('nav','worldtower');tap('campbenefit',1)
+assert(s.world.battle.floor==2 and s.world.battle.foe==E.world.town.towerFoe(s.world.camp.tower.run,2))
+tap('battleflee');tap('battlefinish');tap('nav','home')
+print('NATIVE TOWER: party selection, turn-cost switching, save reload and sleep passed')
+for _,screen in ipairs({'worldparty','worldbox','worldboxsearch','worldboxname','worldmoves','worldshop','worldquests','worldgym','worldbag','worldrevive'}) do
+ v:go(screen);v.box_text='My partner';app_paint()
+ local world=E.companion.encode(s.world);v:onSuspend();v:onResume();app_paint()
+ assert(v.screen==screen and v.box_text=='My partner' and E.companion.encode(s.world)==world and #app.ui.queue==0)
+ local dirty=app_tick();assert(not dirty,'an idle town menu kept repainting')
+end
+print('NATIVE MENUS: ten town and box screens survive sleep without changing the party or scheduling idle repaints')
 BASE='game';TESTDIR=os.tmpname();os.remove(TESTDIR);assert(host_fs('mkdir',TESTDIR))
 dofile('../../../tests/test_reading.lua')
 dofile('../../../tests/test_gen3.lua')
@@ -43,6 +87,8 @@ dofile('../../../tests/test_adventures.lua')
 dofile('../../../tests/test_companion.lua')
 dofile('../../../tests/test_backups.lua')
 dofile('../../../tests/test_improvements.lua')
+dofile('../../../tests/test_town.lua')
+dofile('../../../tests/test_collection.lua')
 v:go('reading');app_paint();assert(#v.buttons==9)
 dofile('game/reading.lua').init(s);s.berries=6;v:act('egg');v:act('readingtrip',1)
 assert(s.egg and s.trail)

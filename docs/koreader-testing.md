@@ -1,7 +1,8 @@
 # KOReader checks
 
 Run `tests/test_koreader_runtime.lua` from an unpacked official KOReader
-Linux build. It was checked with v2026.07.1. Use a new data directory:
+Linux build, inside its `lib/koreader` directory. It was checked with
+v2026.07.1. Use a new data directory:
 
 ```sh
 KO_HOME="$(mktemp -d)" \
@@ -26,9 +27,17 @@ dummy driver.
 - Waiting five minutes at an image or lock-only screensaver earns no
   reading time. The first minute after unlocking still counts.
 - Disabled sleep features make no game-save calls during suspend.
-- 72 sleep/wake cycles cover bookshelf, book and game views, two
-  orientations, all four combinations of sleep preferences, and immediate,
-  gesture and timed unlocks. Closing a view removes both sleep hooks.
+- Walking and battles save their position and turn. Pausing, closing or sleeping
+  does not count game time as reading. Cancelled walking callbacks stay cancelled after waking.
+- Party selection and Tower switching run through real widgets, preserve the
+  saved turn after reopening, and exclude playing from reading time.
+- 504 sleep/wake cycles cover 21 views, including the Centre, party, box,
+  unfinished box text, dojo, shop, Gym, bag, switching and resting battles.
+  Each runs in two orientations, all four combinations of sleep preferences,
+  and immediate, gesture and timed unlocks. The checks compare the screen
+  pixels after waking and closing against a fresh repaint, preserve unfinished
+  text and battle state, and check that no game window remains over the reader.
+  Closing the reader or browser removes both sleep hooks.
 
 The v1.0.7 download reproduces the original error: PokePal calls game methods
 on KOReader's book view, and the queued wake callback fails on `freeImages`.
