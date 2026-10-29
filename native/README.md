@@ -13,7 +13,7 @@ python tools/build_native.py --zig /path/to/zig --deps /path/to/build-cache
 python tools/package_release.py --deps /path/to/build-cache
 ```
 
-The build fetches pinned Lua and FBInk revisions and the pinned stb submodule. Output goes under `native/build/`. The package tool includes exact dependency sources in a corresponding-source ZIP. Keep that ZIP alongside any redistributed executable.
+The build fetches pinned Lua and FBInk revisions and the pinned stb submodule. Output goes under `native/build/`. The package tool includes exact dependency sources in a corresponding-source ZIP. [Download the 1.1.0 source bundle](https://github.com/itsParassharma/Pokepal-for-Kindle/raw/refs/heads/release-sources/v1.1.0/PokePal-v1.1.0-corresponding-source.zip). Keep the bundle available and link to it wherever you distribute the executable.
 
 Add `--headless` to build the renderer smoke-test executable on Linux or Windows. From `native/build/extension`, run:
 

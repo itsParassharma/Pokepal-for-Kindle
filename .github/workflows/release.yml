@@ -6,6 +6,31 @@ on:
 permissions:
   contents: write
 jobs:
+  release-notes:
+    if: github.repository == 'itsParassharma/Pokepal-for-Kindle' && github.event_name == 'push' && contains(github.event.head_commit.message, '[release-notes]')
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update the 1.1.0 release page
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          source=PokePal-v1.1.0-corresponding-source.zip
+          mkdir -p dist
+          asset_id=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/v1.1.0" --jq ".assets[] | select(.name == \"$source\") | .id")
+          if [ -n "$asset_id" ]; then
+            gh release download v1.1.0 --pattern "$source" --dir dist
+          else
+            curl --fail --location "https://github.com/$GITHUB_REPOSITORY/raw/refs/heads/release-sources/v1.1.0/$source" -o "dist/$source"
+          fi
+          gh release download v1.1.0 --pattern PokePal-v1.1.0-SHA256.txt --dir dist
+          (cd dist && sha256sum --check --ignore-missing PokePal-v1.1.0-SHA256.txt)
+          bash tools/publish_source.sh "dist/$source" v1.1.0
+          gh release edit v1.1.0 --title "1.1.0: Major content update" --notes-file docs/release-v1.1.0.md
+          if [ -n "$asset_id" ]; then
+            gh api --method DELETE "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id"
+          fi
   trailer:
     if: github.repository == 'itsParassharma/Pokepal-for-Kindle' && github.event_name == 'push' && contains(github.event.head_commit.message, '[trailer]')
     runs-on: ubuntu-22.04
@@ -58,8 +83,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          bash tools/publish_source.sh dist/PokePal-v1.1.0-corresponding-source.zip v1.1.0
           if ! gh release view v1.1.0 >/dev/null 2>&1; then
-            gh release create v1.1.0 --target "$GITHUB_SHA" --title "1.1.0" --draft --notes-file docs/release-v1.1.0.md
+            gh release create v1.1.0 --target "$GITHUB_SHA" --title "1.1.0: Major content update" --draft --notes-file docs/release-v1.1.0.md
           fi
-          gh release upload v1.1.0 dist/PokePal-v1.1.0-* --clobber
-          gh release edit v1.1.0 --title "1.1.0" --draft=false --prerelease=false --latest --notes-file docs/release-v1.1.0.md
+          gh release upload v1.1.0 dist/PokePal-v1.1.0-koreader.zip dist/PokePal-v1.1.0-kual.zip dist/PokePal-v1.1.0-SHA256.txt --clobber
+          gh release edit v1.1.0 --title "1.1.0: Major content update" --draft=false --prerelease=false --latest --notes-file docs/release-v1.1.0.md
