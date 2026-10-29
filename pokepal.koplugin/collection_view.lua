@@ -45,6 +45,7 @@ return function(View)
    local naming=screen=="worldboxname"
    self:title(bb,naming and "Choose a nickname" or "Search your box",naming and "Up to 12 characters." or "Search by name, nickname or Pokedex number.")
    self:outline(bb,32,198,536,58);self:text(bb,self.box_text or "",48,211,25,504,true,true)
+   self:button(bb,self.accents and "Letters" or "Accents",398,263,170,38,"accents")
    self:paintKeys(bb,"campkey")
    self:button(bb,self.uppercase and "abc" or "ABC",32,553,172,46,"campcase")
    self:button(bb,"Space",214,553,172,46,"campkey"," ")

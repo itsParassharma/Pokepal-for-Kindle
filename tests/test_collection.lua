@@ -147,4 +147,14 @@ test('malformed ownership, badges, encounters and team sizes fail closed',functi
  end
  local s=pet();s.world.map='gym';assert(A.gym(s,E,1));s.world.battle.party_size=2;assert(not E.valid(s))
 end)
+test('home changes require ownership, while eggs and evolution join the box',function()
+ local s=pet();local w=s.world;local party=E.companion.encode(w.camp.party)
+ assert(E.act(s,'partner',7,now)=='Befriend this Pokemon in Explore first.' and s.species==25)
+ own(s,7);E.act(s,'partner',7,now);assert(s.species==7 and E.companion.encode(w.camp.party)==party)
+ E.act(s,'partner',25,now);s.xp=E.species[25][3];s.bond=40
+ E.act(s,'evolve',26,now);assert(s.species==26 and w.camp.box['26']);reload(s)
+ dofile(BASE..'/reading.lua').init(s);s.reading.seconds=7200;s.egg={id=1,start=0}
+ E.act(s,'hatch',nil,now);assert(not s.egg and w.camp.box['1'])
+ assert(E.companion.encode(w.camp.party)==party);reload(s)
+end)
 print('COLLECTION: '..checks..' party, recruitment, berry, badge and migration checks passed')

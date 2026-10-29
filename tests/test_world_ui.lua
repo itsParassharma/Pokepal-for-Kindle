@@ -179,7 +179,7 @@ test('recruitment, box search, favourites and party controls work through touch'
  tapButton(v,'nav','worldbag');local berries=v.state.berries;tapButton(v,'camprecruit')
  assert(w.camp.box['10'] and #w.camp.party==1 and v.state.berries==berries-2)
  tapButton(v,'campaddrecruit');assert(#w.camp.party==2);tapButton(v,'battlefinish')
- w.map='centre';w.x=6;w.y=6;v:go('worldbox');tapButton(v,'campsearch')
+ w.map='centre';w.x=6;w.y=6;v:go('worldbox');v.accents=true;tapButton(v,'campsearch');tapButton(v,'accents');assert(not v.accents)
  for letter in ('caterpie'):gmatch('.') do tapButton(v,'campkey',letter) end
  tapButton(v,'camptextsave');tapButton(v,'campdetail',10);tapButton(v,'campfavourite',10)
  assert(v.state.companion.favourites['10']);tapButton(v,'campdeposit',10);assert(#w.camp.party==1)
