@@ -31,11 +31,11 @@ See [what changed in 1.1.0](docs/release-v1.1.0.md).
 
 | Feed your partner | Keep the nest clean |
 | --- | --- |
-| ![Feed Charmander a berry](docs/care-feeding.png) | ![Clean Pikachu's nest](docs/care-cleaning.png) |
+| ![Feed Squirtle a berry](docs/care-feeding.png) | ![Clean Pikachu's nest](docs/care-cleaning.png) |
 
-| Play together | A walk through Fern Town |
+| Rest while you read | A walk through Fern Town |
 | --- | --- |
-| ![Play the berry memory game with Eevee](docs/care-playing.png) | ![Explore Fern Town](docs/explore-town.png) |
+| ![Eevee sleeping while you read](docs/care-resting.png) | ![Explore Fern Town](docs/explore-town.png) |
 
 ## Install with KOReader
 
