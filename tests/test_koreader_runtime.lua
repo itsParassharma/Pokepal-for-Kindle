@@ -482,6 +482,8 @@ print(string.format('SLEEP MATRIX: %d real KOReader cycles; slowest desktop slee
 if ReaderUI.instance then ReaderUI.instance:onClose() end
 if FileManager.instance then FileManager.instance:onClose() end
 assert(Screensaver.setup==original_setup and Screensaver.cleanup==original_cleanup)
+BASE=plugin_path;TESTDIR=dir;BOOKSHELF_REAL_UI=true
+dofile(plugin_path..'/../tests/test_bookshelf.lua')
 logger.err=original_error;os.time=original_time;U:quit()
 assert(failed==0,tostring(failed)..' real KOReader runtime checks failed')
 print('KOREADER RUNTIME: '..passed..' checks passed')

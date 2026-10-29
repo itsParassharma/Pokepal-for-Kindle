@@ -100,14 +100,22 @@ function S.decode(data,engine)
  end
  if engine.valid(s) then return s end
 end
-function S.load(path,engine)
+function S.load(path,engine,cache)
  local primary=read(path);local backup=read(path..".old")
+ -- File timestamps can share a whole second; compare the bytes before reusing a decoded save.
+ if cache and cache.loaded and cache.primary==primary and cache.backup==backup then return cache.state,cache.notice end
  local state=S.decode(primary,engine)
- if state then return state end
- state=S.decode(backup,engine)
- if state then return state,"Recovered the previous saved snapshot." end
- if primary or backup then return nil,"Save is unreadable; existing files were left unchanged." end
- return nil
+ local notice
+ if not state then
+  state=S.decode(backup,engine)
+  if state then notice="Recovered the previous saved snapshot."
+  elseif primary or backup then notice="Save is unreadable; existing files were left unchanged." end
+ end
+ if cache then
+  cache.loaded=true;cache.primary=primary;cache.backup=backup;cache.state=state;cache.notice=notice
+  cache.revision=(cache.revision or 0)+1
+ end
+ return state,notice
 end
 function S.save(path,s,engine,syncfile,syncdir)
  if not engine.valid(s) then return nil,"Invalid game state." end
