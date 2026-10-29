@@ -10,9 +10,8 @@ A Pokémon pet for your Kindle. Feed it, play together and watch it grow.
 
 - Choose any of the 386 Pokémon from Kanto, Johto and Hoenn, with 11 quick starters.
 - Feed, play, train, rest and clean. Collect daily berries, give your partner a nickname and watch it react to its mood.
-- Every Pokémon has ten care animations and four-direction walking frames. Explore uses Crystal maps and trainers, with front and back Pokémon sprites in battles.
-- Explore Fern Town and four wild areas, recruit Pokémon with berries, build a party of up to six and keep your collection in the PC box.
-- Earn Gym badges and take on fresh trainer teams or a six-battle Tower run. Use two moves, switching and berry supplies to win.
+- Explore Fern Town and four wild areas, recruit Pokémon with berries.
+- Earn Gym badges and take on trainers.
 - Earn berries and XP, hatch eggs and reach weekly goals as you read.
 - Explore three different trails, find Pokémon and choose what happens on the way home.
 - Help your partner evolve by building XP and bond.
