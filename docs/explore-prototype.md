@@ -134,7 +134,7 @@ Each turn and benefit choice is saved. Pause, close PokePal or put the Kindle to
 
 ## Updating and testing
 
-Back up the entire `pokepal` folder before trying this branch. Opening Explore upgrades the save to version 8. Version 5, 6 and 7 battles keep their opponent, turn and health until that fight ends. Existing town positions move to the central path only if a new building covers them. Migration adds your party and previously chosen companions to the box without changing the party. Encountered-only journal entries do not grant ownership. Older builds cannot read version 8; update both editions, or restore your backup before returning to 1.0.9.
+Back up the entire `pokepal` folder before updating. Opening Explore upgrades the save to version 8. Version 5, 6 and 7 battles keep their opponent, turn and health until that fight ends. Existing town positions move to the central path only if a new building covers them. Migration adds your party and previously chosen companions to the box without changing the party. Encountered-only journal entries do not grant ownership. Older builds cannot read version 8; update both editions, or restore your backup before returning to 1.0.9.
 
 Family move pairs update with this build. Learned dojo moves and equipped slot choices stay saved.
 

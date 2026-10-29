@@ -40,6 +40,11 @@ jobs:
           assert hashlib.sha256(source.read_bytes()).hexdigest()==data['shasum']
           with tarfile.open(source) as archive: archive.extractall(compiler,filter='data')
           PY
+      - name: Check the standalone runtime
+        run: |
+          python tools/build_native.py --zig ../pokepal-compiler/zig-linux-x86_64-0.13.0/zig --deps ../pokepal-build-cache --headless
+          cd native/build/extension
+          ./pokepal-headless ../../../tests/test_native.lua native-test.pgm
       - name: Build and inspect ARM executable
         run: |
           python tools/build_native.py --zig ../pokepal-compiler/zig-linux-x86_64-0.13.0/zig --deps ../pokepal-build-cache
@@ -49,12 +54,12 @@ jobs:
           sh -n native/kual/launch.sh
       - name: Package clean downloads and corresponding source
         run: python tools/package_release.py --deps ../pokepal-build-cache
-      - name: Publish 1.0.9
+      - name: Publish 1.1.0
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if ! gh release view v1.0.9 >/dev/null 2>&1; then
-            gh release create v1.0.9 --target "$GITHUB_SHA" --title "1.0.9" --draft --notes-file docs/release-v1.0.9.md
+          if ! gh release view v1.1.0 >/dev/null 2>&1; then
+            gh release create v1.1.0 --target "$GITHUB_SHA" --title "1.1.0" --draft --notes-file docs/release-v1.1.0.md
           fi
-          gh release upload v1.0.9 dist/PokePal-v1.0.9-* docs/PokePal-trailer.mp4 --clobber
-          gh release edit v1.0.9 --title "1.0.9" --draft=false --prerelease=false --latest --notes-file docs/release-v1.0.9.md
+          gh release upload v1.1.0 dist/PokePal-v1.1.0-* --clobber
+          gh release edit v1.1.0 --title "1.1.0" --draft=false --prerelease=false --latest --notes-file docs/release-v1.1.0.md
