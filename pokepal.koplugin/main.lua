@@ -4,7 +4,9 @@ local Device = require("device")
 local DataStorage = require("datastorage")
 local ffiUtil = require("ffi/util")
 local InfoMessage = require("ui/widget/infomessage")
-local PokePal = WidgetContainer:extend{name="pokepal",is_doc_only=false}
+-- watchers: callbacks run when the game closes, for views of the partner elsewhere
+-- (the Bookshelf module) to redraw from the new save. Shared by every instance.
+local PokePal = WidgetContainer:extend{name="pokepal",is_doc_only=false,watchers={}}
 
 function PokePal:init()
  -- KOReader supplies self.view for the book. The game uses self.pet_view.
@@ -160,6 +162,12 @@ function PokePal:onPetClosed()
  self:cancelReadingScan();self:updateCompanion()
  if self.session then self.session.close();self.session=nil end
  self:resumeReading()
+ if not self.closed and next(self.watchers) then
+  UIManager:nextTick(function()
+   if self.closed or self.suspended or Device.screen_saver_mode then return end
+   for _,fn in pairs(self.watchers) do pcall(fn) end
+  end)
+ end
 end
 function PokePal:save()
  if self.backups and self.backups.blocked then return nil,"Reopen PokePal to finish restoring." end
