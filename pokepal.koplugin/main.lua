@@ -28,6 +28,7 @@ function PokePal:init()
  self:onDispatcherRegisterActions()
  self:scheduleWelcome()
  self:syncSimpleUI()
+ self:registerSimpleUIModule()
 end
 function PokePal:addToMainMenu(items)
  items.pokepal={text="PokePal",sorting_hint="tools",callback=function() self:openPet() end,
@@ -88,6 +89,7 @@ function PokePal:flushReading()
   if saved or committed then self.clock.pending=self.clock.pending-pending;self.clock.days={};self.clock.total=total+pending end
  end
  unlock();self.reading_error=err
+ self:notifySimpleUIModule()
 end
 function PokePal:pauseReading()
  self.timer.pause(self.clock,os.time());self:flushReading()
@@ -164,6 +166,7 @@ function PokePal:onPetClosed()
  self:cancelReadingScan();self:updateCompanion()
  if self.session then self.session.close();self.session=nil end
  self:resumeReading()
+ self:notifySimpleUIModule()
  if not self.closed and next(self.watchers) then
   UIManager:nextTick(function()
    if self.closed or self.suspended or Device.screen_saver_mode then return end
@@ -178,11 +181,13 @@ function PokePal:save()
   self.save_error=not ok
   if not ok then return nil,err end
   self:syncSimpleUI()
+  self:notifySimpleUIModule()
  end
  return true
 end
 function PokePal:onSuspend()
  self.suspended=true;self:pauseReading();self:cancelReadingScan()
+ self:pauseSimpleUIModule()
  if self.pet_view then self.pet_view:onSuspend()
  elseif self.state and self.engine.companion.option(self.state,"auto_rest") then
   self:companionState(function(s) self.engine.companion.suspend(s,self.engine,os.time()) end)
@@ -200,9 +205,11 @@ function PokePal:onResume()
  self.suspended=false;self:updateCompanion();self:resumeReading()
  if self.pet_view then self.pet_view:onResume();self:startReadingScan(visit) end
  self:syncSimpleUI()
+ self:notifySimpleUIModule()
 end
 function PokePal:onClose()
  self.closed=true;self:cancelWelcome();self:closeShortcutDialog()
+ self:pauseSimpleUIModule()
  self:detachCompanion();self:cancelReadingScan()
  self.document_open=false;self:pauseReading()
  if self.pet_view then self.pet_view:leave() end
@@ -215,4 +222,5 @@ end
 dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/reader_companion.lua").attach(PokePal,UIManager)
 dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/shortcuts.lua").attach(PokePal,UIManager)
 dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/simpleui_menu.lua").attach(PokePal,UIManager)
+dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/simpleui_link.lua").attach(PokePal,UIManager)
 return PokePal

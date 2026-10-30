@@ -43,7 +43,7 @@ function M.attach(PokePal,UIManager)
    else show("PokePal: "..self.simpleui_error) end
    return ok
   end
-  items.pokepal_simpleui={text="PokePal: SimpleUI Tiny Critter",sorting_hint="tools",sub_item_table={
+  local critter_items={
    {text="Export selected Pokémon",callback=function() export() end},
    {text="Keep Pokémon in sync",checked_func=function() return enabled(SYNC) end,callback=function()
     if enabled(SYNC) then G_reader_settings:saveSetting(SYNC,false)
@@ -56,6 +56,12 @@ function M.attach(PokePal,UIManager)
    {text="About this integration",callback=function()
     show("Requires a SimpleUI build with Tiny Critter (tested against 3.0.1). Sync updates images after PokePal saves and when KOReader starts or resumes. Mood image uses PokePal's pose for every SimpleUI expression. Dialogue, mood score, XP and reading progress stay separate. No animations or background polling. Turning sync off keeps the last export."..(self.simpleui_error and "\n\nLast export error: "..self.simpleui_error or ""))
    end},
+  }
+  items.pokepal_simpleui={text="PokePal: SimpleUI",sorting_hint="tools",sub_item_table={
+   {text="Home-screen card setup",callback=function()
+    show("In SimpleUI's home-screen layout editor, choose Add module, then PokePal. Your saved partner follows automatically. Tap the card to play. Its settings offer care bars and Off, Eco or Gentle animation. No image export is needed for the card. Tested with SimpleUI 3.0.1; restart KOReader after installing either plugin.")
+   end},
+   {text="Tiny Critter image export",sub_item_table=critter_items},
   }}
  end
 end

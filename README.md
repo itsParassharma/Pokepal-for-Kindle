@@ -52,7 +52,7 @@ With [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin), your partner c
 <a href="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd"><img src="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd" alt="Charizard on the Bookshelf home screen" width="300"></a><br>
 <sub>Credit: <a href="https://github.com/AndyHazz">AndyHazz</a></sub>
 
-With [SimpleUI Tiny Critter](docs/simpleui-tiny-critter.md), export your selected Pokémon from **Tools > PokePal: SimpleUI Tiny Critter**, then choose **Pokepal partner** in SimpleUI's Critter picker. Optional sync follows your partner and its mood pose. Requires a Tiny Critter-capable build such as SimpleUI 3.0.1; this addition is not in the existing v1.1.0 download.
+With [SimpleUI](docs/simpleui-tiny-critter.md), choose **Add module → PokePal** in its home-screen layout editor. Your selected partner follows automatically, with level, XP, optional care bars and short animations. Tap the card to play. A separate Tiny Critter image export is also available. Tested with SimpleUI 3.0.1 and pinned main; these additions are not in the existing v1.1.0 download.
 
 ### KOReader shortcuts
 

@@ -69,6 +69,7 @@ with zipfile.ZipFile(archive) as package:
     names = package.namelist()
     assert all(name.startswith(prefix) for name in names)
     for name in ('main.lua', 'simpleui_critter.lua', 'simpleui_menu.lua',
+                 'simpleui_card.lua', 'simpleui_link.lua', 'simpleui_model.lua', 'simpleui_module.lua',
                  'assets/simpleui/index.lua', 'assets/simpleui/sprites.bin', 'SPRITE-LICENSE.md'):
         assert prefix + name in names
     assert not any(name.endswith(('.dat', '.old', '.tmp', '.log')) for name in names)
