@@ -57,23 +57,23 @@ Physical touch, sleep/wake and display behaviour still need device testing.
 
 ### KOReader integrations and discovery
 
-Add your partner to [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin) or [SimpleUI](https://github.com/doctorhetfield-cmd/simpleui.koplugin), and find PokePal through [KoStore](https://github.com/ThePixelPro366/KoStore). Tap any image to see it full size.
+Add your partner to [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin) or [SimpleUI](https://github.com/doctorhetfield-cmd/simpleui.koplugin), and find PokePal inside KOReader with the [App Store plugin](https://github.com/omer-faruq/appstore.koplugin). Tap any image to see it full size.
 
 <table>
 <tr>
 <th>Bookshelf</th>
 <th>SimpleUI home</th>
-<th>KOReader plugin search</th>
+<th>KOReader App Store</th>
 </tr>
 <tr>
 <td align="center" valign="top"><a href="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd"><img src="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd" alt="Charizard on the Bookshelf home screen" width="220"></a></td>
 <td align="center" valign="top"><a href="docs/simpleui-home-mockup.png"><img src="docs/simpleui-home-mockup.png" alt="Illustrative SimpleUI home screen with Squirtle's stats above sample books" width="220"></a></td>
-<td align="center" valign="top"><a href="docs/koreader-plugin-search.png"><img src="docs/koreader-plugin-search.png" alt="PokePal returned by GitHub search for topic:koreader-plugin PokePal" width="220"></a></td>
+<td align="center" valign="top"><a href="docs/koreader-appstore-preview.png"><img src="docs/koreader-appstore-preview.png" alt="Edited preview of a PokePal search result and plugin details in KOReader's App Store" width="220"></a></td>
 </tr>
 <tr>
 <td valign="top">Add <strong>PokePal</strong> in the layout editor. Your partner sits on the shelf; tap it to play.<br><br><sub>Screenshot: <a href="https://github.com/AndyHazz">AndyHazz</a>.</sub></td>
 <td valign="top">Choose <strong>Add module → PokePal</strong>. Your selected partner appears alongside your books.<br><br><sub>Illustrative mockup with sample covers and reading progress.</sub></td>
-<td valign="top">The <strong>koreader-plugin</strong> topic makes PokePal discoverable by <strong>KoStore</strong>. Install, restart KOReader, then open <strong>Tools → PokePal</strong>.<br><br><sub>Verified <a href="https://github.com/search?q=topic%3Akoreader-plugin+PokePal&amp;type=repositories">GitHub plugin search</a> used for KoStore discovery.</sub></td>
+<td valign="top">With the <strong>App Store plugin</strong> installed, open <strong>Tools → App Store</strong> and filter for <strong>PokePal</strong>. After installing PokePal, restart KOReader and open <strong>Tools → PokePal</strong>.<br><br><sub>Edited preview based on this <a href="https://i.redd.it/x962b8nl1v2g1.png">source screenshot</a>; not a device capture of PokePal.</sub></td>
 </tr>
 </table>
 
