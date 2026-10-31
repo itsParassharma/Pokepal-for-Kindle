@@ -55,25 +55,25 @@ Physical touch, sleep/wake and display behaviour still need device testing.
 
 ---
 
-### On your KOReader home screen
+### KOReader integrations and discovery
 
-Add your partner to [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin) or [SimpleUI](https://github.com/doctorhetfield-cmd/simpleui.koplugin). Tap any preview to see it full size.
+Add your partner to [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin) or [SimpleUI](https://github.com/doctorhetfield-cmd/simpleui.koplugin), and find PokePal through [KoStore](https://github.com/ThePixelPro366/KoStore). Tap any image to see it full size.
 
 <table>
 <tr>
 <th>Bookshelf</th>
 <th>SimpleUI home</th>
-<th>SimpleUI live stats</th>
+<th>KOReader plugin search</th>
 </tr>
 <tr>
 <td align="center" valign="top"><a href="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd"><img src="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd" alt="Charizard on the Bookshelf home screen" width="220"></a></td>
 <td align="center" valign="top"><a href="docs/simpleui-home-mockup.png"><img src="docs/simpleui-home-mockup.png" alt="Illustrative SimpleUI home screen with Squirtle's stats above sample books" width="220"></a></td>
-<td align="center" valign="top"><a href="docs/simpleui-card-animation.gif"><img src="docs/simpleui-card-animation.gif" alt="Squirtle's animated PokePal stats card rendered in KOReader" width="220"></a></td>
+<td align="center" valign="top"><a href="docs/koreader-plugin-search.png"><img src="docs/koreader-plugin-search.png" alt="PokePal returned by GitHub search for topic:koreader-plugin PokePal" width="220"></a></td>
 </tr>
 <tr>
 <td valign="top">Add <strong>PokePal</strong> in the layout editor. Your partner sits on the shelf; tap it to play.<br><br><sub>Screenshot: <a href="https://github.com/AndyHazz">AndyHazz</a>.</sub></td>
 <td valign="top">Choose <strong>Add module → PokePal</strong>. Your selected partner appears alongside your books.<br><br><sub>Illustrative mockup with sample covers and reading progress.</sub></td>
-<td valign="top">Level, XP, mood and optional care bars refresh automatically. Tap the card to play.<br><br><sub>KOReader-rendered demo. This preview loops; the device plays a short sequence and rests.</sub></td>
+<td valign="top">The <strong>koreader-plugin</strong> topic makes PokePal discoverable by <strong>KoStore</strong>. Install, restart KOReader, then open <strong>Tools → PokePal</strong>.<br><br><sub>Verified <a href="https://github.com/search?q=topic%3Akoreader-plugin+PokePal&amp;type=repositories">GitHub plugin search</a> used for KoStore discovery.</sub></td>
 </tr>
 </table>
 
