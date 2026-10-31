@@ -60,7 +60,7 @@ return function(View,UIManager,BB,Device)
  function View:paintStory(bb)
   local S=self.engine.story;local t=self.state.story
   if not t then
-   self:title(bb,"Crystal story","Save and finish syncing before starting your journey.")
+   self:title(bb,"Crystal story","Finish saving and syncing to start.")
    self:button(bb,"Start story",32,614,536,48,"nav","story",nil,self.owner.reading_busy or self.world_save_failed or self.owner.save_error)
   elseif t.battle then self:paintStoryBattle(bb,t)
   else
