@@ -116,20 +116,20 @@ return function(View,UIManager,BB,Device)
  end
  function View:paintStory(bb)
   local S=self.engine.story;local t=self.state.story
-  if not t or t.version~=4 then
+  if not t or t.version~=5 then
    self:title(bb,"Crystal story","Finish saving and syncing to start.")
    self:button(bb,"Start story",32,614,536,48,"nav","story",nil,self.owner.reading_busy or self.world_save_failed or self.owner.save_error)
   elseif self.story_panel or t.battle and t.battle.status=="active" and t.hp==0 then self:paintStoryPanel(bb,t)
   elseif t.battle then self:paintStoryBattle(bb,t)
   else
    local m=S.maps[t.map];local n=t.node and S.nodes[t.node]
-   self:title(bb,m.name,self.engine.displayName(self.state,t.partner).." / "..t.hp.." HP"..(t.egg and " / Mystery Egg" or t.flags.ENGINE_HIVEBADGE and " / Hive Badge" or t.flags.ENGINE_ZEPHYRBADGE and " / Zephyr Badge" or ""))
+   self:title(bb,m.name,self.engine.displayName(self.state,t.partner).." / "..t.hp.." HP"..(t.egg and " / Mystery Egg" or t.flags.ENGINE_PLAINBADGE and " / Plain Badge" or t.flags.ENGINE_HIVEBADGE and " / Hive Badge" or t.flags.ENGINE_ZEPHYRBADGE and " / Zephyr Badge" or ""))
    local cx=math.max(0,math.min(m.width-COLS,t.x-math.floor(COLS/2)))
    local cy=math.max(0,math.min(m.height-ROWS,t.y-math.floor(ROWS/2)))
    local ox=X+math.max(0,(COLS-m.width)*TILE/2);local oy=Y+math.max(0,(ROWS-m.height)*TILE/2)
    for y=cy,math.min(m.height-1,cy+ROWS-1) do for x=cx,math.min(m.width-1,cx+COLS-1) do
     local px,py=ox+(x-cx)*TILE,oy+(y-cy)*TILE
-    self:storyImage(bb,"tile-"..m.tiles[y*m.width+x+1],px,py,TILE)
+    self:storyImage(bb,"tile-"..S.tileImage(t,x,y),px,py,TILE)
     if not n then self.buttons[#self.buttons+1]={x=px,y=py,w=TILE,h=TILE,action="storytile",arg=y*m.width+x} end
    end end
    for _,p in ipairs(S.npcs(t)) do if p[1]>=cx and p[1]<cx+COLS and p[2]>=cy and p[2]<cy+ROWS then

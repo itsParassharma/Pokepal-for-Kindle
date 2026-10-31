@@ -104,8 +104,8 @@ test('chapter 2 snapshots migrate without changing active trainer progress or ca
  for name,encoded in pairs(dofile(dir..'story_chapter2_fixtures.lua')) do
   local s=assert(Store.decode(encoded,E));assert(Store.encode(s)==encoded)
   local t=s.story;local old=E.companion.encode(t);local turn=t.battle and t.battle.turn;local opponent=t.opponent;local hp=t.hp
-  local care=Store.encode(s):gsub('story=[^\n]+\n',''):gsub('version=10\n','version=12\n')
-  assert(S.enter(s,E));assert(t.version==4 and t.party[1]==t.partner and t.hp==hp and t.opponent==opponent)
+  local care=Store.encode(s):gsub('story=[^\n]+\n',''):gsub('version=10\n','version=13\n')
+  assert(S.enter(s,E));assert(t.version==5 and t.party[1]==t.partner and t.hp==hp and t.opponent==opponent)
   if turn then assert(t.battle.turn==turn) end
   assert(Store.encode(s):gsub('story=[^\n]+\n','')==care);copy(s)
   local after=Store.encode(s);assert(not S.enter(s,E) and Store.encode(s)==after)

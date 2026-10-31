@@ -78,11 +78,11 @@ local function finish(s)
  assert(saved==E.companion.encode(s.story.flags));roundtrip(s)
 end
 
-test('existing saves remain unchanged until starting, and Explore preserves version 12',function()
+test('existing saves remain unchanged until starting, and Explore preserves version 13',function()
  local s=E.new(now);E.act(s,'choose',25,now)
  local data=Store.encode(s);assert(Store.encode(assert(Store.decode(data,E)))==data and not s.story)
  S.enter(s,E);local story=E.companion.encode(s.story);E.world.enter(s)
- assert(s.version==12 and E.companion.encode(s.story)==story);roundtrip(s)
+ assert(s.version==13 and E.companion.encode(s.story)==story);roundtrip(s)
  data=Store.encode(s);assert(not S.enter(s,E) and Store.encode(s)==data)
  assert(not S.enter(E.new(now),E))
 end)
@@ -90,11 +90,11 @@ test('all opening maps, collisions, reciprocal doors and tile counts are bounded
  local count=0
  for name,m in pairs(S.maps) do
   count=count+1;assert(#m.tiles==m.width*m.height and #m.walk==m.height)
-  for _,row in ipairs(m.walk) do assert(#row==m.width and not row:find('[^.#CDLRbcUG]')) end
+  for _,row in ipairs(m.walk) do assert(#row==m.width and not row:find('[^.#CDLRbcUGT]')) end
   assert(S.tile(name,-2,0)=='#' and S.tile(name,0,-1)=='#' and S.tile(name,m.width,0)=='#')
   for _,p in ipairs(m.warps) do assert(S.tile(name,p[1],p[2])=='.') end
  end
- assert(count==27)
+ assert(count==34)
 end)
 local encounter
 for choice,id in ipairs({25,7,94}) do
@@ -142,7 +142,7 @@ test('old Explore saves migrate before starting the story, keeping the companion
  local s=E.new(now);E.act(s,'choose',25,now);E.world.enter(s)
  s.version=5;s.world.camp=nil
  assert(E.valid(s));assert(S.enter(s,E));roundtrip(s)
- assert(s.world.partner==25 and s.species==25 and s.version==12)
+ assert(s.world.partner==25 and s.species==25 and s.version==13)
 end)
 test('the town gate requires accepting the errand and unopened doors leave the player on the map',function()
  local s=fresh();dismiss(s);warp(s,'PLAYERS_HOUSE_1F');dismiss(s);warp(s,'NEW_BARK_TOWN')
@@ -224,7 +224,7 @@ test('five real chapter 1 snapshots migrate only on entry without resetting prog
   local s=assert(Store.decode(data,E));assert(Store.encode(s)==data)
   local t=s.story;local map,x,y,hp=t.map,t.x,t.y,t.hp;local oldflags={};for k,v in pairs(t.flags) do oldflags[k]=v end
   local turn=t.battle and t.battle.turn;local foehp=t.battle and t.battle.hp
-  assert(S.enter(s,E));assert(t.version==4 and s.version==12 and t.partner==s.species and not t.starter)
+  assert(S.enter(s,E));assert(t.version==5 and s.version==13 and t.partner==s.species and not t.starter)
   assert(t.map==map and t.x==x and t.y==y and t.hp==hp)
   oldflags.EVENT_GOT_A_POKEMON_FROM_ELM=nil;assert(E.companion.encode(oldflags)==E.companion.encode(t.flags))
   if key=='choose' then assert(t.node=='directions') end
@@ -352,4 +352,6 @@ end)
 print('STORY: '..checks..' checks passed')
 
 dofile(test_dir..'test_story_catching.lua')
-dofile(test_dir..'test_story_azalea.lua')({E=E,S=S,Store=Store,roundtrip=roundtrip,advance=advance,dismiss=dismiss,walk=walk,warp=warp,connect=connect,navigate=navigate})
+local chapters={E=E,S=S,Store=Store,roundtrip=roundtrip,advance=advance,dismiss=dismiss,walk=walk,warp=warp,connect=connect,navigate=navigate}
+dofile(test_dir..'test_story_azalea.lua')(chapters)
+dofile(test_dir..'test_story_goldenrod.lua')(chapters)

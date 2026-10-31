@@ -413,6 +413,12 @@ check('Azalea Egg, hatching, rescue and Bugsy survive real KOReader controls and
  assert(p.engine.companion.encode(p.state.story)==saved);v:leave()
 end)
 
+check('Farfetchd, Cut, the Radio quiz and Whitney survive KOReader sleep and saving',function()
+ local p=shelf();local v=game(p)
+ local t=dofile(plugin_path..'/../tests/story_goldenrod_runtime.lua')(v,function(action,arg) gameTap(v,action,arg) end)
+ local saved=p.engine.companion.encode(t);v:leave();v=game(p);v:go('story');pump()
+ assert(p.engine.companion.encode(p.state.story)==saved);v:leave()
+end)
 for _,context in ipairs({'shelf','book','game','map','battle','tower','benefit','centre','worldparty','worldbox','worldboxsearch','worldboxname','worldmoves','worldshop','worldquests','worldgym','worldbag','worldswitch','worldrevive','resting-battle','resting-result','story','story-battle'}) do
 check('sleep/wake works with every preference and unlock mode from '..context,function()
  local reader

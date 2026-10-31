@@ -60,7 +60,7 @@ test('legacy story waits for reading sync before migrating and displays the comp
  local v=view();local fixtures=dofile(BASE..'/../tests/story_legacy_fixtures.lua')
  v.state=assert(Store.decode(fixtures.choose,E));v.state.nicknames={['25']='Sparky'};v.owner.reading_busy=true
  v:go('story');v:paintTo(bb,0,0);assert(v.state.story.version==1)
- v.owner.reading_busy=false;v:go('story');assert(v.state.story.version==4 and v.state.story.partner==25 and v.state.story.node=='directions')
+ v.owner.reading_busy=false;v:go('story');assert(v.state.story.version==5 and v.state.story.partner==25 and v.state.story.node=='directions')
  v:paintTo(bb,0,0);assert(E.displayName(v.state,v.state.story.partner)=='Sparky');v:leave()
 end)
 test('Potions use a battle turn and cannot be spent again while a save has failed',function()
@@ -121,6 +121,26 @@ test('a failed hatch save blocks movement and cannot duplicate Togepi on retry',
  v.owner.save=function(owner) owner.save_error=nil;return save(owner) end
  tapButton(v,'worldretry');tapButton(v,'storynext',1);tapButton(v,'storydir','left')
  assert(#t.party==6 and t.flags.EVENT_TOGEPI_HATCHED and not t.togepi_steps);v:leave()
+end)
+test('Farfetchd, Cut, the quiz and Whitney survive touch, sleep and reopening',function()
+ local v=view();local t=dofile(BASE..'/../tests/story_goldenrod_runtime.lua')(v,function(action,arg) tapButton(v,action,arg) end)
+ local saved=E.companion.encode(t);v.state=assert(Store.decode(Store.encode(v.state),E));v:go('story')
+ assert(E.companion.encode(v.state.story)==saved);v:leave()
+end)
+
+test('a failed Cut save blocks progress and retry preserves the opened path',function()
+ local v=view();local S=E.story
+ v.state=assert(Store.decode(dofile(BASE..'/../tests/story_azalea_fixtures.lua').hive,E));v:go('story');tapButton(v,'storynext',1)
+ local t=v.state.story;t.map='IlexForest';t.farfetchd=10;t.flags.EVENT_HERDED_FARFETCHD=true;t.flags.EVENT_GOT_HM01_CUT=true
+ local x,y;for yy,row in ipairs(S.maps.IlexForest.walk) do local xx=row:find('T');if xx then x=xx-1;y=yy-1 end end
+ t.x=x;t.y=y+1;tapButton(v,'storydir','up');assert(t.node=='cut_tree')
+ local save=v.owner.save;v.owner.save=function(owner) owner.save_error=true;return nil,'Disk full' end
+ tapButton(v,'storynext',1);assert(t.node=='cut_done' and v.world_save_failed)
+ local saved=Store.encode(v.state);tapButton(v,'storynext',1);v:storyTap('storydir','up');assert(Store.encode(v.state)==saved)
+ v:onSuspend();v:onResume();assert(Store.encode(v.state)==saved)
+ v.owner.save=function(owner) owner.save_error=nil;return save(owner) end
+ tapButton(v,'worldretry');tapButton(v,'storynext',1);tapButton(v,'storydir','up')
+ assert(t.x==x and t.y==y and t.flags.POKEPAL_ILEX_TREE_CUT and E.valid(v.state));v:leave()
 end)
 os.time=original_time
 print('STORY UI: '..checks..' checks passed')

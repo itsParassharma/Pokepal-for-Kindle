@@ -44,8 +44,8 @@ end
 test('five caught-party saves migrate without changing Pokemon, HP, RNG or active fights',function()
  for name,data in pairs(fixtures) do
   local s=assert(Store.decode(data,E));assert(Store.encode(s)==data)
-  local old=E.companion.encode(s.story);local care=Store.encode(s):gsub('story=[^\n]+\n',''):gsub('version=11\n','version=12\n')
-  assert(S.enter(s,E) and s.story.version==4 and s.version==12)
+  local old=E.companion.encode(s.story);local care=Store.encode(s):gsub('story=[^\n]+\n',''):gsub('version=11\n','version=13\n')
+  assert(S.enter(s,E) and s.story.version==5 and s.version==13)
   local version=s.story.version;s.story.version=3;assert(E.companion.encode(s.story)==old,name);s.story.version=version
   assert(Store.encode(s):gsub('story=[^\n]+\n','')==care);copy(s)
   data=Store.encode(s);assert(not S.enter(s,E) and Store.encode(s)==data)
@@ -73,7 +73,7 @@ test('walk Violet to Azalea, rescue the Slowpoke, earn Hive and face the rival',
  warp(s,'AZALEA_TOWN');warp(s,'ILEX_FOREST_AZALEA_GATE');assert(t.node=='challenge_azalea_rival');advance(s);battle(s)
  warp(s,'ILEX_FOREST_AZALEA_GATE');assert(t.map=='IlexForestAzaleaGate' and S.stage(t)==14)
  walk(s,5,2);assert(t.node=='forest_gate');dismiss(s)
- warp(s,'ILEX_FOREST');assert(t.map=='IlexForestAzaleaGate' and t.node=='closed');dismiss(s)
+ warp(s,'ILEX_FOREST');assert(t.map=='IlexForest' and t.node=='ilex');dismiss(s)
  assert(t.origin==origin and s.species==origin and t.box[tostring(origin)] and t.flags.EVENT_TOGEPI_HATCHED and t.box['175']);copy(s)
 end)
 
@@ -94,7 +94,7 @@ end)
 
 test('all new trainer positions and imported teams are playable and repeat rewards are blocked',function()
  local count=0
- for key,p in pairs(S.trainers) do if p.need then
+ for key,p in pairs(S.trainers) do if p.need and p.chapter~=4 then
   local s=ready();unlock(s);local t=s.story
   if p.need=='EVENT_CLEARED_SLOWPOKE_WELL' then t.flags.EVENT_CLEARED_SLOWPOKE_WELL=true;t.flags.EVENT_BEAT_ROCKET_GRUNTM_1=true end
   t.map=p.map;t.x=p.x;t.y=p.y;t.node='challenge_'..key;S.heal(t);copy(s);advance(s)
@@ -138,4 +138,5 @@ test('inconsistent chapter flags, Egg capacity and premature map access fail clo
  s.story.party[#s.story.party+1]=187;assert(not E.valid(s))
 end)
 print('AZALEA: '..checks..' checks passed')
+c.battle=battle;c.fight=fight
 end

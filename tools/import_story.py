@@ -1,4 +1,4 @@
-"""Import Crystal maps through Azalea Town. Usage: python tools/import_story.py /path/to/pokecrystal"""
+"""Import Crystal maps through Goldenrod City. Usage: python tools/import_story.py /path/to/pokecrystal"""
 from pathlib import Path
 from collections import Counter
 import hashlib, io, json, re, subprocess, sys
@@ -16,7 +16,8 @@ names = ['PlayersHouse2F', 'PlayersHouse1F', 'NewBarkTown', 'ElmsLab', 'Route29'
          'Route31','Route31VioletGate','VioletCity','VioletPokecenter1F','VioletGym',
          'SproutTower1F','SproutTower2F','SproutTower3F','Route32','Route32Pokecenter1F',
          'UnionCave1F','Route33','AzaleaTown','KurtsHouse','SlowpokeWellB1F',
-         'AzaleaPokecenter1F','AzaleaGym','IlexForestAzaleaGate']
+         'AzaleaPokecenter1F','AzaleaGym','IlexForestAzaleaGate','IlexForest',
+         'Route34IlexForestGate','Route34','GoldenrodCity','GoldenrodPokecenter1F','GoldenrodGym','RadioTower1F']
 
 def read(path):
     data = subprocess.check_output(['git', 'show', f'{PIN}:{path}'], cwd=SOURCE)
@@ -43,6 +44,8 @@ constants = dict(re.findall(r'^\s*map_attributes\s+(\w+),\s*(\w+),', attrs, re.M
 tilesets = dict(re.findall(r'^\s*map\s+(\w+), TILESET_(\w+),', text('data/maps/maps.asm'), re.M))
 blocks = text('data/maps/blocks.asm')
 passable = {'FLOOR','TALL_GRASS','DOOR','CAVE','LADDER','STAIRCASE','WARP_CARPET_DOWN','WARP_CARPET_UP','WARP_CARPET_LEFT','WARP_CARPET_RIGHT'}
+cut_blocks=text('data/collision/field_move_blocks.asm').split('.forest:',1)[1].split('db -1',1)[0]
+cut_from,cut_to=[int(n,16) for n in re.search(r'db \$(\w+), \$(\w+), 0',cut_blocks).groups()]
 for name in names:
     width,height = sizes[constants[name]]
     tileset = tilesets[name].lower()
@@ -52,25 +55,29 @@ for name in names:
     blockpath = re.search(r'^'+name+r'_Blocks:.*?INCBIN "([^"]+)"', blocks, re.M|re.S).group(1)
     layout = read(blockpath)
     assert len(layout) == width*height//4
-    tiles, walk = [], []
+    def tile_id(block,x,y):
+        im=Image.new('L',(16,16),255)
+        for dy in range(2):
+            for dx in range(2):
+                tile=meta[block*16+(y%2*2+dy)*4+x%2*2+dx]
+                if tile>=128:tile-=32
+                tx,ty=tile%16*8,tile//16*8
+                assert ty+8<=sheet.height
+                im.paste(sheet.crop((tx,ty,tx+8,ty+8)),(dx*8,dy*8))
+        key=im.tobytes()
+        if key not in tile_ids:
+            tile_ids[key]=len(tile_ids)+1;add('tile-'+str(tile_ids[key]),im)
+        return tile_ids[key]
+    tiles, walk, cleared = [], [], {}
     for y in range(height):
         row=[]
         for x in range(width):
             block=layout[(y//2)*(width//2)+x//2]; quadrant=(y%2)*2+x%2
             kind=coll[block][quadrant];collisions[kind]+=1
-            row.append('G' if kind=='TALL_GRASS' else '.' if kind in passable else {'COUNTER':'C','UP_WALL':'U','HOP_DOWN':'D','HOP_LEFT':'L','HOP_RIGHT':'R','HOP_DOWN_RIGHT':'b','HOP_DOWN_LEFT':'c'}.get(kind,'#'))
-            im=Image.new('L',(16,16),255)
-            for dy in range(2):
-                for dx in range(2):
-                    tile=meta[block*16+(y%2*2+dy)*4+x%2*2+dx]
-                    if tile>=128:tile-=32
-                    tx,ty=tile%16*8,tile//16*8
-                    assert ty+8<=sheet.height
-                    im.paste(sheet.crop((tx,ty,tx+8,ty+8)),(dx*8,dy*8))
-            key=im.tobytes()
-            if key not in tile_ids:
-                tile_ids[key]=len(tile_ids)+1;add('tile-'+str(tile_ids[key]),im)
-            tiles.append(tile_ids[key])
+            row.append('G' if kind=='TALL_GRASS' else 'T' if kind=='CUT_TREE' and name=='IlexForest' else '.' if kind in passable else {'COUNTER':'C','UP_WALL':'U','HOP_DOWN':'D','HOP_LEFT':'L','HOP_RIGHT':'R','HOP_DOWN_RIGHT':'b','HOP_DOWN_LEFT':'c'}.get(kind,'#'))
+            tiles.append(tile_id(block,x,y))
+            if name=='IlexForest' and block==cut_from:
+                cleared[y*width+x+1]=tile_id(cut_to,x,y)
         walk.append(''.join(row))
     script=text('maps/'+name+'.asm')
     warps=[[int(x),int(y),dest,int(index)] for x,y,dest,index in re.findall(r'^\s*warp_event\s+(\d+),\s*(\d+),\s*(\w+),\s*(\d+)',script,re.M)]
@@ -79,12 +86,18 @@ for name in names:
     title={'PlayersHouse2F':'Your room','PlayersHouse1F':'Home','ElmsLab':"Professor Elm's lab",'CherrygrovePokecenter1F':'Pokemon Centre','MrPokemonsHouse':"Mr. Pokemon's house",'VioletPokecenter1F':'Violet Pokemon Centre','Route31VioletGate':'Violet City gate','SproutTower1F':'Sprout Tower / 1F','SproutTower2F':'Sprout Tower / 2F','SproutTower3F':'Sprout Tower / 3F'}.get(name,re.sub(r'([a-z])([A-Z0-9])',r'\1 \2',name))
     title={'Route32Pokecenter1F':'Route 32 Pokemon Centre','UnionCave1F':'Union Cave / 1F',
            'KurtsHouse':"Kurt's house",'SlowpokeWellB1F':'Slowpoke Well / B1F',
-           'AzaleaPokecenter1F':'Azalea Pokemon Centre','IlexForestAzaleaGate':'Ilex Forest gate'}.get(name,title)
+           'AzaleaPokecenter1F':'Azalea Pokemon Centre','IlexForestAzaleaGate':'Ilex Forest gate',
+           'Route34IlexForestGate':'Route 34 forest gate','GoldenrodPokecenter1F':'Goldenrod Pokemon Centre',
+           'RadioTower1F':'Radio Tower / 1F'}.get(name,title)
     maps[name]={'name':title,'width':width,'height':height,'tiles':tiles,'walk':walk,'warps':warps,'links':links}
+    if cleared:
+        assert sum(row.count('T') for row in walk)==1 and len(cleared)==4
+        maps[name]['cleared']=cleared
 
 # Keep source character art separate from the existing Fern Town packs.
 for name in ('chris','mom','elm','oak','rival','gentleman','gramps','nurse','teacher','sage','falkner','youngster','bug_catcher','gym_guide','officer',
-             'scientist','fisher','lass','pokefan_m','super_nerd','rocket','rocket_girl','kurt','slowpoke','bugsy','twin'):
+             'scientist','fisher','lass','pokefan_m','super_nerd','rocket','rocket_girl','kurt','slowpoke','bugsy','twin',
+             'bird','black_belt','whitney','beauty','cooltrainer_f','receptionist'):
     sheet=Image.open(io.BytesIO(read(f'gfx/sprites/{name}.png'))).convert('RGBA')
     for direction,row in [('down',0),('up',1),('left',2),('right',2)]:
         im=sheet.crop((0,row*16,16,row*16+16))
@@ -107,7 +120,8 @@ reader=(ROOT/'assets/sprites.lua').read_text(encoding='utf8').split('function S.
 species={name:i+1 for i,name in enumerate(re.findall(r'^\s*const\s+(\w+)',text('constants/pokemon_constants.asm'),re.M))}
 parties=text('data/trainers/parties.asm');teams={}
 for trainer in ('JOEY','MIKEY','DON','WADE','CHOW','NICO','EDMOND','JIN','TROY','NEAL','LI','ABE','ROD','FALKNER',
-                'ROLAND','JUSTIN','RALPH','HENRY','LIZ','ALBERT','GORDON','PETER','LARRY','RUSSELL','DANIEL','BILL','RAY','BENNY','AL','JOSH','BUGSY'):
+                'ROLAND','JUSTIN','RALPH','HENRY','LIZ','ALBERT','GORDON','PETER','LARRY','RUSSELL','DANIEL','BILL','RAY','BENNY','AL','JOSH','BUGSY',
+                'WAYNE','TODD','SAMUEL','IAN','GINA','BRANDON','KEITH','CARRIE','BRIDGET','VICTORIA','SAMANTHA','WHITNEY'):
     party=re.search(r'db "'+trainer+r'@",[^\n]+\n(.*?)db -1',parties,re.S).group(1)
     teams[trainer.lower()]=[species[name] for name in re.findall(r'^\s*db\s+\d+,\s*(\w+)',party,re.M)]
     assert 1<=len(teams[trainer.lower()])<=6
@@ -131,12 +145,12 @@ for name in names:
         if species[mon] not in catch_rates:
             base=text('data/pokemon/base_stats/'+mon.lower()+'.asm')
             catch_rates[species[mon]]=int(re.search(r'db\s+(\d+)\s*; catch rate',base).group(1))
-assert len(wild)==9
+assert len(wild)==11
 probabilities=text('data/wild/probabilities.asm').split('WaterMonProbTable:',1)[0]
 wild_slots=[int(n) for n in re.findall(r'mon_prob\s+(\d+),',probabilities)]
 assert len(wild_slots)==7 and wild_slots[-1]==100
 (ROOT/'story_maps.lua').write_text('-- Generated by tools/import_story.py; coordinates are zero-based.\nreturn '+lua({'maps':maps,'constants':{constants[n]:n for n in names},'teams':teams,'rivals':rivals,'wild':wild,'wild_slots':wild_slots,'catch_rates':catch_rates})+'\n',encoding='utf8')
 (OUT/'index.json').write_text(json.dumps(index,sort_keys=True)+'\n',encoding='utf8')
 (OUT/'sources.json').write_text(json.dumps({'crystal':PIN,'sha256':hashes,'collision_counts':dict(collisions)},indent=2)+'\n',encoding='utf8')
-assert len(maps)==27 and all(len(m['tiles'])==m['width']*m['height'] for m in maps.values())
+assert len(maps)==34 and all(len(m['tiles'])==m['width']*m['height'] for m in maps.values())
 print(json.dumps({'maps':len(maps),'images':len(images),'bytes':len(blob),'collisions':dict(collisions)},indent=2))

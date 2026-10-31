@@ -6,7 +6,7 @@ return function(S,B,data,equip)
  S.egg_steps=256
  local function int(n,a,b) return type(n)=="number" and n==n and n%1==0 and n>=a and n<=b end
  function S.initParty(t,seed)
-  t.version=4;t.origin=t.partner;t.party={t.partner};t.box={[tostring(t.partner)]=true};t.health={}
+  t.version=5;t.origin=t.partner;t.party={t.partner};t.box={[tostring(t.partner)]=true};t.health={}
   t.seed=seed;t.balls=S.max_balls;t.grace=3
  end
  function S.member(t,id) for i,mon in ipairs(t.party) do if mon==id then return i end end end
@@ -26,7 +26,7 @@ return function(S,B,data,equip)
   t.hp=40;t.potions=S.max_potions
   if t.version>=3 then t.health={};t.balls=S.max_balls end
  end
- function S.atCentre(t) return t.map=="CherrygrovePokecenter1F" or t.map=="VioletPokecenter1F" or t.map=="Route32Pokecenter1F" or t.map=="AzaleaPokecenter1F" end
+ function S.atCentre(t) return t.map=="CherrygrovePokecenter1F" or t.map=="VioletPokecenter1F" or t.map=="Route32Pokecenter1F" or t.map=="AzaleaPokecenter1F" or t.map=="GoldenrodPokecenter1F" end
  function S.canManage(t) return S.atCentre(t) and not t.node and not t.battle end
  function S.lead(t,E,id)
   if not S.member(t,id) or id==t.partner or S.hp(t,id)==0 then return false end
@@ -56,7 +56,8 @@ return function(S,B,data,equip)
   local result={};for id=1,386 do if t.box[tostring(id)] then result[#result+1]=id end end;return result
  end
  function S.wildTerrain(t)
-  return S.wild[t.map] and (S.tile(t.map,t.x,t.y)=="G" or S.wild[t.map].terrain=="floor" and S.tile(t.map,t.x,t.y)==".")
+  local tile=S.tile(t.map,t.x,t.y,t)
+  return S.wild[t.map] and (tile=="G" or S.wild[t.map].terrain=="floor" and tile==".")
  end
  function S.wildSpecies(map,id)
   local wild=S.wild[map];if not wild then return false end

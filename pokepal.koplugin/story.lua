@@ -21,19 +21,36 @@ local flags={ENGINE_POKEGEAR=true,POKEPAL_ELM_MISSION=true,
  POKEPAL_REACHED_VIOLET=true,POKEPAL_SPROUT_RIVAL_SEEN=true,EVENT_GOT_HM05_FLASH=true,ENGINE_ZEPHYRBADGE=true}
 local chapter_flags={EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE=true,EVENT_TOGEPI_HATCHED=true,POKEPAL_REACHED_AZALEA=true,
  EVENT_AZALEA_TOWN_SLOWPOKETAIL_ROCKET=true,EVENT_CLEARED_SLOWPOKE_WELL=true,ENGINE_HIVEBADGE=true}
+local goldenrod_flags={EVENT_HERDED_FARFETCHD=true,EVENT_GOT_HM01_CUT=true,POKEPAL_ILEX_TREE_CUT=true,
+ POKEPAL_REACHED_GOLDENROD=true,POKEPAL_WHITNEY_CALMED=true,ENGINE_PLAINBADGE=true,ENGINE_RADIO_CARD=true}
 for key in pairs(chapter_flags) do flags[key]=true end
+for key in pairs(goldenrod_flags) do flags[key]=true end
 local requirements={Route32="EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE",Route32Pokecenter1F="EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE",
  UnionCave1F="EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE",Route33="EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE",
  AzaleaTown="POKEPAL_REACHED_AZALEA",KurtsHouse="POKEPAL_REACHED_AZALEA",AzaleaPokecenter1F="POKEPAL_REACHED_AZALEA",
  SlowpokeWellB1F="EVENT_AZALEA_TOWN_SLOWPOKETAIL_ROCKET",AzaleaGym="EVENT_CLEARED_SLOWPOKE_WELL",IlexForestAzaleaGate="ENGINE_HIVEBADGE"}
+local goldenrod_maps={IlexForest="ENGINE_HIVEBADGE",Route34IlexForestGate="POKEPAL_ILEX_TREE_CUT",Route34="POKEPAL_ILEX_TREE_CUT",
+ GoldenrodCity="POKEPAL_REACHED_GOLDENROD",GoldenrodPokecenter1F="POKEPAL_REACHED_GOLDENROD",
+ GoldenrodGym="POKEPAL_REACHED_GOLDENROD",RadioTower1F="POKEPAL_REACHED_GOLDENROD"}
+for map,need in pairs(goldenrod_maps) do requirements[map]=need end
 people.Route32Pokecenter1F={{3,1,"nurse","heal"}}
 people.AzaleaPokecenter1F={{3,1,"nurse","heal"}}
 people.AzaleaTown={{21,9,"gramps","azalea_guide"}}
 people.AzaleaGym={{7,13,"gym_guide","azalea_gym_guide"}}
 people.IlexForestAzaleaGate={{5,2,"officer","forest_gate"}}
+people.Route34IlexForestGate={{9,3,"teacher","route34_guide"}}
+people.GoldenrodCity={{11,27,"gramps","goldenrod_guide"}}
+people.GoldenrodPokecenter1F={{3,1,"nurse","heal"}}
+people.GoldenrodGym={{5,15,"gym_guide","goldenrod_gym_guide"}}
+people.RadioTower1F={{5,6,"receptionist","radio_lobby"},{12,6,"cooltrainer_f","radio_quiz"}}
+-- Crystal's ten Farfetch'd positions and direction-dependent escape routes.
+S.farfetchd_positions={{14,31},{15,25},{20,24},{29,22},{28,31},{24,35},{22,31},{15,29},{10,35},{6,28}}
+local bird_routes={{2},{3,down=8},{4,left=2},{5,up=3},{6,up=4,left=7,right=4},
+ {7,right=5},{8,down=5,left=6},{9,up=2,left=2,right=7},{10,down=8,right=8},{10}}
 for key,trainer in pairs(S.trainers) do
  trainer.team=assert(data.teams[key]);flags[trainer.flag]=true
- if trainer.need then chapter_flags[trainer.flag]=true end
+ if trainer.chapter==4 then goldenrod_flags[trainer.flag]=true
+ elseif trainer.need then chapter_flags[trainer.flag]=true end
  S.nodes["challenge_"..key]={op="text",who=trainer.name,lines=trainer.lines or {"Let's see how you work together.","I have "..#trainer.team.." Pokemon ready."},next="battle_"..key}
  S.nodes["battle_"..key]={op="battle",id=key}
  S.nodes["won_"..key]={op="text",who=trainer.name,lines=trainer.reward or {"Well fought! You and your partner won.","I'll step aside so you can continue."}}
@@ -47,6 +64,13 @@ for key,n in pairs(S.nodes) do
 end
 function S.stage(t)
  local f=t.flags
+ if f.ENGINE_PLAINBADGE then return 21 end
+ if f.POKEPAL_WHITNEY_CALMED then return 20 end
+ if f.EVENT_BEAT_WHITNEY then return 19 end
+ if f.POKEPAL_REACHED_GOLDENROD then return 18 end
+ if f.POKEPAL_ILEX_TREE_CUT then return 17 end
+ if f.EVENT_GOT_HM01_CUT then return 16 end
+ if f.EVENT_HERDED_FARFETCHD then return 15 end
  if f.ENGINE_HIVEBADGE then return f.EVENT_RIVAL_AZALEA_TOWN and 14 or 13 end
  if f.EVENT_CLEARED_SLOWPOKE_WELL then return 12 end
  if f.EVENT_AZALEA_TOWN_SLOWPOKETAIL_ROCKET then return 11 end
@@ -63,7 +87,11 @@ function S.objective(t)
  [7]="Challenge Falkner at Violet Gym.",[8]="Meet Elm's aide in Violet's Pokemon Centre.",
  [9]="Take Route 32 and Union Cave to Azalea.",[10]="Visit Kurt's house in northwest Azalea.",
  [11]="Drive Team Rocket out of Slowpoke Well.",[12]="Challenge Bugsy at Azalea Gym.",
- [13]="Meet the rival on Azalea's western road.",[14]="Chapter 3 complete. Hive Badge earned."})[S.stage(t)]
+ [13]="Meet the rival on Azalea's western road.",[14]="Help the apprentice in Ilex Forest.",
+ [15]="Speak to Farfetch'd's owner near the apprentice.",[16]="Use Cut on the small tree north of the owner.",
+ [17]="Leave the forest and follow Route 34 north.",[18]="Challenge Whitney at Goldenrod Gym.",
+ [19]="Speak to Bridget, then return to Whitney.",[20]="Return to Whitney for your badge.",
+ [21]="Chapter 4 complete. Plain Badge earned."})[S.stage(t)]
 end
 local function roster(t)
  return t.encounter=="rival" and {t.rival} or t.encounter=="azalea_rival" and data.rivals[t.rival] or S.trainers[t.encounter].team
@@ -123,13 +151,13 @@ function S.enter(s,E)
     t.encounter="rival";t.opponent=1;t.battle.ally=t.partner;equip(t.battle,E)
    end
   end
-  if t.version==2 then S.initParty(t,s.seed);s.version=math.max(s.version,12);return true end
-  if t.version==3 then t.version=4;s.version=math.max(s.version,12);return true end
+  if t.version==2 then S.initParty(t,s.seed);s.version=math.max(s.version,13);return true end
+  if t.version==3 or t.version==4 then t.version=5;s.version=math.max(s.version,13);return true end
   return false
  end
  if s.world then E.world.enter(s) end
  s.story={version=2,map="PlayersHouse2F",x=3,y=3,facing="down",step=0,partner=s.species,rival=rivalFor(s.species,E),hp=40,potions=S.max_potions,egg=false,flags={}}
- S.initParty(s.story,s.seed);s.version=math.max(s.version,12);run(s.story,"welcome");return true
+ S.initParty(s.story,s.seed);s.version=math.max(s.version,13);run(s.story,"welcome");return true
 end
 function S.advance(t,index,E)
  local n=t.node and S.nodes[t.node]
@@ -181,21 +209,29 @@ function S.finishBattle(t)
   elseif key=="bugsy" then
    t.flags.ENGINE_HIVEBADGE=true
    for _,trainer in pairs(S.trainers) do if trainer.map=="AzaleaGym" then t.flags[trainer.flag]=true end end
+  elseif key=="whitney" then
+   for _,trainer in pairs(S.trainers) do if trainer.map=="GoldenrodGym" then t.flags[trainer.flag]=true end end
   end
   run(t,"won_"..key)
  else
   S.heal(t);t.grace=3
   local need=requirements[t.map]
-  t.map=need=="EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE" and "Route32Pokecenter1F" or need and "AzaleaPokecenter1F"
+  t.map=goldenrod_maps[t.map] and t.flags.POKEPAL_REACHED_GOLDENROD and "GoldenrodPokecenter1F"
+   or need=="EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE" and "Route32Pokecenter1F" or need and "AzaleaPokecenter1F"
    or t.flags.POKEPAL_REACHED_VIOLET and "VioletPokecenter1F" or "CherrygrovePokecenter1F"
   t.x=4;t.y=5;t.facing="down";run(t,"defeat")
  end
  return true
 end
-function S.tile(map,x,y)
+function S.tile(map,x,y,t)
  local m=S.maps[map]
  if not m or x<0 or y<0 or x>=m.width or y>=m.height then return "#" end
- return m.walk[y+1]:sub(x+1,x+1)
+ local tile=m.walk[y+1]:sub(x+1,x+1)
+ return tile=="T" and t and t.flags.POKEPAL_ILEX_TREE_CUT and "." or tile
+end
+function S.tileImage(t,x,y)
+ local m=S.maps[t.map];local i=y*m.width+x+1
+ return t.flags.POKEPAL_ILEX_TREE_CUT and m.cleared and m.cleared[i] or m.tiles[i]
 end
 function S.npcs(t)
  if t.map=="CherrygroveCity" and S.stage(t)==3 then return {{32,6,"rival","rival"}} end
@@ -222,7 +258,12 @@ function S.npcs(t)
   else
    for _,p in ipairs({{8,17},{18,9},{29,9},{15,15}}) do result[#result+1]={p[1],p[2],"slowpoke","slowpoke"} end
   end
- elseif t.map=="Route32" and not f.EVENT_CLEARED_SLOWPOKE_WELL then result[#result+1]={7,70,"fisher","tail_seller"} end
+ elseif t.map=="Route32" and not f.EVENT_CLEARED_SLOWPOKE_WELL then result[#result+1]={7,70,"fisher","tail_seller"}
+ elseif t.map=="IlexForest" and not f.EVENT_GOT_HM01_CUT then
+  local p=S.farfetchd_positions[t.farfetchd or 1];result[#result+1]={p[1],p[2],"bird","farfetchd"}
+  result[#result+1]={7,28,"youngster","apprentice"}
+  if f.EVENT_HERDED_FARFETCHD then result[#result+1]={5,28,"black_belt","cut_owner"} end
+ end
  return result
 end
 local function npc(t,x,y)
@@ -233,10 +274,14 @@ local function facingNpc(t,x,y,dx,dy)
  if not p and S.tile(t.map,x+dx,y+dy)=="C" then p=npc(t,x+2*dx,y+2*dy) end
  return p
 end
-local function talk(t,key)
+local function talk(t,key,hour)
  local stage=S.stage(t);local trainer=S.trainers[key]
- if trainer then
+ if key=="whitney" and t.flags.EVENT_BEAT_WHITNEY then
+  key=t.flags.ENGINE_PLAINBADGE and "plain_again" or t.flags.POKEPAL_WHITNEY_CALMED and "plain_award" or "won_whitney"
+ elseif key=="bridget" and t.flags.EVENT_BEAT_WHITNEY then key="whitney_calm"
+ elseif trainer then
   if t.flags[trainer.flag] then key="won_"..key
+  elseif trainer.night and (hour or 12)>=4 and (hour or 12)<18 then key="keith_day"
   elseif key=="li" and not t.flags.POKEPAL_SPROUT_RIVAL_SEEN then key="tower_rival"
   elseif trainer.need and not t.flags[trainer.need] then key="rocket_locked"
   elseif t.hp==0 then key="needheal"
@@ -245,7 +290,13 @@ local function talk(t,key)
  elseif key=="elm" then key=stage==0 and "elm" or stage==4 and "delivery" or stage>=5 and "complete" or "directions"
  elseif key=="mrpokemon" or key=="oak" then key=stage<2 and "gate" or stage==2 and "mrpokemon" or stage>=5 and "rest" or "remind"
  elseif key=="heal" then key="rest"
- elseif key=="gate" then key=stage<2 and "gate" or "sign" end
+ elseif key=="gate" then key=stage<2 and "gate" or "sign"
+ elseif key=="farfetchd" then
+  local route=bird_routes[t.farfetchd or 1];t.farfetchd=route[t.facing] or route[1]
+  if t.farfetchd==10 then t.flags.EVENT_HERDED_FARFETCHD=true end
+  key=t.farfetchd==10 and "bird_home" or "bird_moved"
+ elseif key=="apprentice" and t.flags.EVENT_HERDED_FARFETCHD then key="bird_home"
+ elseif key=="radio_quiz" and t.flags.ENGINE_RADIO_CARD then key="radio_card" end
  run(t,key)
 end
 function S.warpAt(map,x,y)
@@ -253,7 +304,7 @@ function S.warpAt(map,x,y)
 end
 local function ground(tile) return tile=="." or tile=="G" or tile=="U" or tile=="D" or tile=="L" or tile=="R" or tile=="b" or tile=="c" end
 local function landing(t,x,y,dx,dy)
- local nx,ny=x+dx,y+dy;local tile=S.tile(t.map,nx,ny)
+ local nx,ny=x+dx,y+dy;local tile=S.tile(t.map,nx,ny,t)
  -- An upper wall blocks crossing its top edge, but allows walking beside it.
  if dy==1 and tile=="U" or dy==-1 and S.tile(t.map,x,y)=="U" then return end
  if ground(tile) then return nx,ny end
@@ -261,7 +312,7 @@ local function landing(t,x,y,dx,dy)
  tile=S.tile(t.map,x,y)
  if dy==1 and (tile=="D" or tile=="b" or tile=="c") or dx==1 and (tile=="R" or tile=="b") or dx==-1 and (tile=="L" or tile=="c") then
   nx,ny=nx+dx,ny+dy
-  if ground(S.tile(t.map,nx,ny)) and not npc(t,nx,ny) then return nx,ny end
+  if ground(S.tile(t.map,nx,ny,t)) and not npc(t,nx,ny) then return nx,ny end
  end
 end
 local function arrived(t)
@@ -271,6 +322,10 @@ local function arrived(t)
   t.flags.POKEPAL_REACHED_VIOLET=true;run(t,"violet")
  elseif t.map=="AzaleaTown" and not t.flags.POKEPAL_REACHED_AZALEA then
   t.flags.POKEPAL_REACHED_AZALEA=true;run(t,"azalea")
+ elseif t.map=="IlexForest" and not t.farfetchd then
+  t.farfetchd=1;run(t,"ilex")
+ elseif t.map=="GoldenrodCity" and not t.flags.POKEPAL_REACHED_GOLDENROD then
+  t.flags.POKEPAL_REACHED_GOLDENROD=true;run(t,"goldenrod")
  end
 end
 local function blockedEntrance(t,dest)
@@ -283,6 +338,7 @@ local function blockedEntrance(t,dest)
   if not f.EVENT_RIVAL_AZALEA_TOWN then return t.hp==0 and "needheal" or "challenge_azalea_rival" end
   if not f.ENGINE_HIVEBADGE then return "need_hive" end
  end
+ if (dest=="Route34" or dest=="Route34IlexForestGate" or dest=="GoldenrodCity") and not f.POKEPAL_ILEX_TREE_CUT then return "need_cut" end
 end
 function S.step(t,dx,dy,E,hour)
  if t.node or math.abs(dx)+math.abs(dy)~=1 then return false end
@@ -305,7 +361,8 @@ function S.step(t,dx,dy,E,hour)
   run(t,"closed");return true
  end
  local person=facingNpc(t,t.x,t.y,dx,dy)
- if person then talk(t,person[4]);return true end
+ if person then talk(t,person[4],hour);return true end
+ if S.tile(t.map,nx,ny,t)=="T" then run(t,t.flags.EVENT_GOT_HM01_CUT and "cut_tree" or "need_cut");return true end
  nx,ny=landing(t,t.x,t.y,dx,dy);if not nx then return true end
  if t.map=="CherrygroveCity" and nx==33 and (ny==6 or ny==7) and S.stage(t)==3 then run(t,"rival");return true end
  if t.map=="SproutTower3F" and nx==11 and ny==9 and not t.flags.POKEPAL_SPROUT_RIVAL_SEEN then run(t,"tower_rival");return true end
@@ -320,6 +377,9 @@ function S.step(t,dx,dy,E,hour)
   t.map=dest;t.x=target[1];t.y=target[2];arrived(t);return true
  end
  t.x=nx;t.y=ny;t.step=(t.step+1)%2
+ if t.map=="GoldenrodGym" and nx==8 and ny==5 and t.flags.EVENT_BEAT_WHITNEY and not t.flags.POKEPAL_WHITNEY_CALMED then
+  run(t,"whitney_calm");return true
+ end
  if not S.growEgg(t) then S.maybeWild(t,E,hour) end
  return true
 end
@@ -335,6 +395,7 @@ function S.path(t,x,y)
   for _,d in ipairs(moves) do
    local nx,ny=landing(t,p.x,p.y,d[1],d[2])
    local person=facingNpc(t,p.x,p.y,d[1],d[2])
+   if not person and p.x+d[1]==x and p.y+d[2]==y and S.tile(t.map,x,y,t)=="T" then nx,ny=x,y end
    if person and person[1]==x and person[2]==y then nx,ny=x,y elseif person then nx=nil end
    if nx and not seen[ny*m.width+nx] then
     seen[ny*m.width+nx]=true
@@ -347,21 +408,32 @@ function S.valid(t,s,E)
  if t==nil then return true end
  if type(t)~="table" then return false end
  if t.version==1 then return legacy(t,s,E,S) end
- if s.species==0 or not (t.version==2 and s.version>=10 or t.version==3 and s.version>=11 or t.version==4 and s.version>=12) then return false end
+ if s.species==0 or not (t.version==2 and s.version>=10 or t.version==3 and s.version>=11 or t.version==4 and s.version>=12 or t.version==5 and s.version>=13) then return false end
  local allowed={version=true,map=true,x=true,y=true,facing=true,step=true,partner=true,rival=true,hp=true,potions=true,egg=true,flags=true,node=true,battle=true,encounter=true,opponent=true}
  if t.version>=3 then
   for _,key in ipairs({"origin","party","box","health","seed","balls","grace"}) do allowed[key]=true end
   if not S.validParty(t,E) then return false end
  end
- if t.version==4 then allowed.togepi_steps=true end
+ if t.version>=4 then allowed.togepi_steps=true end
+ if t.version>=5 then allowed.farfetchd=true end
  for k in pairs(t) do if not allowed[k] then return false end end
  local function integer(n,a,b) return type(n)=="number" and n==n and n%1==0 and n>=a and n<=b end
  local m=S.maps[t.map]
- if not m or not integer(t.x,0,m.width-1) or not integer(t.y,0,m.height-1) or not ground(S.tile(t.map,t.x,t.y))
+ if not m or not integer(t.x,0,m.width-1) or not integer(t.y,0,m.height-1) or type(t.flags)~="table" or not ground(S.tile(t.map,t.x,t.y,t))
   or not S.directions[t.facing] or not integer(t.step,0,1) or not integer(t.partner,1,E.species_count)
-  or (t.rival~=152 and t.rival~=155 and t.rival~=158) or not integer(t.hp,0,40) or not integer(t.potions,0,S.max_potions) or type(t.egg)~="boolean" or type(t.flags)~="table" then return false end
+  or (t.rival~=152 and t.rival~=155 and t.rival~=158) or not integer(t.hp,0,40) or not integer(t.potions,0,S.max_potions) or type(t.egg)~="boolean" then return false end
  local f=t.flags
- for k,v in pairs(f) do if not flags[k] or v~=true or t.version<4 and chapter_flags[k] then return false end end
+ for k,v in pairs(f) do if not flags[k] or v~=true or t.version<4 and chapter_flags[k] or t.version<5 and goldenrod_flags[k] then return false end end
+ if t.version<5 and goldenrod_maps[t.map] then return false end
+ if t.farfetchd~=nil and (not integer(t.farfetchd,1,10) or not f.ENGINE_HIVEBADGE or not f.EVENT_RIVAL_AZALEA_TOWN) then return false end
+ if (t.farfetchd==10)~=(f.EVENT_HERDED_FARFETCHD==true) or t.map=="IlexForest" and not t.farfetchd then return false end
+ if f.EVENT_GOT_HM01_CUT and not f.EVENT_HERDED_FARFETCHD or f.POKEPAL_ILEX_TREE_CUT and not f.EVENT_GOT_HM01_CUT
+  or f.POKEPAL_REACHED_GOLDENROD and not f.POKEPAL_ILEX_TREE_CUT
+  or f.POKEPAL_WHITNEY_CALMED and not f.EVENT_BEAT_WHITNEY or f.ENGINE_PLAINBADGE and not f.POKEPAL_WHITNEY_CALMED
+  or f.ENGINE_RADIO_CARD and not f.POKEPAL_REACHED_GOLDENROD then return false end
+ if f.EVENT_BEAT_WHITNEY then
+  for _,p in pairs(S.trainers) do if p.map=="GoldenrodGym" and not f[p.flag] then return false end end
+ end
  if f.EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON and not f.POKEPAL_ELM_MISSION or f.ENGINE_POKEDEX and not f.EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON
   or f.EVENT_BEAT_RIVAL_1 and not f.ENGINE_POKEDEX or f.EVENT_GAVE_MYSTERY_EGG_TO_ELM and not f.EVENT_BEAT_RIVAL_1
   or f.POKEPAL_REACHED_VIOLET and not f.EVENT_GAVE_MYSTERY_EGG_TO_ELM then return false end
@@ -398,13 +470,23 @@ function S.valid(t,s,E)
   mrpokemon="MrPokemonsHouse",oak="MrPokemonsHouse",phone="MrPokemonsHouse",remind="MrPokemonsHouse",rival="CherrygroveCity",fight="CherrygroveCity",rivalleft="CherrygroveCity",tower_rival="SproutTower3F",violet="VioletCity"}
  for _,key in ipairs({"aide","aide_later","egg_full","egg_taken"}) do event_map[key]="VioletPokecenter1F" end
  event_map.kurt="KurtsHouse";event_map.kurt_thanks="KurtsHouse";event_map.well_saved="KurtsHouse";event_map.azalea="AzaleaTown";event_map.kurt_well="SlowpokeWellB1F"
+ for _,key in ipairs({"ilex","apprentice","bird_moved","bird_home","cut_owner","cut_received","cut_tree","cut_later","cut_done"}) do event_map[key]="IlexForest" end
+ for _,key in ipairs({"whitney_calm","plain_received","plain_again"}) do event_map[key]="GoldenrodGym" end
+ event_map.goldenrod="GoldenrodCity"
+ if t.node and t.node:match('^radio_') then event_map[t.node]="RadioTower1F" end
+ if (t.node=="bird_home" or t.node=="cut_owner") and not f.EVENT_HERDED_FARFETCHD
+  or (t.node=="cut_received" or t.node=="cut_tree" or t.node=="cut_later") and not f.EVENT_GOT_HM01_CUT
+  or t.node=="cut_done" and not f.POKEPAL_ILEX_TREE_CUT
+  or t.node=="whitney_calm" and not f.EVENT_BEAT_WHITNEY
+  or (t.node=="plain_received" or t.node=="plain_again") and not f.ENGINE_PLAINBADGE
+  or t.node=="radio_card" and not f.ENGINE_RADIO_CARD then return false end
  if event_map[t.node] and t.map~=event_map[t.node] or t.node=="complete" and not f.EVENT_GAVE_MYSTERY_EGG_TO_ELM
   or S.stage(t)==3 and not f.ENGINE_POKEDEX and t.node~="oak" then return false end
  if (t.node=="aide" or t.node=="aide_later" or t.node=="egg_full") and (not f.ENGINE_ZEPHYRBADGE or f.EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE)
   or t.node=="egg_taken" and not f.EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE
   or (t.node=="hatched" or t.node=="hatched_owned") and not f.EVENT_TOGEPI_HATCHED
   or (t.node=="well_saved" or t.node=="kurt_thanks") and not f.EVENT_CLEARED_SLOWPOKE_WELL
-  or t.node=="forest_gate" and S.stage(t)~=14 then return false end
+  or t.node=="forest_gate" and S.stage(t)<14 then return false end
  local trainer_key=t.node and t.node:match("^challenge_(.+)$") or t.node and t.node:match("^won_(.+)$")
  if trainer_key then
   local trainer=S.trainers[trainer_key]
