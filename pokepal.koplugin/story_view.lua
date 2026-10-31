@@ -31,41 +31,47 @@ return function(View,UIManager,BB,Device)
  end
  function View:paintStoryBattle(bb,t)
   local E=self.engine;local B=E.story.battle;local b=t.battle;local blocked=self.world_save_failed or self.owner.save_error
-  self:title(bb,"Rival battle",b.status=="active" and "Turn "..b.turn.." / Choose a move." or "The battle is over.")
+  local S=E.story
+  self:title(bb,S.battleTitle(t),b.status=="active" and "Turn "..b.turn.." / Pokemon "..t.opponent.." of "..S.teamSize(t) or "The battle is over.")
   self:outline(bb,36,200,248,94)
   self:text(bb,E.name(B.opponent(b)),44,207,21,230,true)
   self:text(bb,b.hp.." / "..B.maxFoeHP(b).." HP",44,239,16,230)
   self:progress(bb,44,265,220,b.hp,B.maxFoeHP(b))
   self:classic(bb,B.opponent(b).."-front",404,200,112)
-  self:classic(bb,t.starter.."-back",76,270,144)
+  self:classic(bb,t.partner.."-back",76,270,144)
   self:outline(bb,294,314,266,99)
-  self:text(bb,E.name(t.starter),308,321,21,240,true)
+  local name=E.displayName(self.state,t.partner)
+  self:text(bb,name,308,321,#name>10 and 16 or 21,240,true)
   self:text(bb,t.hp.." / 40 HP",308,353,16,240)
   self:progress(bb,308,382,236,t.hp,40)
   self:outline(bb,32,419,536,90)
   for i,line in ipairs(b.log) do self:text(bb,line,44,425+(i-1)*21,15,512) end
   if b.status=="active" then
    for slot=1,2 do
-    local damage,move=B.preview(E,b,slot);local y=521+(slot-1)*80
-    self:outline(bb,32,y,536,70)
+    local damage,move=B.preview(E,b,slot);local y=521+(slot-1)*68
+    self:outline(bb,32,y,536,62)
     self:text(bb,move.name..(move.power>0 and " / "..damage.." damage" or ""),48,y+9,21,504,true)
-    self:text(bb,B.hint(E,b,slot),48,y+44,16,504)
-    self.buttons[#self.buttons+1]={x=32,y=y,w=536,h=70,action="storyturn",arg=slot,disabled=blocked}
+    self:text(bb,damage>=b.hp and S.hasNext(t) and "Knocks out this Pokemon." or B.hint(E,b,slot),48,y+38,15,504)
+    self.buttons[#self.buttons+1]={x=32,y=y,w=536,h=62,action="storyturn",arg=slot,disabled=blocked}
    end
+   self:button(bb,"Super Potion ("..t.potions..") / Heal / uses a turn",32,657,536,44,"storyturn","potion",nil,blocked or t.hp==40 or t.potions==0)
   else
-   self:wrapped(bb,b.status=="won" and "You won! Continue your journey back to Elm." or "The stranger leaves. Your journey continues.",536,19)
+   local result=t.encounter=="rival" and "The stranger leaves. Return to Elm."
+    or b.status=="won" and "You won! Talk to the trainer to continue."
+    or "Rest at the Pokemon Centre, then try again."
+   self:wrapped(bb,result,536,19)
    self:button(bb,"Continue",32,622,536,48,"storyfinish",nil,nil,blocked)
   end
  end
  function View:paintStory(bb)
   local S=self.engine.story;local t=self.state.story
-  if not t then
+  if not t or t.version~=2 then
    self:title(bb,"Crystal story","Finish saving and syncing to start.")
    self:button(bb,"Start story",32,614,536,48,"nav","story",nil,self.owner.reading_busy or self.world_save_failed or self.owner.save_error)
   elseif t.battle then self:paintStoryBattle(bb,t)
   else
    local m=S.maps[t.map];local n=t.node and S.nodes[t.node]
-   self:title(bb,m.name,t.starter==0 and "Chapter 1 / A favour for Professor Elm" or self.engine.name(t.starter).." / "..t.hp.." HP"..(t.egg and " / Mystery Egg" or ""))
+   self:title(bb,m.name,self.engine.displayName(self.state,t.partner).." / "..t.hp.." HP"..(t.egg and " / Mystery Egg" or t.flags.ENGINE_ZEPHYRBADGE and " / Zephyr Badge" or ""))
    local cx=math.max(0,math.min(m.width-COLS,t.x-math.floor(COLS/2)))
    local cy=math.max(0,math.min(m.height-ROWS,t.y-math.floor(ROWS/2)))
    local ox=X+math.max(0,(COLS-m.width)*TILE/2);local oy=Y+math.max(0,(ROWS-m.height)*TILE/2)
@@ -106,9 +112,9 @@ return function(View,UIManager,BB,Device)
   local changed
   if action=="storytile" then local m=S.maps[t.map];self:walkStory(S.path(t,arg%m.width,math.floor(arg/m.width)))
   elseif action=="storydir" and S.directions[arg] then self:walkStory({S.directions[arg]})
-  elseif action=="storynext" then changed=S.advance(t,arg)
+  elseif action=="storynext" then changed=S.advance(t,arg,self.engine)
   elseif action=="storyturn" then changed=S.turn(t,self.engine,arg)
-  elseif action=="storyfinish" then changed=S.finishBattle(t)
+  elseif action=="storyfinish" then changed=S.finishBattle(t);if changed then S.sync(self.state) end
   elseif action=="storyhelp" and not t.node then self:stopAnimation();t.node="sign";changed=true end
   if changed then self.world_dirty=true;self:saveWorld();UIManager:setDirty(self,"ui") end
   return true

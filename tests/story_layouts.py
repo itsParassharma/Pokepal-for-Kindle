@@ -33,10 +33,15 @@ def run(c):
                     t.map=name
                     if len(m.warps):t.x,t.y=m.warps[1][1],m.warps[1][2]
                     check(name)
-                t.starter=152;t.hp=40;t.battle=g.E.story.battle.new(152,1);t.battle.wildid=155;t.node='fight'
+                t.partner=25;t.rival=155;t.encounter='rival';t.opponent=1;t.hp=40;t.battle=g.E.story.battle.new(25,1);t.battle.wildid=155;t.node='fight'
                 check('battle');g.E.story.turn(t,g.E,1);check('battle-turn')
+                v.state.nicknames=lua.table_from({'25':'W'*12});check('battle-nickname');v.state.nicknames=None
                 t.battle.hp=1;g.E.story.turn(t,g.E,1);check('battle-result')
                 v.owner.save_error=True;check('save-error');v.owner.save_error=None
+                t.encounter='falkner';t.opponent=1;t.node='battle_falkner';t.battle=g.E.story.battle.new(25,1);t.battle.wildid=16
+                check('gym-first');t.battle.hp=1;g.E.story.turn(t,g.E,2);check('gym-next')
+                t.battle.hp=1;g.E.story.turn(t,g.E,2);check('gym-won')
+                t.battle.status='lost';t.hp=0;check('gym-lost')
                 v.leave(v)
     g.D.dpi=None;g.D.w=600;g.D.h=800
     print(f'STORY LAYOUTS: {count} map/dialogue/battle size, DPI and text-mode combinations passed')

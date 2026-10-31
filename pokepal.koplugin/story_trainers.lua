@@ -1,0 +1,21 @@
+-- Locations and defeat flags from the pinned Crystal map scripts; rosters are imported.
+return {
+ joey={name="Youngster Joey",map="Route30",x=2,y=28,sprite="youngster",flag="EVENT_BEAT_YOUNGSTER_JOEY"},
+ mikey={name="Youngster Mikey",map="Route30",x=5,y=23,sprite="youngster",flag="EVENT_BEAT_YOUNGSTER_MIKEY"},
+ don={name="Bug Catcher Don",map="Route30",x=1,y=7,sprite="bug_catcher",flag="EVENT_BEAT_BUG_CATCHER_DON"},
+ wade={name="Bug Catcher Wade",map="Route31",x=21,y=13,sprite="bug_catcher",flag="EVENT_BEAT_BUG_CATCHER_WADE"},
+ chow={name="Sage Chow",map="SproutTower1F",x=3,y=5,sprite="sage",flag="EVENT_BEAT_SAGE_CHOW"},
+ nico={name="Sage Nico",map="SproutTower2F",x=12,y=3,sprite="sage",flag="EVENT_BEAT_SAGE_NICO"},
+ edmond={name="Sage Edmond",map="SproutTower2F",x=9,y=14,sprite="sage",flag="EVENT_BEAT_SAGE_EDMOND"},
+ jin={name="Sage Jin",map="SproutTower3F",x=8,y=13,sprite="sage",flag="EVENT_BEAT_SAGE_JIN"},
+ troy={name="Sage Troy",map="SproutTower3F",x=8,y=8,sprite="sage",flag="EVENT_BEAT_SAGE_TROY"},
+ neal={name="Sage Neal",map="SproutTower3F",x=11,y=11,sprite="sage",flag="EVENT_BEAT_SAGE_NEAL"},
+ li={name="Elder Li",map="SproutTower3F",x=10,y=2,sprite="sage",flag="EVENT_BEAT_SAGE_LI",stay=true,
+  lines={"Respect is as important as strength.","Show me the bond with your Pokemon."},
+  reward={"You received HM Flash!","Care for your Pokemon as you travel.","Carry that kindness on your journey."}},
+ abe={name="Bird Keeper Abe",map="VioletGym",x=2,y=10,sprite="youngster",flag="EVENT_BEAT_BIRD_KEEPER_ABE"},
+ rod={name="Bird Keeper Rod",map="VioletGym",x=7,y=6,sprite="youngster",flag="EVENT_BEAT_BIRD_KEEPER_ROD"},
+ falkner={name="Falkner",map="VioletGym",x=5,y=1,sprite="falkner",flag="EVENT_BEAT_FALKNER",stay=true,
+  lines={"I'm Falkner, Violet City's Gym Leader.","My bird Pokemon are ready for you."},
+  reward={"You earned the Zephyr Badge!","Your first Gym challenge is complete.","Chapter 2 complete. More to come!"}},
+}

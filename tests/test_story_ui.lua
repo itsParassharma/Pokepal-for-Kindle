@@ -56,5 +56,21 @@ test('direction controls dispatch correctly in portrait and landscape',function(
  end
  D.w=600;D.h=800
 end)
+test('legacy story waits for reading sync before migrating and displays the companion nickname',function()
+ local v=view();local fixtures=dofile(BASE..'/../tests/story_legacy_fixtures.lua')
+ v.state=assert(Store.decode(fixtures.choose,E));v.state.nicknames={['25']='Sparky'};v.owner.reading_busy=true
+ v:go('story');v:paintTo(bb,0,0);assert(v.state.story.version==1)
+ v.owner.reading_busy=false;v:go('story');assert(v.state.story.version==2 and v.state.story.partner==25 and v.state.story.node=='directions')
+ v:paintTo(bb,0,0);assert(E.displayName(v.state,v.state.story.partner)=='Sparky');v:leave()
+end)
+test('Potions use a battle turn and cannot be spent again while a save has failed',function()
+ local v=view();dofile(BASE..'/../tests/story_runtime.lua')(v,function(action,arg) tapButton(v,action,arg) end)
+ local t=v.state.story;t.hp=10;local turn=t.battle.turn;local potions=t.potions
+ local save=v.owner.save;v.owner.save=function(owner) owner.save_error=true;return nil,'Disk full' end
+ tapButton(v,'storyturn','potion');assert(t.potions==potions-1 and t.hp>10 and t.battle.turn==turn+1 and v.world_save_failed)
+ local saved=Store.encode(v.state);tapButton(v,'storyturn','potion');assert(Store.encode(v.state)==saved)
+ v.owner.save=function(owner) owner.save_error=nil;return save(owner) end
+ tapButton(v,'worldretry');assert(not v.world_save_failed);v:leave()
+end)
 os.time=original_time
 print('STORY UI: '..checks..' checks passed')

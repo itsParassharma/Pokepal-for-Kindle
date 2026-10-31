@@ -399,7 +399,7 @@ check('berry recruitment, box controls and badges survive real widget sleep and 
  assert(counter(p)==before);v:leave()
 end)
 
-check('story maps, choices and rival turns use real widgets and survive save/reopen',function()
+check('story maps, current companion and multi-Pokemon Gym turns survive save/reopen',function()
  p=shelf();v=game(p);clearTrip(p)
  local t=dofile(plugin_path..'/../tests/story_runtime.lua')(v,function(action,arg) gameTap(v,action,arg) end)
  local before=p.engine.companion.encode(t);v:leave();v=game(p);v:go('story');pump()

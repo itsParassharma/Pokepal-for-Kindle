@@ -82,7 +82,7 @@ end
 print('NATIVE MENUS: ten town and box screens survive sleep without changing the party or scheduling idle repaints')
 local story=dofile('../../../tests/story_runtime.lua')(v,tap);app_paint()
 assert(E.companion.encode(app.storage.load('data/pokepal.dat',E).story)==E.companion.encode(story))
-print('NATIVE STORY: map tiles, conversations, starter choice, rival turn, save reload and sleep passed')
+print('NATIVE STORY: maps, current companion, rival and multi-Pokemon Gym turns, save reload and sleep passed')
 BASE='game';TESTDIR=os.tmpname();os.remove(TESTDIR);assert(host_fs('mkdir',TESTDIR))
 dofile('../../../tests/test_reading.lua')
 dofile('../../../tests/test_gen3.lua')
