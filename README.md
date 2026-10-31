@@ -45,6 +45,14 @@ You need KOReader installed on your Kindle.
 2. Copy the `koreader` folder onto the Kindle drive. Merge it with the existing folder.
 3. Restart KOReader. Choose **Open PokePal** in the welcome, or open **Tools > PokePal**.
 
+For KoStore installation and discovery, see the [KoStore guide](docs/kostore.md).
+
+**Kobo and other KOReader devices (experimental):** copy `pokepal.koplugin`
+from the KOReader ZIP into your existing KOReader `plugins` directory, usually
+`.adds/koreader/plugins` on Kobo. Reading rewards use KOReader sessions; the
+native Kobo reader is not integrated. Saves use KOReader's settings folder.
+Physical touch, sleep/wake and display behaviour still need device testing.
+
 ---
 
 With [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin), your partner can sit on the KOReader home screen. Add **PokePal** in the layout editor and tap it to play.
