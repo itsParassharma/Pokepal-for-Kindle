@@ -74,7 +74,7 @@ return function(View,UIManager)
    if t and t.choice then
     self:text(bb,"Next: "..E.name(nextfoe.id),32,193,21,536,true)
     self:text(bb,E.species[nextfoe.id].types.." / attacks with "..nextfoe.type,32,226,16,536)
-    local names={"Heal the whole party by 16 HP","Improve defensive moves","Heal 3 HP whenever you switch"}
+    local names={"Heal the whole party by 16 HP","Take 1 less damage per hit","Heal 3 HP whenever you switch"}
     for i,name in ipairs(names) do self:button(bb,name,32,267+(i-1)*103,536,65,"campbenefit",i,nil,blocked) end
     self:wrapped(bb,"Your choice starts the next battle. Benefits last for this run.",562,18)
     self:button(bb,"Check your party",32,632,536,38,"nav","worldparty")

@@ -109,7 +109,7 @@ return function(View,UIManager,BB,Device)
   local tips={
    {"Move","Tap a clear tile, a doorway or a Pokemon. The arrows move one tile at a time."},
    {"Meet your neighbours","The town guide offers quests. Visit the Centre, dojo, shop, Gym and Tower."},
-   {"Read the opponent","Quick moves interrupt charges. Bursts break guards. Withdraw blocks a hit."},
+   {"Pick a move","Your partner attacks first. If the opponent stays up, it attacks back. Type matchups affect damage."},
    {"Two moves","Learn moves at the dojo. Equip two for each partner. Switches use a turn; replacing a fainted partner is free."},
    {"Take a break","Pause or close PokePal at any turn. Explore resumes the battle when you return."},
    {"Trainer teams","Trainers bring a fresh team each fight. Your chosen party stays the same. First route wins give rewards."},
@@ -154,7 +154,7 @@ return function(View,UIManager,BB,Device)
   local W=self.engine.world;local B=W.battle;local w=self.state.world;local b=w and w.battle
   if not b then self:paintWorld(bb);return end
   self:title(bb,b.floor and "Tower / battle "..b.floor.." of 6" or b.gym and W.town.leaders[b.gym].name.." / Gym battle" or b.practice and "Dojo practice" or W.encounters[b.foe] and W.encounters[b.foe].trainer and "Trainer battle" or "Wild encounter",b.status=="active" and "Turn "..b.turn.." / Your partner moves first." or "Encounter finished")
-  self:text(bb,b.status=="active" and B.intentText(self.engine,b) or b.status=="befriended" and "A new friend!" or b.status=="won" and "You won!" or b.status=="lost" and "Time to visit the Pokemon Centre." or "You left the encounter.",32,176,17,536,true,true)
+  self:text(bb,b.status=="active" and "Choose a move." or b.status=="befriended" and "A new friend!" or b.status=="won" and "You won!" or b.status=="lost" and "Time to visit the Pokemon Centre." or "You left the encounter.",32,176,17,536,true,true)
   self:paintBattleStage(bb)
   self:outline(bb,32,419,536,90)
   for i,line in ipairs(b.log) do self:text(bb,line,44,425+(i-1)*21,15,512) end

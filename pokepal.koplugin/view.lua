@@ -151,11 +151,7 @@ function View:poseFor(effect)
  if effect=="rest" or effect=="ambient_sleep" then return self.state.resting and "sleep" or "idle" end
  if effect=="feed" then return self.poses[self:animationSpecies()].eat and "eat" or "idle" end
  if effect=="train" then return self.training_pose or "attack" end
- if effect=="battle" then
-  local b=self.state.world and self.state.world.battle
-  local move=b and self.engine.world.battle.equipped(self.engine,b)[b.last_move]
-  return move and move.kind=="guard" and "charge" or "attack"
- end
+ if effect=="battle" then return "attack" end
  if effect=="play" or (effect=="hello" and not self.state.resting) then return "hop" end
  if effect=="clean" then return "rotate" end
  if effect=="evolve" then return "charge" end
