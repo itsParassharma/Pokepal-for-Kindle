@@ -55,10 +55,19 @@ Physical touch, sleep/wake and display behaviour still need device testing.
 
 ---
 
+### Bookshelf home screen
+
 With [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin), your partner can sit on the KOReader home screen. Add **PokePal** in the layout editor and tap it to play.
 
 <a href="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd"><img src="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd" alt="Charizard on the Bookshelf home screen" width="300"></a><br>
 <sub>Credit: <a href="https://github.com/AndyHazz">AndyHazz</a></sub>
+
+### SimpleUI home screen (preview)
+
+With [SimpleUI](docs/simpleui-tiny-critter.md), choose **Add module → PokePal** in its home-screen layout editor. Your selected partner follows automatically, with level, XP, optional care bars and short animations. Tap the card to play. A separate Tiny Critter image export is also available. Tested with SimpleUI 3.0.1 and pinned main; these additions are not in the existing v1.1.0 download.
+
+<a href="docs/simpleui-home-mockup.png"><img src="docs/simpleui-home-mockup.png" alt="Illustrative SimpleUI home screen with Squirtle's PokePal stats above six sample books" width="300"></a><br>
+<sub>Illustrative mockup with sample book covers and reading percentages. Actual layout depends on your SimpleUI settings.</sub>
 
 ### KOReader shortcuts
 
