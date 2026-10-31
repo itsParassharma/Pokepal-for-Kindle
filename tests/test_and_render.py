@@ -43,6 +43,7 @@ lua.execute((REPO/'tests'/'test_improvements.lua').read_text())
 lua.execute((REPO/'tests'/'test_world.lua').read_text())
 lua.execute((REPO/'tests'/'test_town.lua').read_text())
 lua.execute((REPO/'tests'/'test_collection.lua').read_text())
+lua.execute((REPO/'tests'/'test_story.lua').read_text())
 
 sprite_index=json.loads((ROOT/'assets/sprite-index.json').read_text())
 def read_sprite(name):
@@ -99,12 +100,21 @@ for id in range(1,387):
  for direction in ('down','up','left','right'):
   for step in (0,1):assert f'{id}-walk-{direction}-{step}.png' in classic_index
 print(f'CLASSIC ART: all 386 front/back sprites, four walking directions and {len(classic_index)} packed images decode')
+story_index=json.loads((ROOT/'assets/story/index.json').read_text())
+for name,(part,offset,length) in story_index.items():
+ with (ROOT/'assets/story'/f'{part:03d}.bin').open('rb') as stream:
+  stream.seek(offset);data=stream.read(length)
+ assert len(data)==length,name
+ img=Image.open(io.BytesIO(data));img.load()
+ assert img.size==(16,16) and set(img.convert('L').tobytes()) <= {0,85,170,255},name
+print(f'STORY ART: {len(story_index)} map tiles and character sprites decode')
 
 def image(path,x,y,w,h):
- if '/classic/' in path:
+ if '/classic/' in path or '/story/' in path:
   name=pathlib.Path(path).name
-  part,offset,length=classic_index[name]
-  with (ROOT/'assets/classic'/f'{part:03d}.bin').open('rb') as f:
+  directory='story' if '/story/' in path else 'classic'
+  part,offset,length=(story_index if directory=='story' else classic_index)[name]
+  with (ROOT/'assets'/directory/f'{part:03d}.bin').open('rb') as f:
    f.seek(offset);img=Image.open(io.BytesIO(f.read(length)))
   img=img.convert('LA').resize((int(w),int(h)),Image.Resampling.NEAREST)
   canvas.paste(img.getchannel('L'),(round(x),round(y)),img.getchannel('A'))
@@ -138,7 +148,7 @@ package.preload["ui/widget/imagewidget"]=function() return I end
 package.preload["ui/renderimage"]=function()
  local R={}
  local packed=dofile(BASE..'/assets/sprites.lua');local names={}
- for _,directory in ipairs({'assets','assets/classic'}) do
+ for _,directory in ipairs({'assets','assets/classic','assets/story'}) do
   local pack=dofile(BASE..'/'..directory..'/sprites.lua')
   for name in pairs(pack.index) do names[pack.read(BASE..'/'..directory,name)]=BASE..'/'..directory..'/'..name end
  end
@@ -588,6 +598,7 @@ print('UI LIFECYCLE: '..checks..' checks passed (mock KOReader device APIs)')
 
 lua.execute((REPO/'tests'/'test_new_ui.lua').read_text())
 lua.execute((REPO/'tests'/'test_world_ui.lua').read_text())
+lua.execute((REPO/'tests'/'test_story_ui.lua').read_text())
 
 # Check the displayed dates and totals using real daylight-saving transitions.
 if hasattr(time,'tzset'):
@@ -653,6 +664,7 @@ print('SCENE CACHE: 48 background, size and host combinations preserve full home
 
 import runpy
 runpy.run_path(str(REPO/'tests'/'world_layouts.py'))['run'](globals())
+runpy.run_path(str(REPO/'tests'/'story_layouts.py'))['run'](globals())
 
 # The reported Pikachu screen must fit at Kindle resolutions and custom DPI.
 text_layouts=0

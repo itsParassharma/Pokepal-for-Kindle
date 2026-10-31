@@ -5,6 +5,7 @@ E.species = dofile(source.."/species.lua")
 E.species_count = #E.species
 E.companion = dofile(source.."/companion.lua")
 E.world = dofile(source.."/world.lua")
+E.story = dofile(source.."/story.lua")
 E.starters = {1,4,7,25,133,152,155,158,252,255,258}
 E.parents = {}
 for id,p in ipairs(E.species) do
@@ -145,7 +146,7 @@ function E.new(now)
   seed=now % 2147483646 + 1, resting=false, care=0, started=now}
 end
 function E.valid(s)
- if type(s)~="table" or (s.version~=1 and s.version~=2 and s.version~=3 and s.version~=4 and s.version~=5 and s.version~=6 and s.version~=7 and s.version~=8) then return false end
+ if type(s)~="table" or (s.version~=1 and s.version~=2 and s.version~=3 and s.version~=4 and s.version~=5 and s.version~=6 and s.version~=7 and s.version~=8 and s.version~=9 and s.version~=10 and s.version~=11 and s.version~=12 and s.version~=13) then return false end
  for _,k in ipairs({"species","food","joy","energy","bond","xp","berries","last","gift","trained","played","cleaned","dirt","trip","due","trips","seed","care","started"}) do
   local n=s[k]; if type(n)~="number" or n~=n or n<0 or n>1e12 then return false end
  end
@@ -205,7 +206,7 @@ function E.valid(s)
    if type(id)~="string" or not E.species[tonumber(id)] or not s.seen[id] or not E.validNickname(name) then return false end
   end
  end
- return type(s.resting)=="boolean" and E.companion.valid(s.companion,s,E) and E.world.valid(s.world,s,E)
+ return type(s.resting)=="boolean" and E.companion.valid(s.companion,s,E) and E.world.valid(s.world,s,E) and E.story.valid(s.story,s,E)
 end
 function E.weekStart(now)
  local d=os.date("*t",now)

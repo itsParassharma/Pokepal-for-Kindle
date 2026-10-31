@@ -12,7 +12,7 @@ function A.init(s)
  local w=s.world
  if w.camp then return false end
  w.camp={party={w.partner},health={},training={},quests=0,finds=0,outfits=0,outfit=0,potions=0,rank=0,runs=0,dpad=true}
- s.version=6;return true
+ s.version=math.max(s.version,6);return true
 end
 function A.record(s,id)
  local c=s.world.camp;local key=tostring(id)
@@ -99,7 +99,7 @@ function A.switchPreview(s,E,id)
  for k,v in pairs(w.battle) do b[k]=v end
  b.ally=id;b.moves=A.moves(s,id);b.boost=false
  local hp=math.min(40,A.hp(w,id)+(w.camp.tower and w.camp.tower.switch*3 or 0))
- local taken=E.world.battle.intent(b)=="attack" and E.world.battle.incoming(E,b) or 0
+ local taken=E.world.battle.incoming(E,b)
  local after=E.world.battle.step(E,b,hp,0)
  return taken,after
 end
