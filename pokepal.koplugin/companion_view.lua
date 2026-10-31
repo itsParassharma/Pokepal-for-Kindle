@@ -2,8 +2,8 @@
 return function(View,UIManager,BB)
  local BLACK,WHITE,GRAY=BB.COLOR_BLACK,BB.COLOR_WHITE,BB.Color8(170)
  function View:paintPreferences(bb)
-  self:title(bb,"Preferences","Choose what feels right for your Kindle.")
-  local labels={"Sleeping partner screen","Rest when the Kindle sleeps","Reading footer (KOReader)","Larger text","Stronger contrast"}
+  self:title(bb,"Preferences","Choose what feels right for your reader.")
+  local labels={"Sleeping partner screen","Rest when the device sleeps","Reading footer (KOReader)","Larger text","Stronger contrast"}
   for i,key in ipairs(self.engine.companion.preferences) do
    local on=self.engine.companion.option(self.state,key)
    self:button(bb,labels[i]..": "..(on and "On" or "Off"),32,195+(i-1)*72,536,54,"preference",key,nil,(key=="footer" or key=="sleep_screen") and self.owner.native,on)

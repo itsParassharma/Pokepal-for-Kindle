@@ -1,9 +1,9 @@
-POKEPAL 1.0.9
+POKEPAL 1.1.0
 
 KUAL
 Needs a jailbroken touchscreen Kindle with KUAL installed.
 
-1. Unzip PokePal-v1.0.9-kual.zip.
+1. Unzip PokePal-v1.1.0-kual.zip.
 2. Copy extensions onto your Kindle drive, next to documents.
    Merge folders if asked.
 3. Eject, then open KUAL > PokePal > Play PokePal.
@@ -13,7 +13,7 @@ KOReader is not required for this version.
 KOREADER
 Needs KOReader installed on your Kindle.
 
-1. Unzip PokePal-v1.0.9-koreader.zip.
+1. Unzip PokePal-v1.1.0-koreader.zip.
 2. Copy koreader onto your Kindle drive. Merge with the existing folder.
 3. Restart KOReader. Choose Open PokePal in the welcome, or Tools > PokePal.
 
@@ -23,8 +23,18 @@ Hold the PokePal entry in Tools to see the help again. Existing gestures
 are left as they are. Keep the folder named pokepal.koplugin; KOReader uses
 the .koplugin ending to find plugins.
 
+KOBO AND OTHER KOREADER DEVICES (EXPERIMENTAL)
+Use the KOReader download, not the KUAL edition. Copy only pokepal.koplugin
+into your existing KOReader plugins directory. On Kobo this is usually
+.adds/koreader/plugins. Restart KOReader and open Tools > PokePal.
+Physical Kobo touch, sleep/wake and display behaviour still need testing.
+Reading rewards track KOReader sessions only; the native Kobo reader is
+not integrated. Kindle-only reading scans are skipped on other devices.
+
 SAVES
-Both editions use pokepal/pokepal.dat on the Kindle drive.
+On Kindle, both editions use pokepal/pokepal.dat on the Kindle drive.
+On other devices, saves and reading files use KOReader's settings folder.
+Back up that folder on those devices. Saves stay outside pokepal.koplugin.
 Back up the whole pokepal folder before updating. Keep it when replacing
 the app files. Update both editions if you use both.
 
@@ -45,7 +55,7 @@ More > Reading rewards shows progress and lets you turn rewards off.
 
 OPTIONAL SETTINGS
 More > Preferences has larger text, stronger contrast and automatic rest
-when the Kindle sleeps. KOReader can also show your sleeping partner on
+when the device sleeps. KOReader can also show your sleeping partner on
 its sleep screen or add a small reading footer. These settings start off.
 KUAL keeps the Kindle's normal sleep screen. No screensaver add-on is needed.
 

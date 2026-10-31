@@ -158,7 +158,7 @@ package.preload["device"]=function()
   local scale=math.min(self:getWidth(),self:getHeight())/600
   return math.ceil(px*(scale+(D.dpi and D.dpi/160 or scale))/2)
  end
- return {screen_saver_mode=false,screen=screen}
+ return {screen_saver_mode=false,screen=screen,isKindle=function() return true end}
 end
 U={queue={},dirty={},show_count=0}
 function U:scheduleIn(seconds,f) self.queue[#self.queue+1]={seconds=seconds,f=f} end
