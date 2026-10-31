@@ -10,7 +10,7 @@ KOReader shows it through its existing screensaver, including its normal wake an
 
 The KUAL edition keeps the Kindle's normal sleep screen. It does not need a screensaver add-on. The sleeping-partner preview is still available inside PokePal.
 
-**Rest when the Kindle sleeps** is a separate preference. Energy recovers at the normal resting rate until wake. A partner already resting stays asleep; expeditions carry on. The KUAL power listener starts after you close PokePal. Open PokePal again after restarting the Kindle to start it for that session. The listener waits for sleep and wake events without a polling timer.
+**Rest when the device sleeps** is a separate preference. Energy recovers at the normal resting rate until wake. A partner already resting stays asleep; expeditions carry on. The KUAL power listener starts after you close PokePal. Open PokePal again after restarting the Kindle to start it for that session. The listener waits for sleep and wake events without a polling timer.
 
 ## Where to find things
 
@@ -77,7 +77,7 @@ To isolate it on KOReader, keep the same sleep-screen and launcher settings:
 
 The KUAL edition retains the system sleep screen and hands the display back to
 the Kindle when the game exits for sleep. Another add-on's custom image is
-outside PokePal's control. **Rest when the Kindle sleeps** changes game state;
+outside PokePal's control. **Rest when the device sleeps** changes game state;
 it does not replace that screen. There is no verified universal no-flash
 workaround. Do not disable the power service or normal e-ink cleanup refreshes
 to hide the symptom.

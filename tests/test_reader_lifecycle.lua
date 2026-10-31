@@ -30,7 +30,9 @@ end
 local passed,failed=0,0
 local function check(name,fn)
  local ffiUtil=require('ffi/util');local syncfile,syncdir=ffiUtil.fsyncOpenedFile,ffiUtil.fsyncDirectory
+ local device=require('device');local isKindle=device.isKindle
  local ok,err=pcall(fn)
+ device.isKindle=isKindle
  ffiUtil.fsyncOpenedFile,ffiUtil.fsyncDirectory=syncfile,syncdir
  if ok then passed=passed+1;print('PASS '..name)
  else failed=failed+1;print('FAIL '..name..': '..tostring(err)) end
@@ -39,6 +41,48 @@ local function check(name,fn)
  end
  instances={};screensaver.setup=setup;U.queue={};U.dirty={}
 end
+
+check('other KOReader hosts collect rewards without scanning Kindle files',function()
+ require('device').isKindle=function() return false end
+ local reader=plugin('non-kindle',true)
+ assert(#reader.reading_status==1 and reader.reading_status[1]:match('KOReader:'))
+ reader.reading.scan=function() error('native Kindle scan on another host') end
+ reader.reading.scanAsync=reader.reading.scan
+ local r=reader.reading.init(reader.state)
+ r.kindle_at=now-100;r.kindle["0123456789abcdef"]=120;r.ko_ready=true
+ assert(reader.storage.save(reader.savepath,reader.state,reader.engine))
+ assert(reader.reading.saveCounter(reader.counterpath,900))
+ reader:openPet();assert(reader.reading_busy)
+ reader.scan_step()
+ r=reader.state.reading
+ assert(not reader.reading_busy and r.seconds==900 and r.ko==900)
+ assert(r.kindle_at==now-100 and r.kindle["0123456789abcdef"]==120,'native baseline changed')
+ assert(#reader.reading_status==1 and reader.reading_status[1]=='KOReader: automatic tracking on')
+ reader:syncReading();assert(r.seconds==900,'reading rewarded twice')
+ assert(reader.reading.saveCounter(reader.counterpath,1800))
+ reader:syncReading();assert(r.seconds==1800 and r.ko==1800)
+ assert(r.kindle_at==now-100 and r.kindle["0123456789abcdef"]==120)
+ reader.reading.counter=function() return nil,'unreadable counter' end
+ reader:syncReading()
+ assert(#reader.reading_status==1 and reader.reading_status[1]=='KOReader: could not save reading time')
+end)
+
+check('Kindle still scans native reading records through both paths',function()
+ local reader=plugin('kindle-scan',false)
+ local async,sync=0,0
+ reader.reading.scanAsync=function(path)
+  assert(path=='/mnt/us/documents');async=async+1
+  return function() return true,{},'Kindle: test records' end
+ end
+ reader.reading.scan=function(path)
+  assert(path=='/mnt/us/documents');sync=sync+1
+  return {},'Kindle: test records'
+ end
+ reader:openPet();reader.scan_step();reader:syncReading()
+ assert(async==1 and sync==1 and #reader.reading_status==2)
+ assert(reader.reading_status[1]=='Kindle: test records')
+ assert(reader.reading_status[2]=='KOReader: automatic tracking on')
+end)
 
 check('a book view does not suppress KOReader page timing',function()
  local reader,book=plugin('timing',true)

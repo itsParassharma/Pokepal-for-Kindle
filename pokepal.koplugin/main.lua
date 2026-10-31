@@ -16,6 +16,7 @@ function PokePal:init()
  self.reading=dofile(self.path.."/reading.lua")
  self.timer=dofile(self.path.."/reading_timer.lua")
  self.clock=self.timer.new()
+ if not Device:isKindle() then self.reading_status={"KOReader: tracks while you read"} end
  self.savepath,self.path_error=self.storage.location(DataStorage:getSettingsDir().."/pokepal.dat",self.fs)
  if self.savepath then self.counterpath=self.savepath..".reading";self.reading.loadCache(self.savepath..".scan-cache") end
  if self.savepath then
@@ -54,7 +55,7 @@ function PokePal:openPet()
  self.engine.companion.resume(self.state,self.engine,os.time())
  self.engine.advance(self.state,os.time())
  if not self:save() then
-  UIManager:show(InfoMessage:new{text="PokePal could not save. Check free space on the Kindle."})
+  UIManager:show(InfoMessage:new{text="PokePal could not save. Check free space on the device."})
   self:onPetClosed();return
  end
  self.pet_view=self.View:new{owner=self,engine=self.engine,state=self.state,path=self.path}
@@ -126,7 +127,8 @@ function PokePal:onFlushSettings() self:flushReading() end
 function PokePal:finishReadingScan(counters,status,visit)
  if counters then self.reading.saveCache() end
  local ko,err,primary,days=self.reading.counter(self.counterpath)
- self.reading_status={status,(err or self.reading_error) and "KOReader: could not save reading time" or "KOReader: automatic tracking on"}
+ self.reading_status={(err or self.reading_error) and "KOReader: could not save reading time" or "KOReader: automatic tracking on"}
+ if status then table.insert(self.reading_status,1,status) end
  local message,recap=self.reading.collect(self.state,self.engine,counters,ko,os.time(),days,visit)
  if recap then self.recap=recap end
  return message
@@ -138,7 +140,9 @@ end
 function PokePal:startReadingScan(visit)
  visit=visit or self.reading.visit(self.state)
  self:cancelReadingScan();self.reading_busy=true
- local step=self.reading.scanAsync("/mnt/us/documents",self.fs)
+ -- Native reading records only exist on Kindle. Keep KOReader collection on
+ -- every host; nil counters leave a migrated save's Kindle baseline intact.
+ local step=Device:isKindle() and self.reading.scanAsync("/mnt/us/documents",self.fs) or function() return true end
  self.scan_step=function()
   if not self.pet_view or self.suspended then self:cancelReadingScan();return end
   local done,counters,status=step()
@@ -151,6 +155,7 @@ function PokePal:startReadingScan(visit)
 end
 function PokePal:syncReading()
  self:cancelReadingScan()
+ if not Device:isKindle() then return self:finishReadingScan() end
  return self:finishReadingScan(self.reading.scan("/mnt/us/documents",self.fs))
 end
 function PokePal:rescanReading() self.reading.clearCache();self:startReadingScan() end
