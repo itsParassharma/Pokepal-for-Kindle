@@ -29,6 +29,10 @@ def listdir(path):
  try:return lua.table_from(os.listdir(path))
  except OSError:return None
 g.host_fs=fs;g.host_listdir=listdir
+def symlink(source, destination):
+ os.symlink(source, destination)
+ return True
+g.host_symlink=symlink
 lua.execute((REPO/'tests'/'test_engine.lua').read_text())
 lua.execute((REPO/'tests'/'test_gen3.lua').read_text())
 lua.execute((REPO/'tests'/'test_reading.lua').read_text())
@@ -168,7 +172,7 @@ package.preload["datastorage"]=function() return {getSettingsDir=function() retu
 package.preload["ffi/util"]=function() return {} end
 package.preload["ui/widget/infomessage"]=function() return W end
 package.preload["dispatcher"]=function() return {registerAction=function() end} end
-G_reader_settings={isTrue=function() return true end}
+G_reader_settings={isTrue=function(_,key) return key=='pokepal_welcome_seen' end}
 bb={paintRect=function(_,...) render_rect(...) end}
 E=dofile(BASE.."/engine.lua");V=dofile(BASE.."/view.lua")
 Device=require("device")
@@ -194,6 +198,7 @@ def start(w=600,h=800):
  g.D.w=w;g.D.h=h
 start()
 lua.execute((REPO/'tests'/'test_bookshelf.lua').read_text())
+lua.execute((REPO/'tests'/'test_simpleui.lua').read_text())
 lua.execute((REPO/'tests'/'test_reader_lifecycle.lua').read_text())
 lua.execute((REPO/'tests'/'test_koreader_ui.lua').read_text())
 lua.execute(r'''
@@ -445,11 +450,13 @@ check('activity paging stays within saved history',function()
  assert(pages==1 and v.page==2)
 end)
 check('berry trail rewards a perfect path once',function()
+ local real_time=os.time;local at=real_time();os.time=function(t) return t and real_time(t) or at end
  v=newView(4);v.state.animation='off';v:startPlay();assert(v.screen=='play' and #U.queue==0)
  v.play_phase='pick'
  for i=1,3 do v:pickBush(v.play_sequence[i]) end
  assert(v.state.xp==8 and v.state.energy==70 and v.screen=='home')
  v:pickBush(1);assert(v.state.xp==8)
+ os.time=real_time
 end)
 check('unfinished play and leaving give no reward',function()
  v=newView(4);v:startPlay();v:go('home');assert(v.state.xp==0)

@@ -15,6 +15,7 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r requirements-dev.txt
       - run: python tests/test_and_render.py
+      - run: python tests/test_simpleui_assets.py
       - name: Check the real KOReader runtime
         env:
           SDL_VIDEODRIVER: dummy
@@ -26,3 +27,25 @@ jobs:
           tar -xJf "$RUNNER_TEMP/koreader.tar.xz" -C "$RUNNER_TEMP/koreader"
           cd "$RUNNER_TEMP/koreader/lib/koreader"
           KO_HOME="$(mktemp -d)" ./luajit "$GITHUB_WORKSPACE/tests/test_koreader_runtime.lua" "$GITHUB_WORKSPACE/pokepal.koplugin"
+      - name: Check upstream SimpleUI card and critter compatibility
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_RENDER_DRIVER: software
+        run: |
+          git init "$RUNNER_TEMP/simpleui-source"
+          git -C "$RUNNER_TEMP/simpleui-source" fetch --depth=1 https://github.com/doctorhetfield-cmd/simpleui.koplugin.git e5cd6dcb31fa759b9831223d4719f61126367cff 257c26d6685ced4fc2e895f98287b5f16f1d4f5e
+          for revision in e5cd6dcb31fa759b9831223d4719f61126367cff 257c26d6685ced4fc2e895f98287b5f16f1d4f5e; do
+            target="$RUNNER_TEMP/$revision.koplugin"
+            mkdir "$target"
+            git -C "$RUNNER_TEMP/simpleui-source" archive "$revision" | tar -x -C "$target"
+            cd "$RUNNER_TEMP/koreader/lib/koreader"
+            KO_HOME="$(mktemp -d)" ./luajit "$GITHUB_WORKSPACE/tests/test_simpleui_runtime.lua" "$GITHUB_WORKSPACE/pokepal.koplugin" "$target" "$GITHUB_WORKSPACE/tests/rendered/simpleui-$revision.png"
+            KO_HOME="$(mktemp -d)" ./luajit "$GITHUB_WORKSPACE/tests/test_simpleui_module_runtime.lua" "$GITHUB_WORKSPACE/pokepal.koplugin" "$target" "$GITHUB_WORKSPACE/tests/rendered/simpleui-card-$revision" | tee "$RUNNER_TEMP/simpleui-card-$revision.log"
+            grep -q 'SIMPLEUI MODULE RUNTIME: all checks passed' "$RUNNER_TEMP/simpleui-card-$revision.log"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PokePal-SimpleUI-preview
+          path: |
+            tests/rendered/PokePal-SimpleUI-preview.zip
+            tests/rendered/simpleui-*.png
