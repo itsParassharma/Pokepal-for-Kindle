@@ -1,4 +1,4 @@
-"""Import Crystal maps through Violet City. Usage: python tools/import_story.py /path/to/pokecrystal"""
+"""Import Crystal maps through Azalea Town. Usage: python tools/import_story.py /path/to/pokecrystal"""
 from pathlib import Path
 from collections import Counter
 import hashlib, io, json, re, subprocess, sys
@@ -14,7 +14,9 @@ hashes, images, tile_ids, maps, collisions = {}, {}, {}, {}, Counter()
 names = ['PlayersHouse2F', 'PlayersHouse1F', 'NewBarkTown', 'ElmsLab', 'Route29',
          'CherrygroveCity', 'CherrygrovePokecenter1F', 'Route30', 'MrPokemonsHouse',
          'Route31','Route31VioletGate','VioletCity','VioletPokecenter1F','VioletGym',
-         'SproutTower1F','SproutTower2F','SproutTower3F']
+         'SproutTower1F','SproutTower2F','SproutTower3F','Route32','Route32Pokecenter1F',
+         'UnionCave1F','Route33','AzaleaTown','KurtsHouse','SlowpokeWellB1F',
+         'AzaleaPokecenter1F','AzaleaGym','IlexForestAzaleaGate']
 
 def read(path):
     data = subprocess.check_output(['git', 'show', f'{PIN}:{path}'], cwd=SOURCE)
@@ -75,10 +77,14 @@ for name in names:
     section=re.search(r'^\s*map_attributes '+name+r',.*?(?=^\s*map_attributes|\Z)',attrs,re.M|re.S).group()
     links=[[d,target,int(offset)] for d,target,offset in re.findall(r'connection (\w+), (\w+), \w+, (-?\d+)',section)]
     title={'PlayersHouse2F':'Your room','PlayersHouse1F':'Home','ElmsLab':"Professor Elm's lab",'CherrygrovePokecenter1F':'Pokemon Centre','MrPokemonsHouse':"Mr. Pokemon's house",'VioletPokecenter1F':'Violet Pokemon Centre','Route31VioletGate':'Violet City gate','SproutTower1F':'Sprout Tower / 1F','SproutTower2F':'Sprout Tower / 2F','SproutTower3F':'Sprout Tower / 3F'}.get(name,re.sub(r'([a-z])([A-Z0-9])',r'\1 \2',name))
+    title={'Route32Pokecenter1F':'Route 32 Pokemon Centre','UnionCave1F':'Union Cave / 1F',
+           'KurtsHouse':"Kurt's house",'SlowpokeWellB1F':'Slowpoke Well / B1F',
+           'AzaleaPokecenter1F':'Azalea Pokemon Centre','IlexForestAzaleaGate':'Ilex Forest gate'}.get(name,title)
     maps[name]={'name':title,'width':width,'height':height,'tiles':tiles,'walk':walk,'warps':warps,'links':links}
 
 # Keep source character art separate from the existing Fern Town packs.
-for name in ('chris','mom','elm','oak','rival','gentleman','gramps','nurse','teacher','sage','falkner','youngster','bug_catcher','gym_guide','officer'):
+for name in ('chris','mom','elm','oak','rival','gentleman','gramps','nurse','teacher','sage','falkner','youngster','bug_catcher','gym_guide','officer',
+             'scientist','fisher','lass','pokefan_m','super_nerd','rocket','rocket_girl','kurt','slowpoke','bugsy','twin'):
     sheet=Image.open(io.BytesIO(read(f'gfx/sprites/{name}.png'))).convert('RGBA')
     for direction,row in [('down',0),('up',1),('left',2),('right',2)]:
         im=sheet.crop((0,row*16,16,row*16+16))
@@ -100,10 +106,19 @@ reader=(ROOT/'assets/sprites.lua').read_text(encoding='utf8').split('function S.
 (OUT/'sprites.lua').write_text('local S={index='+lua(index)+'}\nfunction S.read'+reader,encoding='utf8')
 species={name:i+1 for i,name in enumerate(re.findall(r'^\s*const\s+(\w+)',text('constants/pokemon_constants.asm'),re.M))}
 parties=text('data/trainers/parties.asm');teams={}
-for trainer in ('JOEY','MIKEY','DON','WADE','CHOW','NICO','EDMOND','JIN','TROY','NEAL','LI','ABE','ROD','FALKNER'):
+for trainer in ('JOEY','MIKEY','DON','WADE','CHOW','NICO','EDMOND','JIN','TROY','NEAL','LI','ABE','ROD','FALKNER',
+                'ROLAND','JUSTIN','RALPH','HENRY','LIZ','ALBERT','GORDON','PETER','LARRY','RUSSELL','DANIEL','BILL','RAY','BENNY','AL','JOSH','BUGSY'):
     party=re.search(r'db "'+trainer+r'@",[^\n]+\n(.*?)db -1',parties,re.S).group(1)
     teams[trainer.lower()]=[species[name] for name in re.findall(r'^\s*db\s+\d+,\s*(\w+)',party,re.M)]
     assert 1<=len(teams[trainer.lower()])<=6
+def numbered_team(group,number):
+    party=re.search(r'; '+group+r' \('+str(number)+r'\)\s*\n(.*?)db -1',parties,re.S).group(1)
+    return [species[name] for name in re.findall(r'^\s*db\s+\d+,\s*(\w+)',party,re.M)]
+for key,group,number in [('anthony','HIKER',5),('amy','TWINS',1),('may','TWINS',4),
+                         ('rocket29','GRUNTM',29),('rocket1','GRUNTM',1),('rocket2','GRUNTM',2),('rocketf1','GRUNTF',1)]:
+    teams[key]=numbered_team(group,number)
+rivals={id:numbered_team('RIVAL1',n) for id,n in [(152,4),(155,5),(158,6)]}
+teams['azalea_rival']=rivals[155]
 wild={};catch_rates={};grass=text('data/wild/johto_grass.asm')
 for name in names:
     match=re.search(r'def_grass_wildmons '+constants[name]+r'\s*\n(.*?)end_grass_wildmons',grass,re.S)
@@ -111,17 +126,17 @@ for name in names:
     section=match.group(1);rates=[int(n) for n in re.findall(r'(\d+) percent',section)]
     entries=re.findall(r'^\s*db\s+\d+,\s*(\w+)',section,re.M)
     assert len(rates)==3 and len(entries)==21
-    wild[name]={'rates':rates,'mons':[[species[n] for n in entries[i:i+7]] for i in (0,7,14)]}
+    wild[name]={'terrain':'grass' if name.startswith('Route') else 'floor','rates':rates,'mons':[[species[n] for n in entries[i:i+7]] for i in (0,7,14)]}
     for mon in entries:
         if species[mon] not in catch_rates:
             base=text('data/pokemon/base_stats/'+mon.lower()+'.asm')
             catch_rates[species[mon]]=int(re.search(r'db\s+(\d+)\s*; catch rate',base).group(1))
-assert len(wild)==5
+assert len(wild)==9
 probabilities=text('data/wild/probabilities.asm').split('WaterMonProbTable:',1)[0]
 wild_slots=[int(n) for n in re.findall(r'mon_prob\s+(\d+),',probabilities)]
 assert len(wild_slots)==7 and wild_slots[-1]==100
-(ROOT/'story_maps.lua').write_text('-- Generated by tools/import_story.py; coordinates are zero-based.\nreturn '+lua({'maps':maps,'constants':{constants[n]:n for n in names},'teams':teams,'wild':wild,'wild_slots':wild_slots,'catch_rates':catch_rates})+'\n',encoding='utf8')
+(ROOT/'story_maps.lua').write_text('-- Generated by tools/import_story.py; coordinates are zero-based.\nreturn '+lua({'maps':maps,'constants':{constants[n]:n for n in names},'teams':teams,'rivals':rivals,'wild':wild,'wild_slots':wild_slots,'catch_rates':catch_rates})+'\n',encoding='utf8')
 (OUT/'index.json').write_text(json.dumps(index,sort_keys=True)+'\n',encoding='utf8')
 (OUT/'sources.json').write_text(json.dumps({'crystal':PIN,'sha256':hashes,'collision_counts':dict(collisions)},indent=2)+'\n',encoding='utf8')
-assert len(maps)==17 and all(len(m['tiles'])==m['width']*m['height'] for m in maps.values())
+assert len(maps)==27 and all(len(m['tiles'])==m['width']*m['height'] for m in maps.values())
 print(json.dumps({'maps':len(maps),'images':len(images),'bytes':len(blob),'collisions':dict(collisions)},indent=2))

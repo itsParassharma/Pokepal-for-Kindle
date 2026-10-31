@@ -23,6 +23,7 @@ local function walk(s,x,y)
  for _,d in ipairs(path) do
   assert(S.step(t,d[1],d[2],E,12));roundtrip(s)
   if t.encounter=="wild" then assert(S.flee(t));roundtrip(s);assert(S.finishBattle(t));roundtrip(s) end
+  if t.node=='hatched' or t.node=='hatched_owned' then advance(s) end
   if t.node or t.map~=map then break end
  end
 end
@@ -77,11 +78,11 @@ local function finish(s)
  assert(saved==E.companion.encode(s.story.flags));roundtrip(s)
 end
 
-test('existing saves remain unchanged until starting, and Explore preserves version 11',function()
+test('existing saves remain unchanged until starting, and Explore preserves version 12',function()
  local s=E.new(now);E.act(s,'choose',25,now)
  local data=Store.encode(s);assert(Store.encode(assert(Store.decode(data,E)))==data and not s.story)
  S.enter(s,E);local story=E.companion.encode(s.story);E.world.enter(s)
- assert(s.version==11 and E.companion.encode(s.story)==story);roundtrip(s)
+ assert(s.version==12 and E.companion.encode(s.story)==story);roundtrip(s)
  data=Store.encode(s);assert(not S.enter(s,E) and Store.encode(s)==data)
  assert(not S.enter(E.new(now),E))
 end)
@@ -93,7 +94,7 @@ test('all opening maps, collisions, reciprocal doors and tile counts are bounded
   assert(S.tile(name,-2,0)=='#' and S.tile(name,0,-1)=='#' and S.tile(name,m.width,0)=='#')
   for _,p in ipairs(m.warps) do assert(S.tile(name,p[1],p[2])=='.') end
  end
- assert(count==17)
+ assert(count==27)
 end)
 local encounter
 for choice,id in ipairs({25,7,94}) do
@@ -141,7 +142,7 @@ test('old Explore saves migrate before starting the story, keeping the companion
  local s=E.new(now);E.act(s,'choose',25,now);E.world.enter(s)
  s.version=5;s.world.camp=nil
  assert(E.valid(s));assert(S.enter(s,E));roundtrip(s)
- assert(s.world.partner==25 and s.species==25 and s.version==11)
+ assert(s.world.partner==25 and s.species==25 and s.version==12)
 end)
 test('the town gate requires accepting the errand and unopened doors leave the player on the map',function()
  local s=fresh();dismiss(s);warp(s,'PLAYERS_HOUSE_1F');dismiss(s);warp(s,'NEW_BARK_TOWN')
@@ -223,7 +224,7 @@ test('five real chapter 1 snapshots migrate only on entry without resetting prog
   local s=assert(Store.decode(data,E));assert(Store.encode(s)==data)
   local t=s.story;local map,x,y,hp=t.map,t.x,t.y,t.hp;local oldflags={};for k,v in pairs(t.flags) do oldflags[k]=v end
   local turn=t.battle and t.battle.turn;local foehp=t.battle and t.battle.hp
-  assert(S.enter(s,E));assert(t.version==3 and s.version==11 and t.partner==s.species and not t.starter)
+  assert(S.enter(s,E));assert(t.version==4 and s.version==12 and t.partner==s.species and not t.starter)
   assert(t.map==map and t.x==x and t.y==y and t.hp==hp)
   oldflags.EVENT_GOT_A_POKEMON_FROM_ELM=nil;assert(E.companion.encode(oldflags)==E.companion.encode(t.flags))
   if key=='choose' then assert(t.node=='directions') end
@@ -242,7 +243,7 @@ test('the trainer keeps the original companion when care-mode partners change',f
 end)
 test('trainer rosters preserve repeated species and save each replacement opponent',function()
  local count=0
- for key,p in pairs(S.trainers) do
+ for key,p in pairs(S.trainers) do if not p.need then
   local s=chapter2();local t=s.story;t.map=p.map
   for _,d in pairs(S.directions) do
    if S.tile(p.map,p.x+d[1],p.y+d[2])=='.' then t.x=p.x+d[1];t.y=p.y+d[2];break end
@@ -259,7 +260,7 @@ test('trainer rosters preserve repeated species and save each replacement oppone
   assert(t.battle.status=='won' and i==#p.team,key);assert(not t.flags[p.flag])
   assert(S.finishBattle(t));assert(t.flags[p.flag]);roundtrip(s)
   assert(not S.finishBattle(t));dismiss(s);count=count+1
- end
+ end end
  assert(count==14 and S.trainers.wade.team[1]==S.trainers.wade.team[2])
 end)
 test('walk Route 31, Sprout Tower and Violet Gym, then revisit without duplicate rewards',function()
@@ -323,9 +324,9 @@ test('Super Potions consume a turn, persist, refill at rest and leave care resou
  S.finishBattle(t);assert(t.hp==40 and t.potions==S.max_potions);roundtrip(s)
  dismiss(s);t.potions=0;walk(s,3,1);assert(t.hp==40 and t.potions==S.max_potions);roundtrip(s)
 end)
-test('all 386 companions can defeat every trainer using their moves and saved Potions',function()
+test("all 386 companions can defeat the first two chapters' trainers using their moves and saved Potions",function()
  local total=0
- for id=1,E.species_count do for key,p in pairs(S.trainers) do
+ for id=1,E.species_count do for key,p in pairs(S.trainers) do if not p.need then
   local s=assert(Store.decode(legacy.complete,E));s.seen[tostring(id)]=true;E.act(s,'partner',id,now);S.enter(s,E)
   local t=s.story;t.map=p.map;t.x=p.x;t.y=p.y
   t.flags.POKEPAL_REACHED_VIOLET=true;t.flags.POKEPAL_SPROUT_RIVAL_SEEN=true;t.node='challenge_'..key
@@ -339,7 +340,7 @@ test('all 386 companions can defeat every trainer using their moves and saved Po
    assert(S.turn(t,E,slot));assert(E.valid(s));turns=turns+1;assert(turns<=100)
   end
   assert(t.battle.status=='won',E.name(id)..' cannot defeat '..key);roundtrip(s);total=total+1
- end end
+ end end end
  assert(total==5404)
 end)
 test('the northern route stays closed until the errand is done and Dark Cave explains its boundary',function()
@@ -351,3 +352,4 @@ end)
 print('STORY: '..checks..' checks passed')
 
 dofile(test_dir..'test_story_catching.lua')
+dofile(test_dir..'test_story_azalea.lua')({E=E,S=S,Store=Store,roundtrip=roundtrip,advance=advance,dismiss=dismiss,walk=walk,warp=warp,connect=connect,navigate=navigate})

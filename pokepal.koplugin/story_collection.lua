@@ -2,19 +2,31 @@
 return function(S,B,data,equip)
  local rng=dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/random.lua")
  S.max_balls=10;S.wild=data.wild
+ -- shortcut: use 256 walking steps for this preview until Crystal egg cycles are implemented.
+ S.egg_steps=256
  local function int(n,a,b) return type(n)=="number" and n==n and n%1==0 and n>=a and n<=b end
  function S.initParty(t,seed)
-  t.version=3;t.origin=t.partner;t.party={t.partner};t.box={[tostring(t.partner)]=true};t.health={}
+  t.version=4;t.origin=t.partner;t.party={t.partner};t.box={[tostring(t.partner)]=true};t.health={}
   t.seed=seed;t.balls=S.max_balls;t.grace=3
  end
  function S.member(t,id) for i,mon in ipairs(t.party) do if mon==id then return i end end end
+ function S.partySize(t) return #t.party+(t.togepi_steps~=nil and 1 or 0) end
+ function S.growEgg(t)
+  if t.togepi_steps==nil then return false end
+  t.togepi_steps=t.togepi_steps+1
+  if t.togepi_steps<S.egg_steps then return false end
+  t.togepi_steps=nil;t.flags.EVENT_TOGEPI_HATCHED=true
+  if t.box['175'] then t.node="hatched_owned"
+  else t.box['175']=true;t.health['175']=40;t.party[#t.party+1]=175;t.node="hatched" end
+  return true
+ end
  function S.hp(t,id) return id==t.partner and t.hp or t.health[tostring(id)] or 40 end
  function S.alive(t) for _,id in ipairs(t.party) do if S.hp(t,id)>0 then return true end end;return false end
  function S.heal(t)
   t.hp=40;t.potions=S.max_potions
-  if t.version==3 then t.health={};t.balls=S.max_balls end
+  if t.version>=3 then t.health={};t.balls=S.max_balls end
  end
- function S.atCentre(t) return t.map=="CherrygrovePokecenter1F" or t.map=="VioletPokecenter1F" end
+ function S.atCentre(t) return t.map=="CherrygrovePokecenter1F" or t.map=="VioletPokecenter1F" or t.map=="Route32Pokecenter1F" or t.map=="AzaleaPokecenter1F" end
  function S.canManage(t) return S.atCentre(t) and not t.node and not t.battle end
  function S.lead(t,E,id)
   if not S.member(t,id) or id==t.partner or S.hp(t,id)==0 then return false end
@@ -37,14 +49,14 @@ return function(S,B,data,equip)
   return true
  end
  function S.withdraw(t,id)
-  if not S.canManage(t) or not int(id,1,386) or not t.box[tostring(id)] or S.member(t,id) or #t.party==6 then return false end
+  if not S.canManage(t) or not int(id,1,386) or not t.box[tostring(id)] or S.member(t,id) or S.partySize(t)==6 then return false end
   t.party[#t.party+1]=id;return true
  end
  function S.boxList(t)
   local result={};for id=1,386 do if t.box[tostring(id)] then result[#result+1]=id end end;return result
  end
  function S.wildTerrain(t)
-  return S.wild[t.map] and (S.tile(t.map,t.x,t.y)=="G" or t.map:match("^SproutTower") and S.tile(t.map,t.x,t.y)==".")
+  return S.wild[t.map] and (S.tile(t.map,t.x,t.y)=="G" or S.wild[t.map].terrain=="floor" and S.tile(t.map,t.x,t.y)==".")
  end
  function S.wildSpecies(map,id)
   local wild=S.wild[map];if not wild then return false end
@@ -79,7 +91,7 @@ return function(S,B,data,equip)
   local b=t.battle;local id=b.wildid;t.balls=t.balls-1
   if rng(t,255)<=S.catchChance(t) then
    t.box[tostring(id)]=true;t.health[tostring(id)]=math.max(1,math.floor(b.hp/B.maxFoeHP(b)*40))
-   local joined=#t.party<6;if joined then t.party[#t.party+1]=id end
+   local joined=S.partySize(t)<6;if joined then t.party[#t.party+1]=id end
    b.recruited=true;b.status="befriended"
    b.log={"Gotcha! "..E.name(id).." was caught!",joined and "It joined your party." or "Sent to your box at the Pokemon Centre."}
   else
@@ -91,6 +103,11 @@ return function(S,B,data,equip)
   local b=t.battle
   if not b or t.encounter~="wild" or b.status~="active" or t.hp==0 then return false end
   b.status="fled";b.log={"Got away safely."};return true
+ end
+ function S.retreat(t)
+  local b=t.battle
+  if not b or t.encounter=="wild" or b.status~="active" then return false end
+  b.status="draw";b.log={"You ended the battle to rest.","Try another team at the Pokemon Centre."};return true
  end
  function S.validParty(t,E)
   if not int(t.origin,1,E.species_count) or not int(t.seed,1,2147483646) or not int(t.balls,0,S.max_balls) or not int(t.grace,0,3)

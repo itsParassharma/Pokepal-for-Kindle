@@ -19,13 +19,26 @@ local people={PlayersHouse1F={{7,4,"mom","mom"}},ElmsLab={{5,2,"elm","elm"}},
 local flags={ENGINE_POKEGEAR=true,POKEPAL_ELM_MISSION=true,
  EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON=true,ENGINE_POKEDEX=true,EVENT_BEAT_RIVAL_1=true,EVENT_GAVE_MYSTERY_EGG_TO_ELM=true,
  POKEPAL_REACHED_VIOLET=true,POKEPAL_SPROUT_RIVAL_SEEN=true,EVENT_GOT_HM05_FLASH=true,ENGINE_ZEPHYRBADGE=true}
+local chapter_flags={EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE=true,EVENT_TOGEPI_HATCHED=true,POKEPAL_REACHED_AZALEA=true,
+ EVENT_AZALEA_TOWN_SLOWPOKETAIL_ROCKET=true,EVENT_CLEARED_SLOWPOKE_WELL=true,ENGINE_HIVEBADGE=true}
+for key in pairs(chapter_flags) do flags[key]=true end
+local requirements={Route32="EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE",Route32Pokecenter1F="EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE",
+ UnionCave1F="EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE",Route33="EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE",
+ AzaleaTown="POKEPAL_REACHED_AZALEA",KurtsHouse="POKEPAL_REACHED_AZALEA",AzaleaPokecenter1F="POKEPAL_REACHED_AZALEA",
+ SlowpokeWellB1F="EVENT_AZALEA_TOWN_SLOWPOKETAIL_ROCKET",AzaleaGym="EVENT_CLEARED_SLOWPOKE_WELL",IlexForestAzaleaGate="ENGINE_HIVEBADGE"}
+people.Route32Pokecenter1F={{3,1,"nurse","heal"}}
+people.AzaleaPokecenter1F={{3,1,"nurse","heal"}}
+people.AzaleaTown={{21,9,"gramps","azalea_guide"}}
+people.AzaleaGym={{7,13,"gym_guide","azalea_gym_guide"}}
+people.IlexForestAzaleaGate={{5,2,"officer","forest_gate"}}
 for key,trainer in pairs(S.trainers) do
  trainer.team=assert(data.teams[key]);flags[trainer.flag]=true
+ if trainer.need then chapter_flags[trainer.flag]=true end
  S.nodes["challenge_"..key]={op="text",who=trainer.name,lines=trainer.lines or {"Let's see how you work together.","I have "..#trainer.team.." Pokemon ready."},next="battle_"..key}
  S.nodes["battle_"..key]={op="battle",id=key}
  S.nodes["won_"..key]={op="text",who=trainer.name,lines=trainer.reward or {"Well fought! You and your partner won.","I'll step aside so you can continue."}}
 end
-local operations={text=true,choice=true,flag=true,heal=true,egg=true,battle=true,deliver=true}
+local operations={text=true,choice=true,flag=true,heal=true,egg=true,battle=true,deliver=true,togepi=true}
 for key,n in pairs(S.nodes) do
  assert(operations[n.op],"Unsupported story command: "..tostring(n.op))
  assert(not n.next or S.nodes[n.next],key)
@@ -34,6 +47,11 @@ for key,n in pairs(S.nodes) do
 end
 function S.stage(t)
  local f=t.flags
+ if f.ENGINE_HIVEBADGE then return f.EVENT_RIVAL_AZALEA_TOWN and 14 or 13 end
+ if f.EVENT_CLEARED_SLOWPOKE_WELL then return 12 end
+ if f.EVENT_AZALEA_TOWN_SLOWPOKETAIL_ROCKET then return 11 end
+ if f.POKEPAL_REACHED_AZALEA then return 10 end
+ if f.EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE then return 9 end
  return f.ENGINE_ZEPHYRBADGE and 8 or f.EVENT_GOT_HM05_FLASH and 7 or f.POKEPAL_REACHED_VIOLET and 6
   or f.EVENT_GAVE_MYSTERY_EGG_TO_ELM and 5 or f.EVENT_BEAT_RIVAL_1 and 4
   or f.EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON and 3 or f.POKEPAL_ELM_MISSION and 2 or 0
@@ -42,9 +60,14 @@ function S.objective(t)
  return ({[0]="Visit Professor Elm in New Bark Town.",[2]="Visit Mr. Pokemon on Route 30.",
  [3]="Bring the Mystery Egg back to Elm.",[4]="Return to Professor Elm's lab.",
  [5]="Take Route 30 north to Violet City.",[6]="Meet the elder at the top of Sprout Tower.",
- [7]="Challenge Falkner at Violet Gym.",[8]="Chapter 2 complete. Zephyr Badge earned."})[S.stage(t)]
+ [7]="Challenge Falkner at Violet Gym.",[8]="Meet Elm's aide in Violet's Pokemon Centre.",
+ [9]="Take Route 32 and Union Cave to Azalea.",[10]="Visit Kurt's house in northwest Azalea.",
+ [11]="Drive Team Rocket out of Slowpoke Well.",[12]="Challenge Bugsy at Azalea Gym.",
+ [13]="Meet the rival on Azalea's western road.",[14]="Chapter 3 complete. Hive Badge earned."})[S.stage(t)]
 end
-local function roster(t) return t.encounter=="rival" and {t.rival} or S.trainers[t.encounter].team end
+local function roster(t)
+ return t.encounter=="rival" and {t.rival} or t.encounter=="azalea_rival" and data.rivals[t.rival] or S.trainers[t.encounter].team
+end
 function S.hasNext(t) return t.battle and t.encounter~="wild" and t.opponent<#roster(t) end
 function S.battleTitle(t) return t.encounter=="wild" and "Wild Pokemon" or t.encounter=="rival" and "Rival battle" or S.trainers[t.encounter].name end
 function S.teamSize(t) return t.encounter=="wild" and 1 or #roster(t) end
@@ -68,6 +91,9 @@ local function run(t,key,E)
    if not t.flags.EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON then t.egg=true;t.flags.EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON=true end
   elseif n.op=="deliver" then
    if t.egg then t.egg=false;t.flags.EVENT_GAVE_MYSTERY_EGG_TO_ELM=true end
+  elseif n.op=="togepi" then
+   if S.partySize(t)==6 then t.node="egg_full";return end
+   t.flags.EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE=true;t.togepi_steps=0
   elseif n.op=="battle" then
    if not t.battle then startBattle(t,n.id or "rival",E) end
    return
@@ -97,12 +123,13 @@ function S.enter(s,E)
     t.encounter="rival";t.opponent=1;t.battle.ally=t.partner;equip(t.battle,E)
    end
   end
-  if t.version==2 then S.initParty(t,s.seed);s.version=math.max(s.version,11);return true end
+  if t.version==2 then S.initParty(t,s.seed);s.version=math.max(s.version,12);return true end
+  if t.version==3 then t.version=4;s.version=math.max(s.version,12);return true end
   return false
  end
  if s.world then E.world.enter(s) end
  s.story={version=2,map="PlayersHouse2F",x=3,y=3,facing="down",step=0,partner=s.species,rival=rivalFor(s.species,E),hp=40,potions=S.max_potions,egg=false,flags={}}
- S.initParty(s.story,s.seed);s.version=math.max(s.version,11);run(s.story,"welcome");return true
+ S.initParty(s.story,s.seed);s.version=math.max(s.version,12);run(s.story,"welcome");return true
 end
 function S.advance(t,index,E)
  local n=t.node and S.nodes[t.node]
@@ -148,10 +175,19 @@ function S.finishBattle(t)
   if key=="li" then t.flags.EVENT_GOT_HM05_FLASH=true
   elseif key=="falkner" then
    t.flags.ENGINE_ZEPHYRBADGE=true;t.flags.EVENT_BEAT_BIRD_KEEPER_ROD=true;t.flags.EVENT_BEAT_BIRD_KEEPER_ABE=true
+  elseif key=="rocket1" then
+   t.flags.EVENT_CLEARED_SLOWPOKE_WELL=true;S.heal(t);t.grace=3;t.map="KurtsHouse";t.x=3;t.y=3;t.facing="up"
+   run(t,"well_saved");return true
+  elseif key=="bugsy" then
+   t.flags.ENGINE_HIVEBADGE=true
+   for _,trainer in pairs(S.trainers) do if trainer.map=="AzaleaGym" then t.flags[trainer.flag]=true end end
   end
   run(t,"won_"..key)
  else
-  S.heal(t);t.grace=3;t.map=t.flags.POKEPAL_REACHED_VIOLET and "VioletPokecenter1F" or "CherrygrovePokecenter1F"
+  S.heal(t);t.grace=3
+  local need=requirements[t.map]
+  t.map=need=="EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE" and "Route32Pokecenter1F" or need and "AzaleaPokecenter1F"
+   or t.flags.POKEPAL_REACHED_VIOLET and "VioletPokecenter1F" or "CherrygrovePokecenter1F"
   t.x=4;t.y=5;t.facing="down";run(t,"defeat")
  end
  return true
@@ -167,10 +203,26 @@ function S.npcs(t)
  for _,p in ipairs(people[t.map] or {}) do result[#result+1]=p end
  if S.stage(t)>=5 then
   for key,p in pairs(S.trainers) do
-   if p.map==t.map and (p.stay or not t.flags[p.flag]) then result[#result+1]={p.x,p.y,p.sprite,key} end
+   if p.map==t.map and (p.stay or not t.flags[p.flag]) and (not p.need or t.flags[p.need])
+    and not (p.map=="SlowpokeWellB1F" and t.flags.EVENT_CLEARED_SLOWPOKE_WELL) then result[#result+1]={p.x,p.y,p.sprite,key} end
   end
  end
  if t.map=="SproutTower3F" and not t.flags.POKEPAL_SPROUT_RIVAL_SEEN then result[#result+1]={10,4,"rival","tower_rival"} end
+ local f=t.flags
+ if t.map=="VioletPokecenter1F" and f.ENGINE_ZEPHYRBADGE and not f.EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE then result[#result+1]={4,3,"scientist","aide"}
+ elseif t.map=="KurtsHouse" and (not f.EVENT_AZALEA_TOWN_SLOWPOKETAIL_ROCKET or f.EVENT_CLEARED_SLOWPOKE_WELL) then
+  result[#result+1]={3,2,"kurt",f.EVENT_CLEARED_SLOWPOKE_WELL and "kurt_thanks" or "kurt"}
+ elseif t.map=="SlowpokeWellB1F" then
+  if not f.EVENT_CLEARED_SLOWPOKE_WELL then result[#result+1]={16,14,"kurt","kurt_well"} end
+  result[#result+1]={7,4,"slowpoke","slowpoke"};result[#result+1]={6,2,"slowpoke","slowpoke"}
+ elseif t.map=="AzaleaTown" then
+  if not f.EVENT_AZALEA_TOWN_SLOWPOKETAIL_ROCKET then result[#result+1]={31,9,"rocket","well_locked"} end
+  if not f.EVENT_CLEARED_SLOWPOKE_WELL then
+   result[#result+1]={10,16,"rocket","rocket_locked"};result[#result+1]={11,10,"rocket","rocket_locked"}
+  else
+   for _,p in ipairs({{8,17},{18,9},{29,9},{15,15}}) do result[#result+1]={p[1],p[2],"slowpoke","slowpoke"} end
+  end
+ elseif t.map=="Route32" and not f.EVENT_CLEARED_SLOWPOKE_WELL then result[#result+1]={7,70,"fisher","tail_seller"} end
  return result
 end
 local function npc(t,x,y)
@@ -186,6 +238,7 @@ local function talk(t,key)
  if trainer then
   if t.flags[trainer.flag] then key="won_"..key
   elseif key=="li" and not t.flags.POKEPAL_SPROUT_RIVAL_SEEN then key="tower_rival"
+  elseif trainer.need and not t.flags[trainer.need] then key="rocket_locked"
   elseif t.hp==0 then key="needheal"
   else key="challenge_"..key end
  elseif key=="mom" then key=t.flags.ENGINE_POKEGEAR and "rest" or "mom"
@@ -216,6 +269,19 @@ local function arrived(t)
  elseif t.map=="ElmsLab" and S.stage(t)==4 then run(t,"delivery")
  elseif t.map=="VioletCity" and not t.flags.POKEPAL_REACHED_VIOLET then
   t.flags.POKEPAL_REACHED_VIOLET=true;run(t,"violet")
+ elseif t.map=="AzaleaTown" and not t.flags.POKEPAL_REACHED_AZALEA then
+  t.flags.POKEPAL_REACHED_AZALEA=true;run(t,"azalea")
+ end
+end
+local function blockedEntrance(t,dest)
+ local f=t.flags
+ if dest=="Route32" and not f.ENGINE_ZEPHYRBADGE then return "need_badge" end
+ if dest=="Route32" and not f.EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE then return "aide_waiting" end
+ if dest=="SlowpokeWellB1F" and not f.EVENT_AZALEA_TOWN_SLOWPOKETAIL_ROCKET then return "well_locked" end
+ if (dest=="AzaleaGym" or dest=="IlexForestAzaleaGate") and not f.EVENT_CLEARED_SLOWPOKE_WELL then return "rocket_locked" end
+ if dest=="IlexForestAzaleaGate" then
+  if not f.EVENT_RIVAL_AZALEA_TOWN then return t.hp==0 and "needheal" or "challenge_azalea_rival" end
+  if not f.ENGINE_HIVEBADGE then return "need_hive" end
  end
 end
 function S.step(t,dx,dy,E,hour)
@@ -227,6 +293,7 @@ function S.step(t,dx,dy,E,hour)
    if t.map=="NewBarkTown" and not t.flags.POKEPAL_ELM_MISSION then run(t,"gate");return true end
    if t.map=="CherrygroveCity" and link[1]=="east" and S.stage(t)==3 then run(t,"rival");return true end
    if t.map=="Route30" and link[1]=="north" and not t.flags.EVENT_GAVE_MYSTERY_EGG_TO_ELM then run(t,"errand_first");return true end
+   local blocked=blockedEntrance(t,link[2]);if blocked then run(t,blocked);return true end
    local dest=S.maps[link[2]]
    if dest then
     local x=dx==1 and 0 or dx==-1 and dest.width-1 or t.x-link[3]*2
@@ -242,13 +309,19 @@ function S.step(t,dx,dy,E,hour)
  nx,ny=landing(t,t.x,t.y,dx,dy);if not nx then return true end
  if t.map=="CherrygroveCity" and nx==33 and (ny==6 or ny==7) and S.stage(t)==3 then run(t,"rival");return true end
  if t.map=="SproutTower3F" and nx==11 and ny==9 and not t.flags.POKEPAL_SPROUT_RIVAL_SEEN then run(t,"tower_rival");return true end
+ if t.map=="AzaleaTown" and nx==5 and (ny==10 or ny==11) and t.flags.EVENT_CLEARED_SLOWPOKE_WELL and not t.flags.EVENT_RIVAL_AZALEA_TOWN then
+  run(t,t.hp==0 and "needheal" or "challenge_azalea_rival");return true
+ end
  local warp=S.warpAt(t.map,nx,ny)
  if warp then
   local dest=data.constants[warp[3]];local target=dest and S.maps[dest].warps[warp[4]]
   if not target then run(t,"closed");return true end
+  local blocked=blockedEntrance(t,dest);if blocked then run(t,blocked);return true end
   t.map=dest;t.x=target[1];t.y=target[2];arrived(t);return true
  end
- t.x=nx;t.y=ny;t.step=(t.step+1)%2;S.maybeWild(t,E,hour);return true
+ t.x=nx;t.y=ny;t.step=(t.step+1)%2
+ if not S.growEgg(t) then S.maybeWild(t,E,hour) end
+ return true
 end
 function S.path(t,x,y)
  local m=S.maps[t.map]
@@ -274,12 +347,13 @@ function S.valid(t,s,E)
  if t==nil then return true end
  if type(t)~="table" then return false end
  if t.version==1 then return legacy(t,s,E,S) end
- if s.species==0 or not (t.version==2 and s.version>=10 or t.version==3 and s.version>=11) then return false end
+ if s.species==0 or not (t.version==2 and s.version>=10 or t.version==3 and s.version>=11 or t.version==4 and s.version>=12) then return false end
  local allowed={version=true,map=true,x=true,y=true,facing=true,step=true,partner=true,rival=true,hp=true,potions=true,egg=true,flags=true,node=true,battle=true,encounter=true,opponent=true}
- if t.version==3 then
+ if t.version>=3 then
   for _,key in ipairs({"origin","party","box","health","seed","balls","grace"}) do allowed[key]=true end
   if not S.validParty(t,E) then return false end
  end
+ if t.version==4 then allowed.togepi_steps=true end
  for k in pairs(t) do if not allowed[k] then return false end end
  local function integer(n,a,b) return type(n)=="number" and n==n and n%1==0 and n>=a and n<=b end
  local m=S.maps[t.map]
@@ -287,7 +361,7 @@ function S.valid(t,s,E)
   or not S.directions[t.facing] or not integer(t.step,0,1) or not integer(t.partner,1,E.species_count)
   or (t.rival~=152 and t.rival~=155 and t.rival~=158) or not integer(t.hp,0,40) or not integer(t.potions,0,S.max_potions) or type(t.egg)~="boolean" or type(t.flags)~="table" then return false end
  local f=t.flags
- for k,v in pairs(f) do if not flags[k] or v~=true then return false end end
+ for k,v in pairs(f) do if not flags[k] or v~=true or t.version<4 and chapter_flags[k] then return false end end
  if f.EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON and not f.POKEPAL_ELM_MISSION or f.ENGINE_POKEDEX and not f.EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON
   or f.EVENT_BEAT_RIVAL_1 and not f.ENGINE_POKEDEX or f.EVENT_GAVE_MYSTERY_EGG_TO_ELM and not f.EVENT_BEAT_RIVAL_1
   or f.POKEPAL_REACHED_VIOLET and not f.EVENT_GAVE_MYSTERY_EGG_TO_ELM then return false end
@@ -295,10 +369,24 @@ function S.valid(t,s,E)
  for key,trainer in pairs(S.trainers) do
   if f[trainer.flag] and not f.EVENT_GAVE_MYSTERY_EGG_TO_ELM then return false end
   if f[trainer.flag] and trainer.map~="Route30" and trainer.map~="Route31" and not f.POKEPAL_REACHED_VIOLET then return false end
+  if f[trainer.flag] and trainer.need and not f[trainer.need] then return false end
  end
  if (f.EVENT_BEAT_SAGE_LI==true)~=(f.EVENT_GOT_HM05_FLASH==true) or (f.EVENT_BEAT_FALKNER==true)~=(f.ENGINE_ZEPHYRBADGE==true)
   or f.EVENT_BEAT_SAGE_LI and not f.POKEPAL_SPROUT_RIVAL_SEEN then return false end
  if f.EVENT_BEAT_FALKNER and (not f.EVENT_BEAT_BIRD_KEEPER_ABE or not f.EVENT_BEAT_BIRD_KEEPER_ROD) then return false end
+ if f.EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE and not f.ENGINE_ZEPHYRBADGE
+  or f.POKEPAL_REACHED_AZALEA and not f.EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE
+  or f.EVENT_AZALEA_TOWN_SLOWPOKETAIL_ROCKET and not f.POKEPAL_REACHED_AZALEA
+  or (f.EVENT_CLEARED_SLOWPOKE_WELL==true)~=(f.EVENT_BEAT_ROCKET_GRUNTM_1==true)
+  or (f.ENGINE_HIVEBADGE==true)~=(f.EVENT_BEAT_BUGSY==true) then return false end
+ if f.ENGINE_HIVEBADGE then
+  for _,p in pairs(S.trainers) do if p.map=="AzaleaGym" and not f[p.flag] then return false end end
+ end
+ if f.EVENT_TOGEPI_HATCHED and (not f.EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE or not t.box or not t.box['175']) then return false end
+ if f.EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE and not f.EVENT_TOGEPI_HATCHED then
+  if not integer(t.togepi_steps,0,S.egg_steps-1) or #t.party>5 then return false end
+ elseif t.togepi_steps~=nil then return false end
+ if requirements[t.map] and not f[requirements[t.map]] or t.map=="IlexForestAzaleaGate" and not f.EVENT_RIVAL_AZALEA_TOWN then return false end
  if (t.map=="Route31" or t.map=="Route31VioletGate") and not f.EVENT_GAVE_MYSTERY_EGG_TO_ELM then return false end
  if (t.map:match("^Violet") or t.map:match("^Sprout")) and not f.POKEPAL_REACHED_VIOLET then return false end
  if t.egg~=(f.EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON==true and not f.EVENT_GAVE_MYSTERY_EGG_TO_ELM) then return false end
@@ -308,17 +396,25 @@ function S.valid(t,s,E)
  if event_stage[t.node] and S.stage(t)~=event_stage[t.node] then return false end
  local event_map={welcome="PlayersHouse2F",mom="PlayersHouse1F",elm="ElmsLab",request="ElmsLab",refuse="ElmsLab",directions="ElmsLab",delivery="ElmsLab",complete="ElmsLab",
   mrpokemon="MrPokemonsHouse",oak="MrPokemonsHouse",phone="MrPokemonsHouse",remind="MrPokemonsHouse",rival="CherrygroveCity",fight="CherrygroveCity",rivalleft="CherrygroveCity",tower_rival="SproutTower3F",violet="VioletCity"}
+ for _,key in ipairs({"aide","aide_later","egg_full","egg_taken"}) do event_map[key]="VioletPokecenter1F" end
+ event_map.kurt="KurtsHouse";event_map.kurt_thanks="KurtsHouse";event_map.well_saved="KurtsHouse";event_map.azalea="AzaleaTown";event_map.kurt_well="SlowpokeWellB1F"
  if event_map[t.node] and t.map~=event_map[t.node] or t.node=="complete" and not f.EVENT_GAVE_MYSTERY_EGG_TO_ELM
   or S.stage(t)==3 and not f.ENGINE_POKEDEX and t.node~="oak" then return false end
+ if (t.node=="aide" or t.node=="aide_later" or t.node=="egg_full") and (not f.ENGINE_ZEPHYRBADGE or f.EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE)
+  or t.node=="egg_taken" and not f.EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE
+  or (t.node=="hatched" or t.node=="hatched_owned") and not f.EVENT_TOGEPI_HATCHED
+  or (t.node=="well_saved" or t.node=="kurt_thanks") and not f.EVENT_CLEARED_SLOWPOKE_WELL
+  or t.node=="forest_gate" and S.stage(t)~=14 then return false end
  local trainer_key=t.node and t.node:match("^challenge_(.+)$") or t.node and t.node:match("^won_(.+)$")
  if trainer_key then
   local trainer=S.trainers[trainer_key]
   if t.map~=trainer.map or not f.EVENT_GAVE_MYSTERY_EGG_TO_ELM or t.node:match("^won_") and not f[trainer.flag] then return false end
   if t.node:match("^challenge_") and (f[trainer.flag] or trainer_key=="li" and not f.POKEPAL_SPROUT_RIVAL_SEEN) then return false end
+  if trainer.need and not f[trainer.need] then return false end
  end
  if (n~=nil and n.op=="battle")~=(t.battle~=nil) then return false end
  if not t.battle then return t.encounter==nil and t.opponent==nil end
- local b=t.battle;local trainer=S.trainers[t.encounter];local wild=t.version==3 and t.encounter=="wild"
+ local b=t.battle;local trainer=S.trainers[t.encounter];local wild=t.version>=3 and t.encounter=="wild"
  if not wild and t.encounter~="rival" and not trainer then return false end
  if not B.valid(b,E) or b.ally~=t.partner or b.foe~=1 or b.team or b.floor or b.gym or b.practice or b.defense
   or b.moves and (b.moves[1]~=1 or b.moves[2]~=3) then return false end
@@ -337,6 +433,7 @@ function S.valid(t,s,E)
   if t.map~=trainer.map or not f.EVENT_GAVE_MYSTERY_EGG_TO_ELM or f[trainer.flag] then return false end
   if trainer.map~="Route30" and trainer.map~="Route31" and not f.POKEPAL_REACHED_VIOLET then return false end
   if t.encounter=="li" and not f.POKEPAL_SPROUT_RIVAL_SEEN then return false end
+  if trainer.need and not f[trainer.need] then return false end
  elseif not wild and (S.stage(t)~=3 or not f.ENGINE_POKEDEX) then return false end
  return true
 end

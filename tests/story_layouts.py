@@ -58,6 +58,12 @@ def run(c):
                 t.encounter='wild';t.node='wild';t.battle=g.E.story.battle.new(25,1);t.battle.wildid=16
                 check('party-battle');t.hp=0;v.story_panel=None;check('forced-switch')
                 v.owner.save_error=True;check('party-save-error');v.owner.save_error=None
+                t.battle=None;t.node=None;t.encounter=None;t.opponent=None;t.hp=40
+                t.party=lua.table_from([25,16,10,69,13]);t.togepi_steps=128;v.story_panel='party';check('party-egg')
+                t.map='AzaleaPokecenter1F';check('party-egg-centre');v.story_panel='box';check('box-egg-full')
+                t.togepi_steps=None;v.story_panel=None;t.partner=16;t.encounter='azalea_rival';t.opponent=1;t.node='battle_azalea_rival'
+                t.battle=g.E.story.battle.new(16,1);t.battle.wildid=92;check('rival-immune')
+                v.story_panel='bag';check('rival-retreat')
                 v.leave(v)
     g.D.dpi=None;g.D.w=600;g.D.h=800
     print(f'STORY LAYOUTS: {count} map/dialogue/battle size, DPI and text-mode combinations passed')

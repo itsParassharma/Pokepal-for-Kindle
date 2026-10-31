@@ -60,7 +60,7 @@ test('legacy story waits for reading sync before migrating and displays the comp
  local v=view();local fixtures=dofile(BASE..'/../tests/story_legacy_fixtures.lua')
  v.state=assert(Store.decode(fixtures.choose,E));v.state.nicknames={['25']='Sparky'};v.owner.reading_busy=true
  v:go('story');v:paintTo(bb,0,0);assert(v.state.story.version==1)
- v.owner.reading_busy=false;v:go('story');assert(v.state.story.version==3 and v.state.story.partner==25 and v.state.story.node=='directions')
+ v.owner.reading_busy=false;v:go('story');assert(v.state.story.version==4 and v.state.story.partner==25 and v.state.story.node=='directions')
  v:paintTo(bb,0,0);assert(E.displayName(v.state,v.state.story.partner)=='Sparky');v:leave()
 end)
 test('Potions use a battle turn and cannot be spent again while a save has failed',function()
@@ -100,6 +100,27 @@ test('a fainted lead opens the party and choosing a healthy replacement is free'
  tapButton(v,'storyback');assert(Store.encode(v.state)==saved)
  tapButton(v,'storylead',t.party[2]);assert(t.hp==30 and t.battle.turn==turn and t.battle.hp==hp)
  assert(E.valid(v.state));v:leave()
+end)
+test('Azalea Egg, well rescue and Bugsy controls survive sleep and reopen',function()
+ local v=view();local t=dofile(BASE..'/../tests/story_azalea_runtime.lua')(v,function(action,arg) tapButton(v,action,arg) end)
+ local saved=E.companion.encode(t);v.state=assert(Store.decode(Store.encode(v.state),E));v:go('story')
+ assert(E.companion.encode(v.state.story)==saved);v:leave()
+end)
+
+test('a failed hatch save blocks movement and cannot duplicate Togepi on retry',function()
+ local v=view();local S=E.story
+ local fixtures=dofile(BASE..'/../tests/story_collection_fixtures.lua')
+ v.state=assert(Store.decode(fixtures.badge,E));v:go('story');tapButton(v,'storynext',1)
+ local t=v.state.story;t.map='VioletPokecenter1F';t.x=4;t.y=5
+ assert(S.deposit(t,187));t.node='aide';tapButton(v,'storynext',1);tapButton(v,'storynext',1)
+ t.togepi_steps=S.egg_steps-1;local save=v.owner.save
+ v.owner.save=function(owner) owner.save_error=true;return nil,'Disk full' end
+ tapButton(v,'storydir','right');assert(t.node=='hatched' and #t.party==6 and v.world_save_failed)
+ local saved=Store.encode(v.state);tapButton(v,'storynext',1);v:storyTap('storydir','left');assert(Store.encode(v.state)==saved)
+ v:onSuspend();v:onResume();assert(Store.encode(v.state)==saved)
+ v.owner.save=function(owner) owner.save_error=nil;return save(owner) end
+ tapButton(v,'worldretry');tapButton(v,'storynext',1);tapButton(v,'storydir','left')
+ assert(#t.party==6 and t.flags.EVENT_TOGEPI_HATCHED and not t.togepi_steps);v:leave()
 end)
 os.time=original_time
 print('STORY UI: '..checks..' checks passed')

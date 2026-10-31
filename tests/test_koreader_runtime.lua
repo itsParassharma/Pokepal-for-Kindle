@@ -406,6 +406,13 @@ check('story catching, party, box and multi-Pokemon Gym turns survive save/reope
  assert(p.engine.companion.encode(p.state.story)==before);v:leave()
 end)
 local cycles,max_sleep=0,0
+check('Azalea Egg, hatching, rescue and Bugsy survive real KOReader controls and saves',function()
+ local p=shelf();local v=game(p)
+ local t=dofile(plugin_path..'/../tests/story_azalea_runtime.lua')(v,function(action,arg) gameTap(v,action,arg) end)
+ local saved=p.engine.companion.encode(t);v:leave();v=game(p);v:go('story');pump()
+ assert(p.engine.companion.encode(p.state.story)==saved);v:leave()
+end)
+
 for _,context in ipairs({'shelf','book','game','map','battle','tower','benefit','centre','worldparty','worldbox','worldboxsearch','worldboxname','worldmoves','worldshop','worldquests','worldgym','worldbag','worldswitch','worldrevive','resting-battle','resting-result','story','story-battle'}) do
 check('sleep/wake works with every preference and unlock mode from '..context,function()
  local reader
