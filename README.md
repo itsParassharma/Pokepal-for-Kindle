@@ -61,14 +61,14 @@ Add your partner to [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin) 
 
 <table>
 <tr>
-<th>Bookshelf</th>
-<th>SimpleUI home</th>
-<th>KOReader App Store</th>
+<th width="33.33%">Bookshelf</th>
+<th width="33.33%">SimpleUI home</th>
+<th width="33.33%">KOReader App Store</th>
 </tr>
 <tr>
-<td align="center" valign="top"><a href="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd"><img src="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd" alt="Charizard on the Bookshelf home screen" width="220"></a></td>
-<td align="center" valign="top"><a href="docs/simpleui-home-mockup.png"><img src="docs/simpleui-home-mockup.png" alt="Illustrative SimpleUI home screen with Squirtle's stats above sample books" width="220"></a></td>
-<td align="center" valign="top"><a href="docs/koreader-appstore-preview.png"><img src="docs/koreader-appstore-preview.png" alt="Edited preview of a PokePal search result and plugin details in KOReader's App Store" width="220"></a></td>
+<td align="center" valign="top"><a href="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd"><img src="https://github.com/user-attachments/assets/bbb8af21-3727-4d49-bba2-a6acde8727bd" alt="Charizard on the Bookshelf home screen" height="260"></a></td>
+<td align="center" valign="top"><a href="docs/simpleui-home-mockup.png"><img src="docs/simpleui-home-mockup.png" alt="Illustrative SimpleUI home screen with Squirtle's stats above sample books" height="260"></a></td>
+<td align="center" valign="top"><a href="docs/koreader-appstore-preview.png"><img src="docs/koreader-appstore-preview.png" alt="Edited preview of a PokePal search result and plugin details in KOReader's App Store" height="260"></a></td>
 </tr>
 <tr>
 <td valign="top">Add <strong>PokePal</strong> in the layout editor. Your partner sits on the shelf; tap it to play.<br><br><sub>Screenshot: <a href="https://github.com/AndyHazz">AndyHazz</a>.</sub></td>
