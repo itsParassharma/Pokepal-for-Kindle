@@ -1,7 +1,7 @@
 -- Validate version 1 snapshots before the one-way story migration.
 local starters={[152]=155,[155]=158,[158]=152}
 local maps={PlayersHouse2F=true,PlayersHouse1F=true,NewBarkTown=true,ElmsLab=true,Route29=true,CherrygroveCity=true,CherrygrovePokecenter1F=true,Route30=true,MrPokemonsHouse=true}
-local function ground(tile) return tile:match('^[.DLRbc]$')~=nil end
+local function ground(tile) return tile:match('^[.GDLRbc]$')~=nil end
 local nodes={}
 for _,key in ipairs({'welcome','mom','rested','elm','refuse','directions','mrpokemon','oak','phone','remind','rival','rivalleft','delivery','complete','gate','closed','sign'}) do nodes[key]={op='text'} end
 nodes.choose={op='choice'};nodes.request={op='choice'};nodes.fight={op='battle'}

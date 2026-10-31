@@ -60,17 +60,46 @@ test('legacy story waits for reading sync before migrating and displays the comp
  local v=view();local fixtures=dofile(BASE..'/../tests/story_legacy_fixtures.lua')
  v.state=assert(Store.decode(fixtures.choose,E));v.state.nicknames={['25']='Sparky'};v.owner.reading_busy=true
  v:go('story');v:paintTo(bb,0,0);assert(v.state.story.version==1)
- v.owner.reading_busy=false;v:go('story');assert(v.state.story.version==2 and v.state.story.partner==25 and v.state.story.node=='directions')
+ v.owner.reading_busy=false;v:go('story');assert(v.state.story.version==3 and v.state.story.partner==25 and v.state.story.node=='directions')
  v:paintTo(bb,0,0);assert(E.displayName(v.state,v.state.story.partner)=='Sparky');v:leave()
 end)
 test('Potions use a battle turn and cannot be spent again while a save has failed',function()
  local v=view();dofile(BASE..'/../tests/story_runtime.lua')(v,function(action,arg) tapButton(v,action,arg) end)
  local t=v.state.story;t.hp=10;local turn=t.battle.turn;local potions=t.potions
  local save=v.owner.save;v.owner.save=function(owner) owner.save_error=true;return nil,'Disk full' end
- tapButton(v,'storyturn','potion');assert(t.potions==potions-1 and t.hp>10 and t.battle.turn==turn+1 and v.world_save_failed)
- local saved=Store.encode(v.state);tapButton(v,'storyturn','potion');assert(Store.encode(v.state)==saved)
+ tapButton(v,'storypanel','bag');tapButton(v,'storyturn','potion');assert(t.potions==potions-1 and t.hp>10 and t.battle.turn==turn+1 and v.world_save_failed)
+ local saved=Store.encode(v.state);v:storyTap('storyturn','potion');assert(Store.encode(v.state)==saved)
  v.owner.save=function(owner) owner.save_error=nil;return save(owner) end
  tapButton(v,'worldretry');assert(not v.world_save_failed);v:leave()
+end)
+test('wild encounters stop walking; failed catch saves block more balls until retry',function()
+ local v=view();tapButton(v,'storynext',1);local t=v.state.story;local S=E.story
+ t.flags.POKEPAL_ELM_MISSION=true;t.map='Route29';t.grace=0;t.seed=100;v.state.animation='gentle'
+ local m=S.maps[t.map]
+ for y=1,m.height-2 do for x=1,m.width-2 do
+  if S.tile(t.map,x,y)=='G' and S.tile(t.map,x-1,y)=='G' then t.x=x-1;t.y=y end
+ end end
+ tapButton(v,'storydir','right');assert(t.encounter=='wild' and not v.world_tick and #U.queue==0)
+ t.battle.wildid=16;t.battle.hp=1;t.seed=1
+ tapButton(v,'storypanel','bag')
+ local save=v.owner.save;v.owner.save=function(owner) owner.save_error=true;return nil,'Disk full' end
+ local balls=t.balls;tapButton(v,'storycatch');assert(t.box['16'] and #t.party==2 and t.balls==balls-1 and v.world_save_failed)
+ local saved=Store.encode(v.state)
+ v:storyTap('storycatch');v:storyTap('storyfinish');v:storyTap('storylead',16);assert(Store.encode(v.state)==saved)
+ v.owner.save=function(owner) owner.save_error=nil;return save(owner) end
+ tapButton(v,'worldretry');v.state=assert(Store.decode(Store.encode(v.state),E));t=v.state.story
+ assert(t.box['16'] and #t.party==2 and t.balls==balls-1);tapButton(v,'storyfinish')
+ tapButton(v,'storypanel','party');tapButton(v,'storylead',16);assert(t.partner==16 and v.state.species==25);v:leave()
+end)
+
+test('a fainted lead opens the party and choosing a healthy replacement is free',function()
+ local v=view();dofile(BASE..'/../tests/story_runtime.lua')(v,function(action,arg) tapButton(v,action,arg) end)
+ local t=v.state.story;t.hp=1;t.health[tostring(t.party[2])]=30
+ tapButton(v,'storyturn',1);assert(t.hp==0 and t.battle.status=='active')
+ local turn,hp=t.battle.turn,t.battle.hp;local saved=Store.encode(v.state)
+ tapButton(v,'storyback');assert(Store.encode(v.state)==saved)
+ tapButton(v,'storylead',t.party[2]);assert(t.hp==30 and t.battle.turn==turn and t.battle.hp==hp)
+ assert(E.valid(v.state));v:leave()
 end)
 os.time=original_time
 print('STORY UI: '..checks..' checks passed')

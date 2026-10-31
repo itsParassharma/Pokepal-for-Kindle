@@ -42,6 +42,22 @@ def run(c):
                 check('gym-first');t.battle.hp=1;g.E.story.turn(t,g.E,2);check('gym-next')
                 t.battle.hp=1;g.E.story.turn(t,g.E,2);check('gym-won')
                 t.battle.status='lost';t.hp=0;check('gym-lost')
+                t.hp=40;t.battle=g.E.story.battle.new(25,1);t.battle.wildid=16
+                v.story_panel='bag';check('trainer-bag')
+                t.encounter='wild';t.node='wild';check('wild-bag')
+                v.story_panel=None;check('wild-battle')
+                t.battle.hp=1;t.seed=1;g.E.story.catch(t,g.E);check('caught')
+                g.E.story.finishBattle(t)
+                t.party=lua.table_from([25,16,10,69,13,187])
+                t.box=lua.table_from({str(i):True for i in [25,16,10,69,13,187,92]})
+                t.health=lua.table_from({'16':30})
+                t.map='VioletPokecenter1F';t.node=None;v.story_panel='party';check('party-centre')
+                v.state.nicknames=lua.table_from({'25':'W'*12});check('party-nickname');v.state.nicknames=None
+                v.story_panel='box';check('box-first');v.story_box_page=2;check('box-last');v.story_box_page=1
+                t.map='Route31';v.story_panel='party';check('party-field')
+                t.encounter='wild';t.node='wild';t.battle=g.E.story.battle.new(25,1);t.battle.wildid=16
+                check('party-battle');t.hp=0;v.story_panel=None;check('forced-switch')
+                v.owner.save_error=True;check('party-save-error');v.owner.save_error=None
                 v.leave(v)
     g.D.dpi=None;g.D.w=600;g.D.h=800
     print(f'STORY LAYOUTS: {count} map/dialogue/battle size, DPI and text-mode combinations passed')

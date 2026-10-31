@@ -27,7 +27,7 @@ More:
 
 See [what changed in 1.1.0](docs/release-v1.1.0.md).
 
-**Story preview (source builds):** open **Explore → Story** with your current PokePal companion. Return the Mystery Egg to Elm, continue to Violet City, climb Sprout Tower and challenge Falkner for the Zephyr Badge. There is no second starter choice. [Setup, save compatibility and current limits](docs/crystal-story.md). These chapters are not included in the v1.1.0 download.
+**Story preview (source builds):** open **Explore → Story**. Your chosen Tamagotchi companion is your first Pokémon; catch more with Poké Balls and build a party of six. Return the Mystery Egg to Elm, continue to Violet City, climb Sprout Tower and challenge Falkner for the Zephyr Badge. [Setup, save compatibility and current limits](docs/crystal-story.md). These chapters are not included in the v1.1.0 download.
 
 ## Screenshots
 

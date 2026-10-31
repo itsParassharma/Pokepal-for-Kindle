@@ -45,9 +45,9 @@ function S.objective(t)
  [7]="Challenge Falkner at Violet Gym.",[8]="Chapter 2 complete. Zephyr Badge earned."})[S.stage(t)]
 end
 local function roster(t) return t.encounter=="rival" and {t.rival} or S.trainers[t.encounter].team end
-function S.hasNext(t) return t.battle and t.opponent<#roster(t) end
-function S.battleTitle(t) return t.encounter=="rival" and "Rival battle" or S.trainers[t.encounter].name end
-function S.teamSize(t) return #roster(t) end
+function S.hasNext(t) return t.battle and t.encounter~="wild" and t.opponent<#roster(t) end
+function S.battleTitle(t) return t.encounter=="wild" and "Wild Pokemon" or t.encounter=="rival" and "Rival battle" or S.trainers[t.encounter].name end
+function S.teamSize(t) return t.encounter=="wild" and 1 or #roster(t) end
 local function equip(b,E)
  local first=B.preview(E,b,1);local second=B.preview(E,b,2)
  -- Use the existing Swift option when both usual moves meet an immunity.
@@ -63,7 +63,7 @@ local function run(t,key,E)
   local n=assert(S.nodes[key],"Unknown story node")
   if n.op=="text" or n.op=="choice" then return end
   if n.op=="flag" then t.flags[n.key]=true
-  elseif n.op=="heal" then t.hp=40;t.potions=S.max_potions
+  elseif n.op=="heal" then S.heal(t)
   elseif n.op=="egg" then
    if not t.flags.EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON then t.egg=true;t.flags.EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON=true end
   elseif n.op=="deliver" then
@@ -84,11 +84,6 @@ local function rivalFor(id,E)
  end
  return chosen
 end
-function S.sync(s)
- local t=s.story
- if t and not t.battle and t.partner~=s.species then t.partner=s.species;return true end
- return false
-end
 function S.enter(s,E)
  if s.species==0 then return false end
  local t=s.story
@@ -101,13 +96,13 @@ function S.enter(s,E)
    if t.battle then
     t.encounter="rival";t.opponent=1;t.battle.ally=t.partner;equip(t.battle,E)
    end
-   s.version=math.max(s.version,10);return true
   end
-  return S.sync(s)
+  if t.version==2 then S.initParty(t,s.seed);s.version=math.max(s.version,11);return true end
+  return false
  end
  if s.world then E.world.enter(s) end
  s.story={version=2,map="PlayersHouse2F",x=3,y=3,facing="down",step=0,partner=s.species,rival=rivalFor(s.species,E),hp=40,potions=S.max_potions,egg=false,flags={}}
- s.version=math.max(s.version,10);run(s.story,"welcome");return true
+ S.initParty(s.story,s.seed);s.version=math.max(s.version,11);run(s.story,"welcome");return true
 end
 function S.advance(t,index,E)
  local n=t.node and S.nodes[t.node]
@@ -116,16 +111,12 @@ function S.advance(t,index,E)
  if n.op=="choice" and type(index)=="number" and n.choices[index] then run(t,n.choices[index][2],E);return true end
  return false
 end
-function S.turn(t,E,slot)
- local b=t.battle
- if not b or b.status~="active" or (slot~=1 and slot~=2 and slot~="potion") then return false end
- local healed
- if slot=="potion" then
-  if t.potions==0 or t.hp==40 then return false end
-  healed=math.min(50,40-t.hp);t.hp=t.hp+healed;t.potions=t.potions-1;slot=-1
+function S.takeTurn(t,E,slot)
+ local b=t.battle;local changed;t.hp,changed=B.step(E,b,t.hp,slot)
+ if changed and b.status=="lost" and S.alive(t) then
+  b.status=b.turn>100 and "draw" or "active"
+  b.log={b.status=="draw" and "Time for a break. Try again after resting." or "Choose a healthy Pokemon from your party."}
  end
- local changed;t.hp,changed=B.step(E,b,t.hp,slot)
- if healed then b.log[1]="Super Potion restored "..healed.." HP." end
  if changed and b.status=="won" and S.hasNext(t) then
   t.opponent=t.opponent+1
   local next=B.new(t.partner,1);next.wildid=roster(t)[t.opponent];next.turn=b.turn;next.moves=b.moves;equip(next,E)
@@ -135,10 +126,23 @@ function S.turn(t,E,slot)
  end
  return changed
 end
+function S.turn(t,E,slot)
+ local b=t.battle
+ if not b or b.status~="active" or t.hp==0 or (slot~=1 and slot~=2 and slot~="potion") then return false end
+ local healed
+ if slot=="potion" then
+  if t.potions==0 or t.hp==40 then return false end
+  healed=math.min(50,40-t.hp);t.hp=t.hp+healed;t.potions=t.potions-1;slot=-1
+ end
+ local changed=S.takeTurn(t,E,slot)
+ if healed then b.log[1]="Super Potion restored "..healed.." HP." end
+ return changed
+end
 function S.finishBattle(t)
  local b=t.battle;if not b or b.status=="active" then return false end
  local key=t.encounter;t.battle=nil;t.encounter=nil;t.opponent=nil
- if key=="rival" then run(t,"rivalleft")
+ if key=="wild" and (b.status=="won" or b.status=="befriended" or b.status=="fled") then t.node=nil;t.grace=3
+ elseif key=="rival" then run(t,"rivalleft")
  elseif b.status=="won" then
   t.flags[S.trainers[key].flag]=true
   if key=="li" then t.flags.EVENT_GOT_HM05_FLASH=true
@@ -147,7 +151,7 @@ function S.finishBattle(t)
   end
   run(t,"won_"..key)
  else
-  t.hp=40;t.potions=S.max_potions;t.map=t.flags.POKEPAL_REACHED_VIOLET and "VioletPokecenter1F" or "CherrygrovePokecenter1F"
+  S.heal(t);t.grace=3;t.map=t.flags.POKEPAL_REACHED_VIOLET and "VioletPokecenter1F" or "CherrygrovePokecenter1F"
   t.x=4;t.y=5;t.facing="down";run(t,"defeat")
  end
  return true
@@ -194,7 +198,7 @@ end
 function S.warpAt(map,x,y)
  for _,p in ipairs(S.maps[map].warps) do if p[1]==x and p[2]==y then return p end end
 end
-local function ground(tile) return tile=="." or tile=="U" or tile=="D" or tile=="L" or tile=="R" or tile=="b" or tile=="c" end
+local function ground(tile) return tile=="." or tile=="G" or tile=="U" or tile=="D" or tile=="L" or tile=="R" or tile=="b" or tile=="c" end
 local function landing(t,x,y,dx,dy)
  local nx,ny=x+dx,y+dy;local tile=S.tile(t.map,nx,ny)
  -- An upper wall blocks crossing its top edge, but allows walking beside it.
@@ -214,7 +218,7 @@ local function arrived(t)
   t.flags.POKEPAL_REACHED_VIOLET=true;run(t,"violet")
  end
 end
-function S.step(t,dx,dy)
+function S.step(t,dx,dy,E,hour)
  if t.node or math.abs(dx)+math.abs(dy)~=1 then return false end
  local m=S.maps[t.map];local nx,ny=t.x+dx,t.y+dy
  t.facing=dx==1 and "right" or dx==-1 and "left" or dy==1 and "down" or "up"
@@ -227,7 +231,8 @@ function S.step(t,dx,dy)
    if dest then
     local x=dx==1 and 0 or dx==-1 and dest.width-1 or t.x-link[3]*2
     local y=dy==1 and 0 or dy==-1 and dest.height-1 or t.y-link[3]*2
-    if S.tile(link[2],x,y)=="." then t.map=link[2];t.x=x;t.y=y;arrived(t);return true end
+    local tile=S.tile(link[2],x,y)
+    if tile=="." or tile=="G" then t.map=link[2];t.x=x;t.y=y;arrived(t);return true end
    end
   end end
   run(t,"closed");return true
@@ -243,7 +248,7 @@ function S.step(t,dx,dy)
   if not target then run(t,"closed");return true end
   t.map=dest;t.x=target[1];t.y=target[2];arrived(t);return true
  end
- t.x=nx;t.y=ny;t.step=(t.step+1)%2;return true
+ t.x=nx;t.y=ny;t.step=(t.step+1)%2;S.maybeWild(t,E,hour);return true
 end
 function S.path(t,x,y)
  local m=S.maps[t.map]
@@ -269,8 +274,12 @@ function S.valid(t,s,E)
  if t==nil then return true end
  if type(t)~="table" then return false end
  if t.version==1 then return legacy(t,s,E,S) end
- if s.version<10 or s.species==0 or t.version~=2 then return false end
+ if s.species==0 or not (t.version==2 and s.version>=10 or t.version==3 and s.version>=11) then return false end
  local allowed={version=true,map=true,x=true,y=true,facing=true,step=true,partner=true,rival=true,hp=true,potions=true,egg=true,flags=true,node=true,battle=true,encounter=true,opponent=true}
+ if t.version==3 then
+  for _,key in ipairs({"origin","party","box","health","seed","balls","grace"}) do allowed[key]=true end
+  if not S.validParty(t,E) then return false end
+ end
  for k in pairs(t) do if not allowed[k] then return false end end
  local function integer(n,a,b) return type(n)=="number" and n==n and n%1==0 and n>=a and n<=b end
  local m=S.maps[t.map]
@@ -309,19 +318,27 @@ function S.valid(t,s,E)
  end
  if (n~=nil and n.op=="battle")~=(t.battle~=nil) then return false end
  if not t.battle then return t.encounter==nil and t.opponent==nil end
- local b=t.battle;local trainer=S.trainers[t.encounter]
- if t.encounter~="rival" and not trainer then return false end
- local expected=t.encounter=="rival" and "fight" or "battle_"..t.encounter
- if t.node~=expected or not integer(t.opponent,1,#roster(t)) or not B.valid(b,E) or b.ally~=t.partner or b.foe~=1 or b.wildid~=roster(t)[t.opponent]
-  or b.team or b.floor or b.gym or b.practice or b.recruited or b.defense
-  or b.moves and (b.moves[1]~=1 or b.moves[2]~=3)
-  or b.status~="active" and b.status~="won" and b.status~="lost" and b.status~="draw"
-  or (b.status=="lost")~=(t.hp==0) or b.status=="won" and S.hasNext(t) then return false end
+ local b=t.battle;local trainer=S.trainers[t.encounter];local wild=t.version==3 and t.encounter=="wild"
+ if not wild and t.encounter~="rival" and not trainer then return false end
+ if not B.valid(b,E) or b.ally~=t.partner or b.foe~=1 or b.team or b.floor or b.gym or b.practice or b.defense
+  or b.moves and (b.moves[1]~=1 or b.moves[2]~=3) then return false end
+ local expected=wild and "wild" or t.encounter=="rival" and "fight" or "battle_"..t.encounter
+ if t.node~=expected then return false end
+ if wild then
+  if t.opponent~=1 or not f.POKEPAL_ELM_MISSION or not S.wildTerrain(t) or not S.wildSpecies(t.map,b.wildid) then return false end
+  if b.recruited and (b.hp==0 or not t.box[tostring(b.wildid)]) then return false end
+ else
+  if not integer(t.opponent,1,#roster(t)) or b.wildid~=roster(t)[t.opponent] or b.recruited or b.status=="befriended" or b.status=="fled" then return false end
+ end
+ if b.status~="active" and b.status~="won" and b.status~="lost" and b.status~="draw" and not (wild and (b.status=="befriended" or b.status=="fled")) then return false end
+ local defeated=t.hp==0 and (t.version==2 or not S.alive(t))
+ if (b.status=="lost")~=defeated or b.status=="won" and S.hasNext(t) then return false end
  if trainer then
   if t.map~=trainer.map or not f.EVENT_GAVE_MYSTERY_EGG_TO_ELM or f[trainer.flag] then return false end
   if trainer.map~="Route30" and trainer.map~="Route31" and not f.POKEPAL_REACHED_VIOLET then return false end
   if t.encounter=="li" and not f.POKEPAL_SPROUT_RIVAL_SEEN then return false end
- else if S.stage(t)~=3 or not f.ENGINE_POKEDEX then return false end end
+ elseif not wild and (S.stage(t)~=3 or not f.ENGINE_POKEDEX) then return false end
  return true
 end
+dofile(dir.."/story_collection.lua")(S,B,data,equip)
 return S

@@ -81,7 +81,22 @@
     "gfx/sprites/gym_guide.png": "e7fd20e1562418735d5080fbaa8ec9ce5bcf9960a32d7768ee5ee73d1407a551",
     "gfx/sprites/officer.png": "ca8b2a8fbdabc82a5cb04fb7745b9b22b8488d2af8617f232a568f401f3bd4ee",
     "constants/pokemon_constants.asm": "a6203404f6113da199fd68a94e04409e6cfd8c5b69d16a60d100615b11964440",
-    "data/trainers/parties.asm": "934e5a781c64c000c82423ea3bde5ef947549112d4129f5e075a084f343d7eba"
+    "data/trainers/parties.asm": "934e5a781c64c000c82423ea3bde5ef947549112d4129f5e075a084f343d7eba",
+    "data/wild/johto_grass.asm": "a07ae7e298693ef4f0ba178f10118f1c7955c8245170175915cbf725dc39ba50",
+    "data/pokemon/base_stats/pidgey.asm": "f8f5647f067a12551a1121d3cd6604642b4c84cb6a18bcf7241b86b7e1a92dc1",
+    "data/pokemon/base_stats/sentret.asm": "106b440bc477eb627b49d914bed3498167e61ce2f3bb9c49504c1249616e6603",
+    "data/pokemon/base_stats/rattata.asm": "989adf15b1ad98eb8f0233d28a378445c7dc005cfcca416f13ba65f9c4f59d79",
+    "data/pokemon/base_stats/hoppip.asm": "0ed8c7c9a3e43fd292372ae1b518c6ff788bc0bb32959fbd96ea5afc97a37f45",
+    "data/pokemon/base_stats/hoothoot.asm": "317ff68fe25b362f02ee89eae5b3bf297e668327cdcb79fac8e3bee26f050601",
+    "data/pokemon/base_stats/ledyba.asm": "9b6c69028f3667766ceaa4934d0152a10f8b17b39eb7c28a761d5ac3c99c2c10",
+    "data/pokemon/base_stats/caterpie.asm": "4f5f899e19f47794c1061d2175c00490e78755c44e6e5bca31e1f69c4066b8bb",
+    "data/pokemon/base_stats/weedle.asm": "6b496dac58481e47529c391c67a43a61713063932d5a852cb70a377fe8c3600d",
+    "data/pokemon/base_stats/spinarak.asm": "f4959cfb1b0c786be92f0bff0245e21421ee3a2b03573efbba077e67db7ea857",
+    "data/pokemon/base_stats/poliwag.asm": "0d0ea2ba9ce49c5bd3d1ce7130f71e0e61361451cee0f87107f50ab5fdfdbec0",
+    "data/pokemon/base_stats/zubat.asm": "34e0fa2d3e96d3c0d59d6b0b0b3e1900cb90a384052af6158db70038c8e1e8b7",
+    "data/pokemon/base_stats/bellsprout.asm": "b394e7158274f1a802d0166c2fdc129fd925e94a9c3cee026c2b857644e66e41",
+    "data/pokemon/base_stats/gastly.asm": "4209edf1ec927539448a57e72314f7de29b31bd74679cc626c8d64f19fb9cc7b",
+    "data/wild/probabilities.asm": "9b4e885605eb725dec30aca2a1131598e421fc4eade0180be6f351781606f0d3"
   },
   "collision_counts": {
     "WALL": 3371,

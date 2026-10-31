@@ -21,7 +21,8 @@ local function walk(s,x,y)
  local t=s.story;local map=t.map
  local path=assert(S.path(t,x,y),'unreachable '..map..' '..x..','..y)
  for _,d in ipairs(path) do
-  assert(S.step(t,d[1],d[2]));roundtrip(s)
+  assert(S.step(t,d[1],d[2],E,12));roundtrip(s)
+  if t.encounter=="wild" then assert(S.flee(t));roundtrip(s);assert(S.finishBattle(t));roundtrip(s) end
   if t.node or t.map~=map then break end
  end
 end
@@ -46,7 +47,7 @@ local function connect(s,direction)
  end end
  assert(best,'unreachable connection '..t.map..' '..direction)
  walk(s,best.x,best.y)
- if not t.node then assert(S.step(t,d[1],d[2]));roundtrip(s) end
+ if not t.node then assert(S.step(t,d[1],d[2],E,12));roundtrip(s) end
 end
 local function mission(s)
  dismiss(s);warp(s,'PLAYERS_HOUSE_1F');dismiss(s);warp(s,'NEW_BARK_TOWN')
@@ -76,11 +77,11 @@ local function finish(s)
  assert(saved==E.companion.encode(s.story.flags));roundtrip(s)
 end
 
-test('existing saves remain unchanged until starting, and Explore preserves version 10',function()
+test('existing saves remain unchanged until starting, and Explore preserves version 11',function()
  local s=E.new(now);E.act(s,'choose',25,now)
  local data=Store.encode(s);assert(Store.encode(assert(Store.decode(data,E)))==data and not s.story)
  S.enter(s,E);local story=E.companion.encode(s.story);E.world.enter(s)
- assert(s.version==10 and E.companion.encode(s.story)==story);roundtrip(s)
+ assert(s.version==11 and E.companion.encode(s.story)==story);roundtrip(s)
  data=Store.encode(s);assert(not S.enter(s,E) and Store.encode(s)==data)
  assert(not S.enter(E.new(now),E))
 end)
@@ -88,7 +89,7 @@ test('all opening maps, collisions, reciprocal doors and tile counts are bounded
  local count=0
  for name,m in pairs(S.maps) do
   count=count+1;assert(#m.tiles==m.width*m.height and #m.walk==m.height)
-  for _,row in ipairs(m.walk) do assert(#row==m.width and not row:find('[^.#CDLRbcU]')) end
+  for _,row in ipairs(m.walk) do assert(#row==m.width and not row:find('[^.#CDLRbcUG]')) end
   assert(S.tile(name,-2,0)=='#' and S.tile(name,0,-1)=='#' and S.tile(name,m.width,0)=='#')
   for _,p in ipairs(m.warps) do assert(S.tile(name,p[1],p[2])=='.') end
  end
@@ -140,7 +141,7 @@ test('old Explore saves migrate before starting the story, keeping the companion
  local s=E.new(now);E.act(s,'choose',25,now);E.world.enter(s)
  s.version=5;s.world.camp=nil
  assert(E.valid(s));assert(S.enter(s,E));roundtrip(s)
- assert(s.world.partner==25 and s.species==25 and s.version==10)
+ assert(s.world.partner==25 and s.species==25 and s.version==11)
 end)
 test('the town gate requires accepting the errand and unopened doors leave the player on the map',function()
  local s=fresh();dismiss(s);warp(s,'PLAYERS_HOUSE_1F');dismiss(s);warp(s,'NEW_BARK_TOWN')
@@ -151,9 +152,9 @@ test('ledges permit a jump only in their marked direction',function()
  local s=fresh();mission(s);connect(s,'left');local t=s.story;local m=S.maps[t.map];local checked=0
  for y=1,m.height-3 do for x=0,m.width-1 do
   if S.tile(t.map,x,y)=='D' and S.tile(t.map,x,y-1)=='.' and S.tile(t.map,x,y+2)=='.' then
-   t.x=x;t.y=y-1;assert(S.step(t,0,1));assert(t.y==y);roundtrip(s)
-   assert(S.step(t,0,1));assert(t.y==y+2)
-   assert(S.step(t,0,-1));assert(t.y==y+2);roundtrip(s);checked=checked+1
+   t.x=x;t.y=y-1;assert(S.step(t,0,1,E,12));assert(t.y==y);roundtrip(s)
+   assert(S.step(t,0,1,E,12));assert(t.y==y+2)
+   assert(S.step(t,0,-1,E,12));assert(t.y==y+2);roundtrip(s);checked=checked+1
   end
  end end
  assert(checked>0)
@@ -222,7 +223,7 @@ test('five real chapter 1 snapshots migrate only on entry without resetting prog
   local s=assert(Store.decode(data,E));assert(Store.encode(s)==data)
   local t=s.story;local map,x,y,hp=t.map,t.x,t.y,t.hp;local oldflags={};for k,v in pairs(t.flags) do oldflags[k]=v end
   local turn=t.battle and t.battle.turn;local foehp=t.battle and t.battle.hp
-  assert(S.enter(s,E));assert(t.version==2 and s.version==10 and t.partner==s.species and not t.starter)
+  assert(S.enter(s,E));assert(t.version==3 and s.version==11 and t.partner==s.species and not t.starter)
   assert(t.map==map and t.x==x and t.y==y and t.hp==hp)
   oldflags.EVENT_GOT_A_POKEMON_FROM_ELM=nil;assert(E.companion.encode(oldflags)==E.companion.encode(t.flags))
   if key=='choose' then assert(t.node=='directions') end
@@ -230,14 +231,14 @@ test('five real chapter 1 snapshots migrate only on entry without resetting prog
   roundtrip(s);local migrated=Store.encode(s);assert(not S.enter(s,E) and Store.encode(s)==migrated)
  end
 end)
-test('partner changes and evolution sync between fights without healing or restarting',function()
+test('the trainer keeps the original companion when care-mode partners change',function()
  local s=chapter2();local t=s.story;t.hp=19;s.nicknames={['25']='Sparky'}
- s.seen['26']=true;E.act(s,'partner',26,now);assert(S.enter(s,E))
- assert(t.partner==26 and t.hp==19 and S.stage(t)==5);roundtrip(s)
+ s.seen['26']=true;E.act(s,'partner',26,now);assert(not S.enter(s,E))
+ assert(t.partner==25 and t.origin==25 and #t.party==1 and t.hp==19 and S.stage(t)==5);roundtrip(s)
  t.map='VioletGym';t.x=5;t.y=2;t.flags.POKEPAL_REACHED_VIOLET=true;t.node='challenge_falkner';advance(s)
  s.seen['7']=true;E.act(s,'partner',7,now);assert(not S.enter(s,E))
- assert(t.partner==26 and t.battle.ally==26);roundtrip(s)
- battle(s);assert(S.sync(s) and t.partner==7 and t.hp>0);roundtrip(s)
+ assert(t.partner==25 and t.battle.ally==25);roundtrip(s)
+ battle(s);assert(not S.enter(s,E) and t.partner==25 and t.origin==25 and t.hp>0);roundtrip(s)
 end)
 test('trainer rosters preserve repeated species and save each replacement opponent',function()
  local count=0
@@ -291,7 +292,7 @@ test('Falkner is available before the tower and completing the tower later prese
 end)
 test('Ghost partners can use a damaging move against Normal trainer Pokemon',function()
  for _,id in ipairs({92,93,94}) do
-  local s=chapter2();s.seen[tostring(id)]=true;E.act(s,'partner',id,now);S.enter(s,E)
+  local s=assert(Store.decode(legacy.complete,E));s.seen[tostring(id)]=true;E.act(s,'partner',id,now);S.enter(s,E)
   local t=s.story;t.map='VioletGym';t.x=5;t.y=2;t.flags.POKEPAL_REACHED_VIOLET=true;t.node='challenge_falkner'
   advance(s);assert(t.battle.moves[2]==3 and S.battle.preview(E,t.battle,2)>0);assert(battle(s));roundtrip(s)
  end
@@ -348,3 +349,5 @@ test('the northern route stays closed until the errand is done and Dark Cave exp
  warp(s,'DARK_CAVE_VIOLET_ENTRANCE');assert(t.map=='Route31' and t.node=='closed');roundtrip(s)
 end)
 print('STORY: '..checks..' checks passed')
+
+dofile(test_dir..'test_story_catching.lua')

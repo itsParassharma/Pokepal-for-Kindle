@@ -48,9 +48,10 @@ Emerald supplies front/back sprites for Pokemon 252-386, reduced to four shades.
 assets/classic/sources.json records the source paths and SHA-256 hashes.
 tools/import_classic.py builds the maps and PNG packs used by both Lua hosts.
 The story through Violet City also adapts Crystal's map layouts, collisions,
-doors, characters, trainer rosters and events at that same revision. Dialogue is
+doors, characters, trainer rosters, wild encounter pools, catch rates and events
+at that same revision. Dialogue is
 condensed for PokePal. assets/story/sources.json records the source paths
-and hashes; tools/import_story.py rebuilds the 17 maps, rosters and their art.
+and hashes; tools/import_story.py rebuilds the 17 maps, rosters, encounters and art.
 Original game maps, artwork and story are not covered by the code's MIT license.
 Field Pokemon keep the credited SpriteCollab walking directions, resized to
 24-pixel canvases and the same four shades. Their upstream terms still apply.

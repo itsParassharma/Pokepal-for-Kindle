@@ -17,7 +17,7 @@ return function(View,UIManager,BB,Device)
    if self.closed or self.suspended or Device.screen_saver_mode or self.screen~="story"
     or self.owner.reading_busy or (self.owner.backups and self.owner.backups.blocked) then self:stopWorldWalk();return end
    local oldmap,x,y=t.map,t.x,t.y;local d=path[index]
-   local changed=S.step(t,d[1],d[2])
+   local changed=S.step(t,d[1],d[2],self.engine,tonumber(os.date("%H")))
    if changed then self.world_dirty=true end
    index=index+1
    if not changed or t.node or oldmap~=t.map or x==t.x and y==t.y or index>#path then
@@ -48,26 +48,71 @@ return function(View,UIManager,BB,Device)
   for i,line in ipairs(b.log) do self:text(bb,line,44,425+(i-1)*21,15,512) end
   if b.status=="active" then
    for slot=1,2 do
-    local damage,move=B.preview(E,b,slot);local y=521+(slot-1)*68
-    self:outline(bb,32,y,536,62)
+    local damage,move=B.preview(E,b,slot);local y=521+(slot-1)*60
+    self:outline(bb,32,y,536,56)
     self:text(bb,move.name..(move.power>0 and " / "..damage.." damage" or ""),48,y+9,21,504,true)
-    self:text(bb,damage>=b.hp and S.hasNext(t) and "Knocks out this Pokemon." or B.hint(E,b,slot),48,y+38,15,504)
-    self.buttons[#self.buttons+1]={x=32,y=y,w=536,h=62,action="storyturn",arg=slot,disabled=blocked}
+    self:text(bb,damage>=b.hp and S.hasNext(t) and "Knocks out this Pokemon." or B.hint(E,b,slot),48,y+34,15,504)
+    self.buttons[#self.buttons+1]={x=32,y=y,w=536,h=56,action="storyturn",arg=slot,disabled=blocked or t.hp==0}
    end
-   self:button(bb,"Super Potion ("..t.potions..") / Heal / uses a turn",32,657,536,44,"storyturn","potion",nil,blocked or t.hp==40 or t.potions==0)
+   self:button(bb,"Bag",32,649,262,48,"storypanel","bag",nil,blocked or t.hp==0)
+   self:button(bb,"Pokemon",306,649,262,48,"storypanel","party",nil,blocked)
   else
-   local result=t.encounter=="rival" and "The stranger leaves. Return to Elm."
+   local result=t.encounter=="wild" and (b.status=="befriended" and (S.member(t,b.wildid) and "Your new Pokemon is ready in Party." or "Your catch is saved. Manage your party at the Centre.")
+      or b.status=="won" and "The wild Pokemon fainted. Keep exploring."
+      or b.status=="fled" and "You escaped. Your place on the map is saved.")
+    or t.encounter=="rival" and "The stranger leaves. Return to Elm."
     or b.status=="won" and "You won! Talk to the trainer to continue."
     or "Rest at the Pokemon Centre, then try again."
    self:wrapped(bb,result,536,19)
    self:button(bb,"Continue",32,622,536,48,"storyfinish",nil,nil,blocked)
   end
  end
+ function View:paintStoryPanel(bb,t)
+  local E=self.engine;local S=E.story;local b=t.battle
+  local panel=self.story_panel or "party";local blocked=self.world_save_failed or self.owner.save_error
+  if panel=="bag" then
+   self:title(bb,"Story bag",t.balls.." Poke Balls / "..t.potions.." Super Potions")
+   self:button(bb,"Super Potion / Restore HP / uses a turn",32,200,536,52,"storyturn","potion",nil,blocked or not b or t.hp==0 or t.hp==40 or t.potions==0)
+   local chance=math.floor(S.catchChance(t)*100/255)
+   self:button(bb,"Throw Poke Ball / "..chance.."% chance",32,284,536,52,"storycatch",nil,nil,blocked or not S.canCatch(t))
+   local hint=t.encounter~="wild" and "Poke Balls only catch wild Pokemon."
+    or b and t.box[tostring(b.wildid)] and "You already have this species in your box."
+    or "Weaken it first. A failed throw uses a turn."
+   self:wrapped(bb,hint,350,17)
+   self:button(bb,"Run from wild Pokemon",32,422,536,52,"storyflee",nil,nil,blocked or not b or t.encounter~="wild" or t.hp==0 or b.status~="active")
+   self:wrapped(bb,"Healing stops refill ten Poke Balls and five Super Potions.",505,17)
+  elseif panel=="box" then
+   local ids=S.boxList(t);local pages=math.max(1,math.ceil(#ids/6));local page=math.min(pages,self.story_box_page or 1)
+   self:title(bb,"Story box","Page "..page.." of "..pages.." / "..#t.party.." in party")
+   for row=1,6 do
+    local id=ids[(page-1)*6+row]
+    if id then
+     local y=184+(row-1)*72;self:classic(bb,id.."-front",32,y,52)
+     self:button(bb,E.displayName(self.state,id),100,y,468,42,"storywithdraw",id,nil,blocked or not S.canManage(t) or #t.party==6 or S.member(t,id)~=nil)
+     self:text(bb,S.member(t,id) and "In your party" or "Tap to add to your party",104,y+46,15,460)
+    end
+   end
+   self:button(bb,"Previous",32,616,262,40,"storyboxpage",page-1,nil,blocked or page==1)
+   self:button(bb,"Next",306,616,262,40,"storyboxpage",page+1,nil,blocked or page==pages)
+  else
+   self:title(bb,"Story party",b and (t.hp==0 and "Choose a healthy replacement." or "Switching uses a turn.") or #t.party.." / 6 Pokemon / Tap a healthy lead")
+   for i,id in ipairs(t.party) do
+    local y=184+(i-1)*76;local hp=S.hp(t,id);local manage=S.canManage(t)
+    self:classic(bb,id.."-front",32,y,52)
+    self:button(bb,E.displayName(self.state,id),100,y,manage and 316 or 468,42,"storylead",id,nil,blocked or id==t.partner or hp==0 or b and b.status~="active")
+    self:text(bb,hp.." / 40 HP"..(id==t.partner and " / Active" or ""),104,y+46,15,460)
+    if manage then self:button(bb,"Deposit",432,y,136,42,"storydeposit",id,nil,blocked or #t.party==1) end
+   end
+   if S.canManage(t) then self:button(bb,"Open box",32,662,262,42,"storypanel","box",nil,blocked) end
+  end
+  self:button(bb,"Back",306,662,262,42,"storyback",nil,nil,blocked or b and b.status=="active" and t.hp==0)
+ end
  function View:paintStory(bb)
   local S=self.engine.story;local t=self.state.story
-  if not t or t.version~=2 then
+  if not t or t.version~=3 then
    self:title(bb,"Crystal story","Finish saving and syncing to start.")
    self:button(bb,"Start story",32,614,536,48,"nav","story",nil,self.owner.reading_busy or self.world_save_failed or self.owner.save_error)
+  elseif self.story_panel or t.battle and t.battle.status=="active" and t.hp==0 then self:paintStoryPanel(bb,t)
   elseif t.battle then self:paintStoryBattle(bb,t)
   else
    local m=S.maps[t.map];local n=t.node and S.nodes[t.node]
@@ -100,6 +145,7 @@ return function(View,UIManager,BB,Device)
     self:button(bb,"Down",261,662,78,42,"storydir","down")
     self:button(bb,"Right",351,662,78,42,"storydir","right")
     self:button(bb,"Help",32,662,120,42,"storyhelp")
+    self:button(bb,"Party",448,662,120,42,"storypanel","party")
    end
   end
   if self.world_save_failed or self.owner.save_error then self:button(bb,"Retry save",32,717,536,44,"worldretry")
@@ -114,9 +160,22 @@ return function(View,UIManager,BB,Device)
   elseif action=="storydir" and S.directions[arg] then self:walkStory({S.directions[arg]})
   elseif action=="storynext" then changed=S.advance(t,arg,self.engine)
   elseif action=="storyturn" then changed=S.turn(t,self.engine,arg)
-  elseif action=="storyfinish" then changed=S.finishBattle(t);if changed then S.sync(self.state) end
+  elseif action=="storyfinish" then changed=S.finishBattle(t);self.story_panel=nil
+  elseif action=="storypanel" then
+   self:stopWorldWalk();if self.world_dirty then self:saveWorld() end
+   self.story_panel=arg;self.story_box_page=1;UIManager:setDirty(self,"ui")
+  elseif action=="storyback" then self.story_panel=nil;UIManager:setDirty(self,"ui")
+  elseif action=="storylead" then changed=S.lead(t,self.engine,arg);if changed then self.story_panel=nil end
+  elseif action=="storydeposit" then changed=S.deposit(t,arg)
+  elseif action=="storywithdraw" then changed=S.withdraw(t,arg)
+  elseif action=="storycatch" then changed=S.catch(t,self.engine);if changed then self.story_panel=nil end
+  elseif action=="storyflee" then changed=S.flee(t);if changed then self.story_panel=nil end
+  elseif action=="storyboxpage" then self.story_box_page=arg;UIManager:setDirty(self,"ui")
   elseif action=="storyhelp" and not t.node then self:stopAnimation();t.node="sign";changed=true end
-  if changed then self.world_dirty=true;self:saveWorld();UIManager:setDirty(self,"ui") end
+  if changed then
+   if action=="storyturn" then self.story_panel=nil end
+   self.world_dirty=true;self:saveWorld();UIManager:setDirty(self,"ui")
+  end
   return true
  end
 end
