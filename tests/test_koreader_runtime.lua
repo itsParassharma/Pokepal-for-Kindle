@@ -399,14 +399,22 @@ check('berry recruitment, box controls and badges survive real widget sleep and 
  assert(counter(p)==before);v:leave()
 end)
 
+check('story maps, choices and rival turns use real widgets and survive save/reopen',function()
+ p=shelf();v=game(p);clearTrip(p)
+ local t=dofile(plugin_path..'/../tests/story_runtime.lua')(v,function(action,arg) gameTap(v,action,arg) end)
+ local before=p.engine.companion.encode(t);v:leave();v=game(p);v:go('story');pump()
+ assert(p.engine.companion.encode(p.state.story)==before);v:leave()
+end)
 local cycles,max_sleep=0,0
-for _,context in ipairs({'shelf','book','game','map','battle','tower','benefit','centre','worldparty','worldbox','worldboxsearch','worldboxname','worldmoves','worldshop','worldquests','worldgym','worldbag','worldswitch','worldrevive','resting-battle','resting-result'}) do
+for _,context in ipairs({'shelf','book','game','map','battle','tower','benefit','centre','worldparty','worldbox','worldboxsearch','worldboxname','worldmoves','worldshop','worldquests','worldgym','worldbag','worldswitch','worldrevive','resting-battle','resting-result','story','story-battle'}) do
 check('sleep/wake works with every preference and unlock mode from '..context,function()
  local reader
  if context=='shelf' then p=shelf() else reader,p=openBook(1,'page') end
  local behind=U._window_stack[#U._window_stack].widget
  v=game(p)
  clearTrip(p);p.state.animation='off'
+ if context=='story' then p.state.story=nil;v:go('story') end
+ if context=='story-battle' then dofile(plugin_path..'/../tests/story_runtime.lua')(v,function(action,arg) gameTap(v,action,arg) end) end
  if context=='map' or context=='battle' then v:go('explore') end
  if context=='battle' then gameTap(v,'worldtile',6);gameTap(v,'worldtile',14);assert(v.screen=='battle') end
  if context=='tower' or context=='benefit' then
@@ -449,12 +457,14 @@ check('sleep/wake works with every preference and unlock mode from '..context,fu
     G_reader_settings:saveSetting('screensaver_type','random_image')
     G_reader_settings:saveSetting('screensaver_delay',delay)
     local world=p.state.world and p.engine.companion.encode(p.state.world)
+    local story=p.state.story and p.engine.companion.encode(p.state.story)
     local screen=v and v.screen;local input=v and v.box_text
     local start=time.now();suspend();max_sleep=math.max(max_sleep,time.to_ms(time.since(start)))
     resume(delay=='gesture' and 0 or nil);cycles=cycles+1
     assert(not Device.screen_saver_lock and not p.suspended and not p.reading_error)
     assert(p.engine.valid(p.state))
     if world then assert(p.engine.companion.encode(p.state.world)==world,'sleep advanced the world or battle') end
+    if story then assert(p.engine.companion.encode(p.state.story)==story,'sleep advanced the story') end
     if reader then assert(p.view==reader.view,'PokePal replaced KOReader\'s book view') end
     if v then
      assert(not v.suspended and v.dimen.w==Device.screen:getWidth() and v.dimen.h==Device.screen:getHeight())

@@ -27,6 +27,8 @@ More:
 
 See [what changed in 1.1.0](docs/release-v1.1.0.md).
 
+**Story preview (source builds):** open **Explore → Story** for Crystal's opening journey: meet Elm, choose a starter, visit Mr. Pokémon and Oak, battle your rival and return the Mystery Egg. [Setup, save compatibility and current limits](docs/crystal-story.md). This chapter is not included in the v1.1.0 download.
+
 ## Screenshots
 
 | Feed your partner | Keep the nest clean |

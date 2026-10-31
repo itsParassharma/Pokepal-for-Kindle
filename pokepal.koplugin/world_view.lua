@@ -100,7 +100,7 @@ return function(View,UIManager,BB,Device)
   self:button(bb,"Right",351,662,78,42,"worlddir","right")
   end
   self:button(bb,"Help",32,662,120,42,"nav","worldhelp")
-  self:button(bb,"Trips",448,662,120,42,"nav","expeditions")
+  self:button(bb,"Story",448,662,120,42,"nav","story")
   if self.world_save_failed or self.owner.save_error then self:button(bb,"Retry save",32,717,536,44,"worldretry")
   else self:backButton(bb) end
  end

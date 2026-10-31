@@ -1,0 +1,42 @@
+"""Story UI checks with the shared KOReader desktop renderer."""
+def run(c):
+    g, paint, lua, out = c['g'], c['paint'], c['lua'], c['OUT']
+    count=0
+    for width,height in [(600,800),(758,1024),(1072,1448),(800,600)]:
+        for large in (False,True):
+            for dpi in (160,300):
+                g.D.dpi=dpi
+                v=g.newView(25);v.state.animation='off';v.go(v,'story')
+                if large:
+                    g.E.act(v.state,'preference','large_text',int(v.state.last))
+                    g.E.act(v.state,'preference','high_contrast',int(v.state.last))
+                t=v.state.story
+                def check(name):
+                    nonlocal count
+                    image=paint(v,width,height)
+                    assert not c['truncated'],(name,width,height,large,dpi,c['truncated'])
+                    for b in v.buttons.values():
+                        r=v.region(v,b.x,b.y,b.w,b.h)
+                        labels=[]
+                        for text,x,y,right,bottom in c['painted_ink']:
+                            if max(x,r.x)<min(right,r.x+r.w) and max(y,r.y)<min(bottom,r.y+r.h):
+                                assert x>=r.x and right<=r.x+r.w and y>=r.y and bottom<=r.y+r.h,(name,'text crosses button',text)
+                                labels.append(text)
+                        assert len(labels)<=(2 if b.action=='storyturn' else 1),(name,labels)
+                    if width==600 and not large and dpi==160:image.save(out/f'story-{name}.png')
+                    count+=1
+                for node,n in g.E.story.nodes.items():
+                    if n.op in ('text','choice'):
+                        t.node=node;check(node)
+                t.node=None
+                for name,m in g.E.story.maps.items():
+                    t.map=name
+                    if len(m.warps):t.x,t.y=m.warps[1][1],m.warps[1][2]
+                    check(name)
+                t.starter=152;t.hp=40;t.battle=g.E.story.battle.new(152,1);t.battle.wildid=155;t.node='fight'
+                check('battle');g.E.story.turn(t,g.E,1);check('battle-turn')
+                t.battle.hp=1;g.E.story.turn(t,g.E,1);check('battle-result')
+                v.owner.save_error=True;check('save-error');v.owner.save_error=None
+                v.leave(v)
+    g.D.dpi=None;g.D.w=600;g.D.h=800
+    print(f'STORY LAYOUTS: {count} map/dialogue/battle size, DPI and text-mode combinations passed')

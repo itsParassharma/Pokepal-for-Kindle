@@ -12,7 +12,7 @@ function A.init(s)
  local w=s.world
  if w.camp then return false end
  w.camp={party={w.partner},health={},training={},quests=0,finds=0,outfits=0,outfit=0,potions=0,rank=0,runs=0,dpad=true}
- s.version=6;return true
+ s.version=math.max(s.version,6);return true
 end
 function A.record(s,id)
  local c=s.world.camp;local key=tostring(id)

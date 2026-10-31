@@ -174,6 +174,9 @@ function View:go(screen)
  self.world_message=nil
  self:stopAnimation();self:freeImages();self.screen=screen;self.page=1;self.hatched=nil;self.world_follow=nil;UIManager:setDirty(self,"ui")
  if screen=="worldmoves" then self.party_move_id=nil;self.move_slot=1 end
+ if screen=="story" and not self.owner.reading_busy and not self.world_save_failed and not self.owner.save_error and not (self.owner.backups and self.owner.backups.blocked) then
+  if self.engine.story.enter(self.state,self.engine) then self.world_dirty=true end
+ end
  if screen=="explore" and self.state.species~=0 then
   if self.engine.world.enter(self.state) then self.world_dirty=true end
   if self.state.world.battle then self.screen="battle" end
@@ -213,6 +216,7 @@ function View:paintTo(bb,x,y)
  if self.state.species==0 and self.screen~="allcompanions" and self.screen~="entry" then self:paintWelcome(bb)
  elseif self.screen=="home" then self:paintHome(bb)
  elseif self.screen=="explore" then self:paintWorld(bb)
+ elseif self.screen=="story" then self:paintStory(bb)
  elseif self.screen=="expeditions" then self:paintExpeditions(bb)
  elseif self.screen=="worldhelp" then self:paintWorldHelp(bb)
  elseif self.screen:match("^world") then self:paintTownMenu(bb)
@@ -724,6 +728,7 @@ function View:onTap(_,ges)
   elseif self.owner.backups and self.owner.backups.blocked then return true
   elseif self.owner.reading_busy and b.action~="nav" and b.action~="page" then return true
   elseif b.disabled then return true
+  elseif self:storyTap(b.action,b.arg) then return true
   elseif self:worldTap(b.action,b.arg) then return true
   elseif self:companionTap(b.action,b.arg) then return true
   elseif b.action=="chooserregion" then
@@ -816,4 +821,5 @@ end
 dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/companion_view.lua")(View,UIManager,BB)
 dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/world_view.lua")(View,UIManager,BB,Device)
 dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/town_view.lua")(View,UIManager)
+dofile(debug.getinfo(1,"S").source:sub(2):match("^(.*)/").."/story_view.lua")(View,UIManager,BB,Device)
 return View
