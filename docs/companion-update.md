@@ -42,6 +42,46 @@ Back up the whole `pokepal` folder before installing 1.0.7, and update both edit
 
 Book memories are stored locally because you chose to save their titles. Reward tracking still uses hashed book identities, not titles or book text.
 
+## A stock Kindle image appears briefly on sleep or wake
+
+This reported transition is still unverified on the affected device. The
+v1.0.8 crash fix does not establish that the image flicker is fixed.
+
+In the KOReader edition, PokePal replaces the prepared sleep image before
+KOReader displays it. It does not display the original image first, draw
+directly to the Kindle framebuffer, or change the Kindle power service.
+When **Sleeping partner screen** is off, rendering fails, or the event is
+poweroff/reboot, the normal KOReader screen is retained. Regression checks
+cover those handoffs, without simulating Kindle firmware timing.
+
+KOReader's [screensaver](https://github.com/koreader/koreader/blob/v2026.07.1/frontend/ui/screensaver.lua)
+performs an e-ink cleanup refresh for image sleep screens.
+Its [Kindle wake handler](https://github.com/koreader/koreader/blob/v2026.07.1/frontend/device/kindle/device.lua)
+also redraws after closing the screen because the native framework can repaint
+during the transition. A brief black/white cleanup flash and a stock image
+appearing are different symptoms. A native/custom-screen timing conflict is a
+possible explanation for the latter, not a confirmed diagnosis of this report.
+
+To isolate it on KOReader, keep the same sleep-screen and launcher settings:
+
+1. Update PokePal and restart KOReader. Test power-button sleep and wake.
+2. Turn **More > Preferences > Sleeping partner screen** off. PokePal's game
+   and reading rewards remain available with KOReader's usual sleep screen.
+3. Disable PokePal in KOReader's plugin management, restart, and repeat. If the
+   transition remains, compare the launcher, KOReader and any separate
+   screensaver add-on. If it occurs only with the partner screen, keep that
+   option off until the device-specific interaction is understood.
+4. Record the Kindle model, firmware, KOReader/PokePal versions, launcher,
+   screensaver add-ons and whether the cover or power button triggered sleep.
+   Include a video and the relevant KOReader log, with personal book paths removed.
+
+The KUAL edition retains the system sleep screen and hands the display back to
+the Kindle when the game exits for sleep. Another add-on's custom image is
+outside PokePal's control. **Rest when the Kindle sleeps** changes game state;
+it does not replace that screen. There is no verified universal no-flash
+workaround. Do not disable the power service or normal e-ink cleanup refreshes
+to hide the symptom.
+
 ## Validation
 
 The automated suite covers game rules, old-save loading, Unicode names, sleep/wake recovery, duplicate events, dated counters, interrupted writes, backup recovery, journal filters, reader hooks and screen layouts. The native smoke test checks drawing caches and partial redraws. Both the desktop test host and static ARM host build with Zig 0.13.0.

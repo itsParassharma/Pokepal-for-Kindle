@@ -243,6 +243,41 @@ check('bookshelf trips collect '..mode..' across book changes exactly once',func
 end)
 end
 
+check('sleep setup replaces the image before display and leaves fallback screens alone',function()
+ for _,case in ipairs({'partner','disabled','error','poweroff','reboot','other-ui'}) do
+  local freed,calls=0,0
+  local original={free=function() freed=freed+1 end}
+  local partner={free=function() end}
+  screensaver.setup=function(screen,event)
+   calls=calls+1;screen.ui=case=='other-ui' and {} or active_ui
+   screen.image=original;screen.image_file='chosen.png';screen.screensaver_type='cover'
+   screen.show_message=true;screen.overlay_message=event;screen.screensaver_background='black'
+   return 'upstream-result'
+  end
+  local reader=plugin('screen-handoff-'..case,false)
+  local disabled=reader.sleepImage
+  reader.sleepImage=function(self)
+   if case=='disabled' then return disabled(self) end
+   if case=='error' then error('cannot render partner') end
+   return partner
+  end
+  local saved=reader.storage.encode(reader.state)
+  local shown,dirty=U.show_count,#U.dirty
+  local event=(case=='poweroff' or case=='reboot') and case or nil
+  assert(screensaver:setup(event)=='upstream-result' and calls==1)
+  assert(U.show_count==shown and #U.dirty==dirty,'setup painted an intermediate screen')
+  assert(reader.storage.encode(reader.state)==saved,'screen setup changed game progress')
+  if case=='partner' then
+   assert(screensaver.image==partner and freed==1 and screensaver.image_file==nil)
+   assert(not screensaver.show_message and screensaver.overlay_message==nil)
+  else
+   assert(screensaver.image==original and freed==0 and screensaver.image_file=='chosen.png')
+   assert(screensaver.show_message and screensaver.overlay_message==event)
+  end
+  reader:onCloseWidget()
+ end
+end)
+
 check('book and bookshelf teardown removes the sleep hook every time',function()
  for i=1,20 do
   local reader=plugin('teardown-'..i,i%2==0)
