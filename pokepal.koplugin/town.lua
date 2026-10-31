@@ -99,7 +99,7 @@ function A.switchPreview(s,E,id)
  for k,v in pairs(w.battle) do b[k]=v end
  b.ally=id;b.moves=A.moves(s,id);b.boost=false
  local hp=math.min(40,A.hp(w,id)+(w.camp.tower and w.camp.tower.switch*3 or 0))
- local taken=E.world.battle.intent(b)=="attack" and E.world.battle.incoming(E,b) or 0
+ local taken=E.world.battle.incoming(E,b)
  local after=E.world.battle.step(E,b,hp,0)
  return taken,after
 end

@@ -59,25 +59,50 @@ test('encounters require an adjacent, awake partner with battle HP',function()
  s.resting=false;s.world.hp=0;assert(not W.startBattle(s,1))
  s.world.hp=40;E.act(s,'trip',1,now);assert(s.trip==1 and not W.startBattle(s,1));roundtrip(s)
 end)
-test('quick moves interrupt charging and bursts break guards',function()
- local b=B.new(25,1);local hp,changed=B.step(E,b,40,1)
- assert(changed and hp==40 and b.hp==16 and not b.charged)
- b=B.new(25,2);b.turn=2;assert(B.intent(b)=='guard')
- assert(B.preview(E,b,1)==3 and B.preview(E,b,2)==14)
- hp=B.step(E,b,40,2);assert(hp==40 and b.hp==14)
- b=B.new(25,3);b.turn=3;assert(B.preview(E,b,2)==0,'Electric must not damage Ground')
+test('each surviving opponent attacks every turn without old stance modifiers',function()
+ for turn=1,4 do
+  local b=B.new(25,2);b.turn=turn;b.charged=true;b.boost=true
+  assert(B.preview(E,b,1)==6 and B.preview(E,b,2)==8)
+  local hp,changed=B.step(E,b,40,1)
+  assert(changed and hp==37 and b.hp==22 and b.turn==turn+1)
+  assert(not b.charged and not b.boost)
+ end
+ local b=B.new(25,3);assert(B.preview(E,b,2)==0,'Electric must not damage Ground')
+ local hp=B.step(E,b,40,2);assert(b.hp==34 and hp==36,'immune move must still use a turn')
+ b=B.new(25,1);b.hp=1;hp=B.step(E,b,40,1)
+ assert(hp==40 and b.status=='won','a fainted opponent must not retaliate')
 end)
-test('Withdraw only earns a boost by blocking a hit and consumes it once',function()
- local b=B.new(7,2);local hp=B.step(E,b,40,2)
- assert(hp==38 and b.boost)
- hp=B.step(E,b,hp,1);assert(not b.boost and b.hp==23)
- b=B.new(7,1);hp=B.step(E,b,40,2)
- assert(hp==40 and not b.boost and b.charged)
- hp=B.step(E,b,hp,2);assert(hp==37 and b.boost and not b.charged)
+
+test('all starting and learned moves work without the guard system',function()
+ for id=1,E.species_count do for _,move in ipairs(B.catalog(E,id)) do
+  assert(move.name and move.power>0)
+  assert(move.kind=='damage' or move.kind=='drain' or move.kind=='seed')
+ end end
+ local b=B.new(7,2);assert(B.equipped(E,b)[2].name=='Bite')
+ local hp=B.step(E,b,40,2);assert(hp==37 and b.hp==20 and not b.boost)
 end)
+
+test('old battle saves resume without losing HP, party, moves or earned benefits',function()
+ for _,flags in ipairs({false,true}) do
+  local s=battle(25);local b=s.world.battle
+  b.turn=7;b.hp=12;b.seed=2;b.charged=flags;b.boost=flags
+  s.world.camp.training['25']={learned=7,slots={1,3}};b.moves={1,3}
+  b.log={'The opponent held its guard.','Next hit: +4 power.'}
+  s=roundtrip(s);local before=E.companion.encode(s.world.camp)
+  local berries,xp,hp=s.berries,s.xp,s.world.hp
+  assert(W.enter(s));b=s.world.battle
+  assert(b.turn==7 and b.hp==12 and b.seed==2 and not b.charged and not b.boost)
+  assert(s.world.hp==hp and s.berries==berries and s.xp==xp)
+  assert(E.companion.encode(s.world.camp)==before and b.moves[2]==3)
+  assert(B.equipped(E,b)[2].name=='Swift')
+  assert(b.log[1]=='Choose a move. Your partner acts first.')
+  roundtrip(s);assert(not W.enter(s))
+ end
+end)
+
 test('Leech Seed heals in bounded ticks and survives saving',function()
  local s=battle(1,2);s.world.hp=30
- assert(W.turn(s,E,2,now));assert(s.world.battle.seed==2 and s.world.hp==27)
+ assert(W.turn(s,E,2,now));assert(s.world.battle.seed==2 and s.world.hp==30)
  s=roundtrip(s);assert(W.turn(s,E,1,now));assert(s.world.battle.seed==1 and s.world.hp<=40)
  s=roundtrip(s);assert(W.turn(s,E,2,now));assert(s.world.battle.seed==2);roundtrip(s)
 end)
@@ -129,7 +154,6 @@ test('all 386 partners have legal moves and finish encounters without invalid sa
    local a,ma=B.preview(E,b,1);local z,mz=B.preview(E,b,2)
    local slot=z>a and 2 or 1
    if mz.kind=='seed' and b.seed==0 and b.turn==1 then slot=2 end
-   if mz.kind=='guard' and B.intent(b)=='attack' and b.charged then slot=2 end
    assert(W.turn(s,E,slot,now));s=roundtrip(s);b=s.world.battle;count=count+1;assert(count<=100)
   end
   assert(W.finish(s));roundtrip(s)
