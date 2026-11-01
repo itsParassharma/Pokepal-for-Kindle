@@ -94,6 +94,7 @@ function W.enter(s)
   if s.world.battle then s.world.battle.moves={1,2} end
  end
  if A.migrate(s,W) then fresh=true end
+ if s.world.battle and W.battle.resume(s.world.battle) then fresh=true end
  if s.version<8 then
   if not W.walkable(s.world.map,s.world.x,s.world.y) or W.event(s.world.map,s.world.x,s.world.y,s.world) then
    s.world.x=6;s.world.y=6

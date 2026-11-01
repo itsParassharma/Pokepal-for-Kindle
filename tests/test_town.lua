@@ -56,7 +56,7 @@ test('lessons charge once, loadouts require distinct learned moves',function()
 end)
 test('switching uses a turn, preserves HP, and prevents returning to a fainted member',function()
  local s=party(pet());adjacent(s,2);assert(W.startBattle(s,2))
- assert(A.switch(s,E,7));assert(s.world.battle.turn==2 and s.world.partner==7 and s.world.hp==34)
+ assert(A.switch(s,E,7));assert(s.world.battle.turn==2 and s.world.partner==7 and s.world.hp==37)
  assert(s.world.camp.health['25']==40);s=copy(s)
  s.world.hp=1;s.world.battle.turn=4;assert(W.turn(s,E,1,now))
  assert(s.world.hp==0 and s.world.battle.status=='active');assert(not W.turn(s,E,1,now))
@@ -146,35 +146,36 @@ test('a turn-limit draw keeps the bounded battle log saveable after drain effect
  b.turn=100;b.seed=2;assert(W.turn(s,E,1,now))
  assert(b.status=='draw' and #b.log==4 and b.log[4]:find('Time for a break',1,true));copy(s)
 end)
-test('battle hints describe the opening and use the actual guard damage',function()
- local b=B.new(25,1);assert(B.hint(E,b,1)=='Interrupts this charge.')
- b.turn=3;assert(B.hint(E,b,2)=='Breaks this guard.')
+test('battle hints show damage types and Tower resistance applies to every hit',function()
+ local b=B.new(25,1);assert(B.hint(E,b,1)=='Normal-type attack')
+ b.turn=3;assert(B.hint(E,b,2)=='Electric-type attack')
  b=B.new(92,2);assert(B.hint(E,b,1)=='Opponent is immune.')
  b=B.new(7,2,{1,2},3,2);b.charged=true
- local taken=B.blockedDamage(E,b);local before=E.companion.encode(b)
- assert(B.hint(E,b,2):find('Take '..taken..' damage.',1,true))
+ local before=E.companion.encode(b)
+ assert(B.incoming(E,b)==3 and B.hint(E,b,2)=='Dark-type attack')
  assert(E.companion.encode(b)==before)
- local hp=B.step(E,b,40,2);assert(hp==40-taken and b.boost)
- b=B.new(7,1);assert(B.hint(E,b,2)=='No attack to block this turn.')
+ local hp=B.step(E,b,40,2);assert(hp==37 and not b.boost)
+ b=B.new(92,2,{1,2},3,5);assert(B.incoming(E,b)==0,'resistance must preserve immunity')
+ b=B.new(7,2,{1,2},3,5);assert(B.incoming(E,b)==1,'resistance must not create immunity')
 end)
 
 test('family moves give evolved partners distinct roles and keep two equipped slots',function()
- local pairs={{6,'Ember','Smokescreen'},{42,'Wing Attack','Leech Life'},{45,'Absorb','Acid'},
-  {65,'Confusion','Reflect'},{68,'Karate Chop','Bulk Up'},{76,'Rock Throw','Defense Curl'},
-  {94,'Lick','Night Shade'},{134,'Water Gun','Acid Armor'},{135,'Pin Missile','Thunder Shock'},
-  {154,'Razor Leaf','Reflect'},{160,'Bite','Water Gun'},{254,'Quick Attack','Mega Drain'},
+ local pairs={{6,'Ember','Scratch'},{42,'Wing Attack','Leech Life'},{45,'Absorb','Acid'},
+  {65,'Confusion','Psybeam'},{68,'Karate Chop','Low Kick'},{76,'Rock Throw','Tackle'},
+  {94,'Lick','Night Shade'},{134,'Water Gun','Bite'},{135,'Pin Missile','Thunder Shock'},
+  {154,'Razor Leaf','Tackle'},{160,'Bite','Water Gun'},{254,'Quick Attack','Mega Drain'},
   {257,'Peck','Ember'},{260,'Water Gun','Mud Slap'},{272,'Water Gun','Mega Drain'},
-  {286,'Mega Drain','Leech Seed'},{306,'Metal Claw','Iron Defense'},{365,'Powder Snow','Defense Curl'}}
+  {286,'Mega Drain','Leech Seed'},{306,'Metal Claw','Headbutt'},{365,'Powder Snow','Water Gun'}}
  for _,row in ipairs(pairs) do
   local moves=B.moves(E,row[1]);assert(#moves==2 and moves[1].name==row[2] and moves[2].name==row[3])
  end
  local s=pet();s.world.camp.badges=7;s.berries=100;s.world.map='centre';assert(A.party(s,E,1,42));s.world.map='dojo'
  assert(A.learn(s,E,42,3) and A.equip(s,42,1,3));s=copy(s)
  local moves=B.equipped(E,{ally=42,moves=A.moves(s,42)})
- assert(moves[1].name=='Protect' and moves[2].name=='Leech Life')
+ assert(moves[1].name=='Swift' and moves[2].name=='Leech Life')
 end)
 
-test('switch forecasts match turns with types, charges, seeds and Tower benefits',function()
+test('switch forecasts match every turn with types, seeds and Tower benefits',function()
  for _,tower in ipairs({false,true}) do for turn=1,4 do for _,id in ipairs({7,92}) do
   local s=party(pet());assert(A.party(s,E,3,92));local w=s.world
   if tower then
@@ -183,7 +184,7 @@ test('switch forecasts match turns with types, charges, seeds and Tower benefits
   w.battle.turn=turn;w.battle.charged=true;w.battle.seed=2;w.camp.health[tostring(id)]=12
   local before=S.encode(s);local taken,after=A.switchPreview(s,E,id)
   assert(S.encode(s)==before,'forecast changed the save')
-  if B.intent(w.battle)~='attack' or not tower and id==92 then assert(taken==0) end
+  if not tower and id==92 then assert(taken==0) end
   assert(A.switch(s,E,id) and w.hp==after);copy(s)
  end end end
 end)

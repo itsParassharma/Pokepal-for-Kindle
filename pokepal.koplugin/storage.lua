@@ -40,6 +40,7 @@ function S.encode(s)
  end
  if s.companion then lines[#lines+1]="companion="..C.encode(s.companion) end
  if s.world then lines[#lines+1]="world="..C.encode(s.world) end
+ if s.story then lines[#lines+1]="story="..C.encode(s.story) end
  return table.concat(lines,"\n").."\n"
 end
 function S.decode(data,engine)
@@ -94,6 +95,8 @@ function S.decode(data,engine)
    if s.companion then return nil end;s.companion=C.decode(v);if not s.companion then return nil end
   elseif k=="world" then
    if s.world then return nil end;s.world=C.decode(v);if not s.world then return nil end
+  elseif k=="story" then
+   if s.story then return nil end;s.story=C.decode(v);if not s.story then return nil end
   elseif k=="badge" then if #v>40 then return nil end;s.badges[v]=true
   elseif k=="log" then if #v>200 or #s.log>=24 then return nil end;s.log[#s.log+1]=v
   else return nil end
@@ -117,13 +120,8 @@ function S.load(path,engine,cache)
  end
  return state,notice
 end
-function S.save(path,s,engine,syncfile,syncdir)
- if not engine.valid(s) then return nil,"Invalid game state." end
- local data=S.encode(s)
- if not S.decode(data,engine) then return nil,"Could not serialize game state." end
- local current=read(path)
- if current==data and not uncertain[path] then return true end
- local f,err=io.open(path..".tmp","wb");if not f then return nil,err end
+local function stage(path,data,syncfile)
+ local f,err=io.open(path,"wb");if not f then return nil,err end
  local ok;ok,err=f:write(data)
  if ok then ok,err=f:flush() end
  if ok and syncfile then
@@ -131,8 +129,28 @@ function S.save(path,s,engine,syncfile,syncdir)
   if not called or result==false then ok=nil;err=why or result end
  end
  local closed,cerr=f:close();if not ok or not closed then return nil,err or cerr end
+ return true
+end
+function S.save(path,s,engine,syncfile,syncdir)
+ if not engine.valid(s) then return nil,"Invalid game state." end
+ local data=S.encode(s)
+ if not S.decode(data,engine) then return nil,"Could not serialize game state." end
+ local current=read(path)
+ local fallback=s.story and S.decode(read(path..".old"),engine)
+ if current==data and not uncertain[path] and not (fallback and fallback.version<s.version) then return true end
+ local ok,err=stage(path..".tmp",data,syncfile);if not ok then return nil,err end
+ local previous=S.decode(current,engine)
+ if s.story and (previous and previous.version<s.version or fallback and fallback.version<s.version) then
+  -- The separate pre-story backup keeps the old format. Do not leave an old
+  -- automatic fallback that a previous build could silently load and overwrite.
+  ok,err=stage(path..".old.tmp",data,syncfile);if not ok then return nil,err end
+  ok,err=os.rename(path..".old.tmp",path..".old");if not ok then return nil,err end
+  if syncdir then
+   local called,result,why=pcall(syncdir,path..".old")
+   if not called or result==false then return nil,why or result end
+  end
  -- Keep a good backup if we recovered from a damaged primary.
- if S.decode(read(path),engine) then
+ elseif previous then
   local moved;moved,err=os.rename(path,path..".old")
   if not moved then return nil,err end
  end

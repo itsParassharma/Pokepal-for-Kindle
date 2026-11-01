@@ -27,6 +27,8 @@ More:
 
 See [what changed in 1.1.0](docs/release-v1.1.0.md).
 
+**Story preview (source builds):** open **Explore → Story** with your chosen Tamagotchi Pokémon. Catch more with Poké Balls and build a party of six. Travel through Violet and Azalea, hatch Togepi and rescue the Slowpoke. Guide Farfetch’d home in Ilex Forest, use Cut and reach Goldenrod to challenge Whitney for your third badge. [Setup, save compatibility and current limits](docs/crystal-story.md). These chapters are not included in the v1.1.0 download.
+
 ## Screenshots
 
 | Feed your partner | Keep the nest clean |

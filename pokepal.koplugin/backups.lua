@@ -55,7 +55,7 @@ function B:write(path,data)
  return true
 end
 function B:preview(slot)
- if slot~="backup" and slot~="before-restore" then return nil,"Unknown backup." end
+ if slot~="backup" and slot~="before-restore" and slot~="before-story" then return nil,"Unknown backup." end
  local path=self.path.."."..slot;local data=read(path);local backup=self:decode(data)
  if not backup then
   backup=self:decode(read(path..".old"))
@@ -64,16 +64,30 @@ function B:preview(slot)
  if backup then backup.slot=slot;return backup end
  return nil,(data or self.fs.mode(path) or self.fs.mode(path..".old")) and "This backup could not be read." or "No backup yet."
 end
-function B:create(state)
+function B:create(state,slot)
+ slot=slot or "backup"
+ if slot~="backup" and slot~="before-story" then return nil,"Unknown backup." end
  if self.blocked or self.fs.mode(self.path..".restore") then return nil,"Reopen PokePal to finish restoring first." end
  local unlock,err=self.fs.lock(self.path..".reading.session");if not unlock then return nil,err end
  local ko,primary,days;ko,err,primary,days=self.reading.counter(self.path..".reading")
  local ok
  if ko then
   ok,err=S.save(self.path,state,self.engine,self.syncfile,self.syncdir)
-  if ok then ok,err=self:write(self.path..".backup",self:encode(state,ko,os.time(),days)) end
+  if ok then ok,err=self:write(self.path.."."..slot,self:encode(state,ko,os.time(),days)) end
  end
  unlock();return ok,err
+end
+function B:beforeStory(state)
+ if self.blocked or self.fs.mode(self.path..".restore") then return nil,"Reopen PokePal to finish restoring first." end
+ if state.version>=13 then return true end
+ local path=self.path..".before-story"
+ if self.fs.mode(path) or self.fs.mode(path..".old") then
+  local backup,err=self:preview("before-story")
+  if not backup or backup.state.version>=13 then return nil,err or "The pre-story backup is unreadable." end
+  -- Keep the first snapshot, including on retries after a failed directory sync.
+  return self:write(path,backup.data)
+ end
+ return self:create(state,"before-story")
 end
 function B:apply(backup)
  local ok,err=self.reading.saveCounter(self.path..".reading",backup.ko,self.syncfile,self.syncdir,backup.days)

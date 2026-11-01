@@ -48,7 +48,7 @@ Berries pay for adventure supplies and progression. The daily basket, reading re
 | Befriend a wild Pokémon | 3 berries |
 | Potion, restoring up to 16 HP | 2 berries |
 | Revive, restoring a fainted member to 20 HP | 4 berries; requires Leaf Badge |
-| Protect lesson | 2 berries |
+| Swift lesson | 2 berries |
 | Drain strike lesson | 4 berries; requires Tide Badge |
 | Battle Tower entry | 3 berries; requires Stone Badge |
 | Ranger / Tower outfit | 5 / 8 berries |
@@ -69,44 +69,44 @@ The existing quest and Coast-trainer route unlocks still work. Older saves with 
 
 Party battle HP is separate from care stats. Switching companions at home does not erase the party's injuries.
 
-Each partner starts with two learned moves. Pikachu's family has Quick Attack and Thunder Shock; Squirtle's has Water Gun and Withdraw; Bulbasaur's has Vine Whip and Leech Seed. There are 20 more starting pairs:
+Each partner starts with two learned moves. Pikachu's family has Quick Attack and Thunder Shock; Squirtle's has Water Gun and Bite; Bulbasaur's has Vine Whip and Leech Seed. There are 20 more starting pairs:
 
 | Pokémon line | Starting moves |
 | --- | --- |
-| Charmander | Ember, Smokescreen |
-| Sandshrew | Scratch, Defense Curl |
+| Charmander | Ember, Scratch |
+| Sandshrew | Scratch, Poison Sting |
 | Zubat | Wing Attack, Leech Life |
 | Oddish | Absorb, Acid |
-| Abra | Confusion, Reflect |
-| Machop | Karate Chop, Bulk Up |
-| Geodude | Rock Throw, Defense Curl |
+| Abra | Confusion, Psybeam |
+| Machop | Karate Chop, Low Kick |
+| Geodude | Rock Throw, Tackle |
 | Gastly | Lick, Night Shade |
-| Vaporeon | Water Gun, Acid Armor |
+| Vaporeon | Water Gun, Bite |
 | Jolteon | Pin Missile, Thunder Shock |
-| Snorlax | Body Slam, Amnesia |
-| Chikorita | Razor Leaf, Reflect |
+| Snorlax | Body Slam, Lick |
+| Chikorita | Razor Leaf, Tackle |
 | Totodile | Bite, Water Gun |
 | Treecko | Quick Attack, Mega Drain |
 | Torchic | Peck, Ember |
 | Mudkip | Water Gun, Mud Slap |
 | Lotad | Water Gun, Mega Drain |
 | Shroomish | Mega Drain, Leech Seed |
-| Aron | Metal Claw, Iron Defense |
-| Spheal | Powder Snow, Defense Curl |
+| Aron | Metal Claw, Headbutt |
+| Spheal | Powder Snow, Water Gun |
 
-These pairs carry through each evolution. Zubat can interrupt a charge or recover HP. Geodude can break a guard or block an attack before countering. Shroomish can keep draining HP, but has no quick move to interrupt a charge. Pokémon without a family pair use Quick strike and a burst of their primary type.
+These pairs carry through each evolution. Zubat can use Flying damage or recover HP with Leech Life. Geodude has Rock and Normal attacks. Shroomish has two ways to drain HP. Pokémon without a family pair use Tackle and an attack of their primary type.
 
-The dojo teaches Protect for two berries and Drain strike for four. The Tide Badge unlocks Drain strike. These lessons spend berries without using care energy. Choose either equipped slot and tap a learned move to replace it. The two slots must contain different moves.
+The dojo teaches Swift for two berries and Drain strike for four. The Tide Badge unlocks Drain strike. These lessons spend berries without using care energy. Choose either equipped slot and tap a learned move to replace it. The two slots must contain different moves.
 
-| Move kind | Effect and opening |
+| Move kind | Effect |
 | --- | --- |
-| Quick | Interrupts a charging opponent |
-| Burst | Deals extra damage through a guard |
-| Guard | Reduces incoming damage and strengthens the next hit after a successful block |
+| Attack | Deals damage using the move's type and power |
 | Leech Seed | Drains up to three HP for three turns |
 | Drain | Restores up to three HP when the hit deals damage |
 
-The opponent shows whether it is attacking, guarding or charging before you decide. Move buttons tell you when a hit will interrupt that charge, break that guard or fail against an immune opponent. A defensive move shows how much damage you will take. Type advantages and immunities apply. Move effects follow PokePal's rules, including the family pairs and shared dojo moves.
+Choose a move and your partner acts first. If the opponent survives, it attacks back that turn. Type advantages and immunities apply, and the move buttons show the expected damage. There are no guard, charge, interruption or guard-breaking turns. Opponent damage is reduced to account for attacking every turn. These are simplified PokePal battles with fixed HP and move power, rather than a full reproduction of the main games' battle rules.
+
+Existing saves keep their parties, HP, progress and equipped slot numbers. Former defensive moves become the attacking moves listed above; a learned Protect becomes Swift without another lesson fee. Old charge and counterattack flags no longer affect damage, and obsolete battle messages clear when you resume Explore.
 
 The switch screen shows how much damage each partner will take and the HP they will have after that turn. It includes type immunity, Leech Seed and Tower healing bonuses. Voluntary switching uses a turn. Replacing a fainted partner is free: no enemy attack, seed tick or turn advance occurs during its entrance. A potion costs two berries, restores up to 16 HP and also uses a turn in battle. Potions cannot revive a fainted partner. A revive restores a chosen fainted party member to 20 HP and uses a turn during battle. After your active partner faints, choose a replacement before using the bag. The Centre heals everyone for free.
 
@@ -121,7 +121,7 @@ Before a run, the Tower shows your party, their equipped moves and the first opp
 There are five trainer battles followed by a boss. Each trainer gets a fresh team matching your party size, including the boss. After each of the first five wins, choose one temporary benefit:
 
 - Restore 16 HP to the whole party.
-- Improve defensive moves for this run.
+- Take one less damage from each hit for this run. Repeated choices add to the reduction; damaging hits still deal at least one HP, and type immunity remains zero.
 - Restore three HP after a voluntary switch; repeated choices increase the bonus.
 
 Health carries between battles. Outside supplies are unavailable during a run. A completed run awards a rank, six berries and a Tower outfit. Fleeing or a full-party defeat ends the run without those rewards.

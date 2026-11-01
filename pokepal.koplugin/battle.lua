@@ -31,30 +31,30 @@ function B.validTeam(team,E,count)
  return size==count
 end
 B.foes={
- {id=10,hp=24,power=5,type="Normal",pattern={"charge","attack","guard","attack"}},
- {id=19,hp=28,power=6,type="Normal",pattern={"attack","guard","charge","attack"}},
- {id=74,hp=34,power=7,type="Rock",pattern={"charge","attack","guard","attack"}},
- {id=43,hp=28,power=6,type="Grass",pattern={"guard","attack","charge","attack"}},
- {id=163,hp=30,power=6,type="Flying",pattern={"charge","attack","guard","attack"}},
- {id=14,hp=36,power=7,type="Bug",pattern={"guard","charge","attack","attack"}},
- {id=278,hp=30,power=7,type="Flying",pattern={"charge","attack","guard","attack"}},
- {id=98,hp=34,power=8,type="Water",pattern={"guard","attack","charge","attack"}},
- {id=120,hp=38,power=8,type="Water",pattern={"attack","guard","charge","attack"}},
- {id=41,hp=32,power=7,type="Poison",pattern={"charge","attack","attack","guard"}},
- {id=304,hp=38,power=8,type="Steel",pattern={"guard","charge","attack","attack"}},
- {id=95,hp=42,power=9,type="Rock",pattern={"charge","attack","guard","attack"}},
- {id=280,hp=26,power=4,type="Psychic",pattern={"charge","attack","guard","attack"}},
- {id=66,hp=28,power=4,type="Fighting",pattern={"attack","guard","charge","attack"}},
- {id=81,hp=26,power=4,type="Electric",pattern={"guard","attack","charge","attack"}},
- {id=259,hp=28,power=4,type="Water",pattern={"charge","attack","attack","guard"}},
- {id=253,hp=26,power=4,type="Grass",pattern={"attack","charge","attack","guard"}},
- {id=6,hp=36,power=5,type="Fire",pattern={"guard","charge","attack","attack"}},
- {id=282,hp=36,power=5,type="Psychic",pattern={"charge","attack","guard","attack"}},
- {id=376,hp=36,power=5,type="Steel",pattern={"guard","attack","charge","attack"}},
+ {id=10,hp=24,power=5,type="Normal"},
+ {id=19,hp=28,power=6,type="Normal"},
+ {id=74,hp=34,power=7,type="Rock"},
+ {id=43,hp=28,power=6,type="Grass"},
+ {id=163,hp=30,power=6,type="Flying"},
+ {id=14,hp=36,power=7,type="Bug"},
+ {id=278,hp=30,power=7,type="Flying"},
+ {id=98,hp=34,power=8,type="Water"},
+ {id=120,hp=38,power=8,type="Water"},
+ {id=41,hp=32,power=7,type="Poison"},
+ {id=304,hp=38,power=8,type="Steel"},
+ {id=95,hp=42,power=9,type="Rock"},
+ {id=280,hp=26,power=4,type="Psychic"},
+ {id=66,hp=28,power=4,type="Fighting"},
+ {id=81,hp=26,power=4,type="Electric"},
+ {id=259,hp=28,power=4,type="Water"},
+ {id=253,hp=26,power=4,type="Grass"},
+ {id=6,hp=36,power=5,type="Fire"},
+ {id=282,hp=36,power=5,type="Psychic"},
+ {id=376,hp=36,power=5,type="Steel"},
 }
-B.foes[21]={id=1,hp=30,power=5,type="Grass",pattern={"guard","charge","attack","attack"}}
-B.foes[22]={id=7,hp=34,power=6,type="Water",pattern={"charge","attack","guard","attack"}}
-B.foes[23]={id=74,hp=38,power=7,type="Rock",pattern={"guard","attack","charge","attack"}}
+B.foes[21]={id=1,hp=30,power=5,type="Grass"}
+B.foes[22]={id=7,hp=34,power=6,type="Water"}
+B.foes[23]={id=74,hp=38,power=7,type="Rock"}
 local wildTypes={meadow="Normal Grass Bug Fairy Flying",woods="Bug Grass Poison Psychic Ghost",
  coast="Water Flying Electric Dragon",cave="Rock Ground Steel Ghost Dark Ice Fire Fighting"}
 local wildPools={}
@@ -72,54 +72,58 @@ end
 B.wildPools=wildPools
 function B.rollWild(s,map) local pool=wildPools[map];return pool[rng(s,#pool)] end
 local kits={
- [25]={{name="Quick Attack",kind="quick",type="Normal",power=6},
-       {name="Thunder Shock",kind="break",type="Electric",power=8}},
- [7]={{name="Water Gun",kind="quick",type="Water",power=6},
-      {name="Withdraw",kind="guard",type="Water",power=0}},
- [1]={{name="Vine Whip",kind="quick",type="Grass",power=6},
+ [25]={{name="Quick Attack",kind="damage",type="Normal",power=6},
+       {name="Thunder Shock",kind="damage",type="Electric",power=8}},
+ [7]={{name="Water Gun",kind="damage",type="Water",power=6},
+      {name="Bite",kind="damage",type="Dark",power=8}},
+ [1]={{name="Vine Whip",kind="damage",type="Grass",power=6},
       {name="Leech Seed",kind="seed",type="Grass",power=2}},
- [4]={{name="Ember",kind="break",type="Fire",power=8},
-      {name="Smokescreen",kind="guard",type="Normal",power=0}},
- [27]={{name="Scratch",kind="quick",type="Normal",power=6},
-       {name="Defense Curl",kind="guard",type="Normal",power=0}},
- [41]={{name="Wing Attack",kind="quick",type="Flying",power=6},
+ [4]={{name="Ember",kind="damage",type="Fire",power=8},
+      {name="Scratch",kind="damage",type="Normal",power=6}},
+ [27]={{name="Scratch",kind="damage",type="Normal",power=6},
+       {name="Poison Sting",kind="damage",type="Poison",power=5}},
+ [41]={{name="Wing Attack",kind="damage",type="Flying",power=6},
        {name="Leech Life",kind="drain",type="Bug",power=5}},
  [43]={{name="Absorb",kind="drain",type="Grass",power=5},
-       {name="Acid",kind="break",type="Poison",power=8}},
- [63]={{name="Confusion",kind="break",type="Psychic",power=8},
-       {name="Reflect",kind="guard",type="Psychic",power=0}},
- [66]={{name="Karate Chop",kind="quick",type="Fighting",power=6},
-       {name="Bulk Up",kind="guard",type="Fighting",power=0}},
- [74]={{name="Rock Throw",kind="break",type="Rock",power=8},
-       {name="Defense Curl",kind="guard",type="Normal",power=0}},
- [92]={{name="Lick",kind="quick",type="Ghost",power=6},
-       {name="Night Shade",kind="break",type="Ghost",power=8}},
- [134]={{name="Water Gun",kind="quick",type="Water",power=6},
-        {name="Acid Armor",kind="guard",type="Poison",power=0}},
- [135]={{name="Pin Missile",kind="quick",type="Bug",power=6},
-        {name="Thunder Shock",kind="break",type="Electric",power=8}},
- [143]={{name="Body Slam",kind="break",type="Normal",power=8},
-        {name="Amnesia",kind="guard",type="Psychic",power=0}},
- [152]={{name="Razor Leaf",kind="quick",type="Grass",power=6},
-        {name="Reflect",kind="guard",type="Psychic",power=0}},
- [158]={{name="Bite",kind="quick",type="Dark",power=6},
-        {name="Water Gun",kind="break",type="Water",power=8}},
- [252]={{name="Quick Attack",kind="quick",type="Normal",power=6},
+       {name="Acid",kind="damage",type="Poison",power=8}},
+ [63]={{name="Confusion",kind="damage",type="Psychic",power=8},
+       {name="Psybeam",kind="damage",type="Psychic",power=6}},
+ [66]={{name="Karate Chop",kind="damage",type="Fighting",power=6},
+       {name="Low Kick",kind="damage",type="Fighting",power=8}},
+ [74]={{name="Rock Throw",kind="damage",type="Rock",power=8},
+       {name="Tackle",kind="damage",type="Normal",power=6}},
+ [92]={{name="Lick",kind="damage",type="Ghost",power=6},
+       {name="Night Shade",kind="damage",type="Ghost",power=8}},
+ [134]={{name="Water Gun",kind="damage",type="Water",power=6},
+        {name="Bite",kind="damage",type="Dark",power=8}},
+ [135]={{name="Pin Missile",kind="damage",type="Bug",power=6},
+        {name="Thunder Shock",kind="damage",type="Electric",power=8}},
+ [143]={{name="Body Slam",kind="damage",type="Normal",power=8},
+        {name="Lick",kind="damage",type="Ghost",power=6}},
+ [152]={{name="Razor Leaf",kind="damage",type="Grass",power=6},
+        {name="Tackle",kind="damage",type="Normal",power=6}},
+ [158]={{name="Bite",kind="damage",type="Dark",power=6},
+        {name="Water Gun",kind="damage",type="Water",power=8}},
+ [252]={{name="Quick Attack",kind="damage",type="Normal",power=6},
         {name="Mega Drain",kind="drain",type="Grass",power=5}},
- [255]={{name="Peck",kind="quick",type="Flying",power=6},
-        {name="Ember",kind="break",type="Fire",power=8}},
- [258]={{name="Water Gun",kind="quick",type="Water",power=6},
-        {name="Mud Slap",kind="break",type="Ground",power=8}},
- [270]={{name="Water Gun",kind="quick",type="Water",power=6},
+ [255]={{name="Peck",kind="damage",type="Flying",power=6},
+        {name="Ember",kind="damage",type="Fire",power=8}},
+ [258]={{name="Water Gun",kind="damage",type="Water",power=6},
+        {name="Mud Slap",kind="damage",type="Ground",power=8}},
+ [270]={{name="Water Gun",kind="damage",type="Water",power=6},
         {name="Mega Drain",kind="drain",type="Grass",power=5}},
  [285]={{name="Mega Drain",kind="drain",type="Grass",power=5},
         {name="Leech Seed",kind="seed",type="Grass",power=2}},
- [304]={{name="Metal Claw",kind="break",type="Steel",power=8},
-        {name="Iron Defense",kind="guard",type="Steel",power=0}},
- [363]={{name="Powder Snow",kind="quick",type="Ice",power=6},
-        {name="Defense Curl",kind="guard",type="Normal",power=0}},
+ [304]={{name="Metal Claw",kind="damage",type="Steel",power=8},
+        {name="Headbutt",kind="damage",type="Normal",power=8}},
+ [363]={{name="Powder Snow",kind="damage",type="Ice",power=6},
+        {name="Water Gun",kind="damage",type="Water",power=6}},
 }
 kits[172]=kits[25]
+local typeMoves={Normal="Headbutt",Fire="Ember",Water="Water Gun",Electric="Thunder Shock",
+ Grass="Vine Whip",Ice="Powder Snow",Fighting="Low Kick",Poison="Acid",Ground="Mud Slap",
+ Flying="Wing Attack",Psychic="Confusion",Bug="Bug Bite",Rock="Rock Throw",Ghost="Lick",
+ Dragon="Dragon Breath",Dark="Bite",Steel="Metal Claw",Fairy="Fairy Wind"}
 function B.moves(E,id)
  local ancestor=id
  while ancestor do
@@ -127,12 +131,12 @@ function B.moves(E,id)
   ancestor=E.parents[ancestor]
  end
  local kind=E.species[id].types:match("^%a+")
- return {{name="Quick strike",kind="quick",type="Normal",power=6},
-  {name=kind.." burst",kind="break",type=kind,power=8}}
+ return {{name="Tackle",kind="damage",type="Normal",power=6},
+  {name=typeMoves[kind],kind="damage",type=kind,power=8}}
 end
 function B.catalog(E,id)
  local pair=B.moves(E,id)
- return {pair[1],pair[2],{name="Protect",kind="guard",type="Normal",power=0},
+ return {pair[1],pair[2],{name="Swift",kind="damage",type="Normal",power=8},
   {name="Drain strike",kind="drain",type=E.species[id].types:match("^%a+"),power=5}}
 end
 function B.equipped(E,b)
@@ -148,57 +152,46 @@ end
 local function damage(power,multiplier)
  return multiplier==0 and 0 or math.max(1,math.floor(power*multiplier))
 end
-function B.intent(b)
- local pattern=B.foes[b.foe].pattern
- return pattern[(b.turn-1)%#pattern+1]
-end
-function B.intentText(E,b)
- local intent=B.intent(b)
- if intent=="charge" then return "Charging: interrupt it with a quick move." end
- if intent=="guard" then return "Guarding: a burst breaks through." end
- return (b.charged and "Strong attack" or "Attack")..": "..B.incoming(E,b).." damage before blocking."
-end
 function B.incoming(E,b)
  local foe=B.foes[b.foe]
  local kind=(b.team or b.wildid) and E.species[B.opponent(b)].types:match("^%a+") or foe.type
- return damage((foe.power+(b.floor or 0))*(b.charged and 2 or 1),B.multiplier(E,kind,b.ally))
-end
-function B.blockedDamage(E,b)
- return math.ceil(B.incoming(E,b)*math.max(0.1,0.25-(b.defense or 0)*0.03))
+ -- Opponents now attack every turn instead of spending half their turns waiting.
+ local taken=damage(math.ceil((foe.power+(b.floor or 0))/2),B.multiplier(E,kind,b.ally))
+ return taken==0 and 0 or math.max(1,taken-(b.defense or 0))
 end
 function B.description(move)
- return move.kind=="quick" and "Interrupts a charge" or move.kind=="break" and "Breaks a guard"
-  or move.kind=="guard" and "Blocks a hit and strengthens your next attack"
-  or move.kind=="seed" and "Drains up to 3 HP for three turns" or "Restores up to 3 HP when it hits"
+ return move.kind=="seed" and "Drains up to 3 HP for three turns"
+  or move.kind=="drain" and "Restores up to 3 HP when it hits" or move.type.."-type attack"
 end
 function B.preview(E,b,slot)
  local move=B.equipped(E,b)[slot]
  if not move then return end
- local intent=B.intent(b)
- local power=move.power+(b.boost and move.power>0 and 4 or 0)
- if move.kind=="quick" and intent=="charge" then power=power+2 end
- if move.kind=="break" and intent=="guard" then power=power+6 end
  local mult=B.multiplier(E,move.type,B.opponent(b))
- local dealt=move.power==0 and 0 or damage(power,mult)
- if intent=="guard" and move.kind~="break" then dealt=math.floor(dealt/2) end
+ local dealt=move.power==0 and 0 or damage(move.power,mult)
  return dealt,move,mult
 end
 function B.hint(E,b,slot)
- local dealt,move,mult=B.preview(E,b,slot);local intent=B.intent(b)
+ local dealt,move,mult=B.preview(E,b,slot)
  if move.power>0 and mult==0 then return "Opponent is immune." end
- if move.kind=="guard" then
-  if intent~="attack" then return "No attack to block this turn." end
-  local taken=B.blockedDamage(E,b)
-  return taken==0 and "This attack cannot hurt you." or "Take "..taken.." damage. Next hit: +4 power."
- end
  if dealt>=b.hp then return b.team and b.opponent<#b.team and "Knocks out this Pokemon." or "Finishes this battle." end
- if move.kind=="quick" and intent=="charge" then return "Interrupts this charge." end
- if move.kind=="break" and intent=="guard" then return "Breaks this guard." end
  if move.kind=="drain" or move.kind=="seed" then return B.description(move) end
- if intent=="guard" then return "Their guard reduces this hit." end
- if mult>1 then return "Strong type match." end
- if mult<1 then return "This type deals less damage." end
+ if mult>1 then return "Super effective." end
+ if mult<1 then return "Not very effective." end
  return B.description(move)
+end
+function B.resume(b)
+ -- Keep the legacy flags readable so existing in-progress saves still load.
+ local changed=b.charged or b.boost
+ for _,line in ipairs(b.log) do
+  local old=line:lower()
+  if old:find("guard",1,true) or old:find("charg",1,true) or old:find("block",1,true)
+   or old:find("next hit",1,true) then changed=true end
+ end
+ if changed then
+  b.charged=false;b.boost=false
+  b.log={b.status=="active" and "Choose a move. Your partner acts first." or "Encounter finished."}
+ end
+ return changed
 end
 function B.new(ally,foe,moves,floor,defense,team)
  return {ally=ally,foe=foe,hp=B.foes[foe].hp+(floor or 0)*2,turn=1,charged=false,boost=false,moves=moves,floor=floor,defense=defense,
@@ -211,32 +204,22 @@ function B.step(E,b,hp,slot)
  if slot==0 then dealt,move,mult=0,{name="Changed partner",kind="switch",power=0},1 end
  if slot==-1 then dealt,move,mult=0,{name="Used a berry supply",kind="item",power=0},1 end
  if not move then return hp,false end
- local intent=B.intent(b);local lines={}
+ local lines={}
  local function say(line) lines[#lines+1]=line end
+ b.charged=false;b.boost=false
  b.last_move=math.max(0,slot)
  if move.power>0 then
-  b.hp=math.max(0,b.hp-dealt);b.boost=false
-  say(move.name..": "..dealt.." damage"..(mult==0 and " (immune)." or mult>1 and " (strong match)." or "."))
- elseif move.kind=="guard" then say(move.name..": ready to block this turn.")
+  b.hp=math.max(0,b.hp-dealt)
+  say(move.name..": "..dealt.." damage"..(mult==0 and " (immune)." or mult>1 and " (super effective)." or "."))
  else say(move.name..". The opponent takes its turn.") end
  if move.kind=="drain" and dealt>0 then
   local healed=math.min(3,B.max_hp-hp);hp=hp+healed;say(move.name.." restored "..healed.." HP.")
  end
  if move.kind=="seed" and mult>0 then b.seed=3 end
  if b.hp>0 then
-  if intent=="charge" then
-   b.charged=move.kind~="quick" or mult==0
-   say(b.charged and "The opponent charged its next attack." or "Charge interrupted!")
-  elseif intent=="guard" then
-   say(move.kind=="break" and "You broke through its guard!" or "The opponent held its guard.")
-  else
-   local taken=move.kind=="guard" and B.blockedDamage(E,b) or B.incoming(E,b);b.charged=false
-   if move.kind=="guard" then
-    b.boost=taken>0
-    say(taken==0 and "The attack could not hurt you." or "Blocked! Lost "..taken.." HP. Next hit: +4 power.")
-   else say("The opponent hit back for "..taken.." HP.") end
-   hp=math.max(0,hp-taken)
-  end
+  local taken=B.incoming(E,b)
+  say(E.name(B.opponent(b)).." hit back for "..taken.." HP.")
+  hp=math.max(0,hp-taken)
   if hp>0 and b.seed>0 then
    local drain=math.min(3,b.hp);b.hp=b.hp-drain;hp=math.min(B.max_hp,hp+drain);b.seed=b.seed-1
    say("Leech Seed drained "..drain.." HP.")

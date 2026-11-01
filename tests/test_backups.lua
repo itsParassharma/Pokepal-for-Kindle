@@ -3,6 +3,7 @@ local S=dofile(BASE..'/storage.lua')
 local R=dofile(BASE..'/reading.lua')
 local F=dofile(BASE..'/filesystem.lua')
 local B=dofile(BASE..'/backups.lua')
+local test_dir=debug.getinfo(1,'S').source:match('^@(.*/)') or BASE..'/../tests/'
 local now=1800000000
 local passed=0;local serial=0
 local function test(name,fn) fn();passed=passed+1;print('PASS '..name) end
@@ -123,5 +124,84 @@ test('a Tower backup restores the party, learned moves, benefits and turn togeth
  assert(A.switch(s,E,7));assert(R.saveCounter(p..'.reading',300));assert(S.save(p,s,E))
  assert(b:restore(s,preview) and S.encode(s)==original and R.counter(p..'.reading')==100)
  assert(s.world.battle.turn==1 and s.world.camp.tower.floor==1 and #s.world.camp.party==3)
+end)
+test('story upgrade keeps a separate old-format backup and can undo a rollback',function()
+ local s,b,p=fixture();E.world.enter(s);s.world.map='meadow';s.world.x=3;s.world.y=3
+ assert(E.world.startBattle(s,1));assert(E.world.turn(s,E,1,now));assert(b:create(s))
+ local original=S.encode(s);local manual=bytes(p..'.backup')
+ assert(s.version==8 and b:beforeStory(s));local kept=bytes(p..'.before-story')
+ assert(S.encode(b:preview('before-story').state)==original and bytes(p..'.backup')==manual)
+ assert(E.story.enter(s,E) and S.save(p,s,E));assert(s.version==13)
+ -- Both automatic snapshots must reject an older reader, rather than rolling back silently.
+ assert(S.decode(bytes(p),E).version==13 and S.decode(bytes(p..'.old'),E).version==13)
+ s.berries=37;assert(R.saveCounter(p..'.reading',200));assert(b:create(s))
+ local story=S.encode(s);assert(bytes(p..'.before-story')==kept)
+ assert(b:restore(s,b:preview('before-story')))
+ assert(S.encode(s)==original and R.counter(p..'.reading')==100)
+ assert(b:beforeStory(s) and bytes(p..'.before-story')==kept)
+ assert(b:restore(s,b:preview('before-restore')))
+ assert(S.encode(s)==story and R.counter(p..'.reading')==200)
+ assert(bytes(p..'.before-story')==kept)
+end)
+test('all earlier save formats keep their original game and reading counters before migration',function()
+ local count=0
+ for _,name in ipairs({'pre_story_fixtures','story_legacy_fixtures','story_chapter2_fixtures','story_collection_fixtures','story_azalea_fixtures'}) do
+  for _,data in pairs(dofile(test_dir..name..'.lua')) do
+   local s=assert(S.decode(data,E));local _,b,p=fixture();local original=S.encode(s)
+   assert(s.version<13 and b:beforeStory(s));assert(E.story.enter(s,E));assert(S.save(p,s,E))
+   local upgraded=S.encode(s);local backup=assert(b:preview('before-story'))
+   assert(S.encode(backup.state)==original and backup.ko==100)
+   assert(b:restore(s,backup) and S.encode(s)==original)
+   assert(b:restore(s,b:preview('before-restore')) and S.encode(s)==upgraded)
+   count=count+1
+  end
+ end
+ assert(count==27)
+end)
+test('pre-story backup failures leave the old game and manual backup intact and retries keep the first snapshot',function()
+ for _,failure in ipairs({'rename','file-sync','dir-sync','counter-lock','bad-counter','bad-backup'}) do
+  local s,b,p=fixture();local original=bytes(p);local manual=bytes(p..'.backup')
+  local rename=os.rename;local unlock
+  if failure=='rename' then os.rename=function(a,c) if a==p..'.before-story.tmp' then return nil,'full disk' end;return rename(a,c) end
+  elseif failure=='file-sync' then b.syncfile=function() return false,'sync failed' end
+  elseif failure=='dir-sync' then b.syncdir=function() return false,'sync failed' end
+  elseif failure=='counter-lock' then unlock=assert(F.lock(p..'.reading.session'))
+  elseif failure=='bad-counter' then write(p..'.reading','broken')
+  elseif failure=='bad-backup' then write(p..'.before-story','broken') end
+  assert(not b:beforeStory(s));assert(bytes(p)==original and bytes(p..'.backup')==manual and not s.story)
+  os.rename=rename;b.syncfile=nil;b.syncdir=nil;if unlock then unlock() end
+  if failure=='bad-counter' then assert(R.saveCounter(p..'.reading',100)) end
+  if failure=='bad-backup' then assert(bytes(p..'.before-story')=='broken');os.remove(p..'.before-story') end
+  local first=bytes(p..'.before-story');assert(b:beforeStory(s))
+  if first then assert(bytes(p..'.before-story')==first) end
+  assert(S.encode(b:preview('before-story').state)==S.encode(s))
+ end
+end)
+test('interrupted story promotion never replaces the old primary before both new snapshots are durable',function()
+ for _,failure in ipairs({'fallback-rename','fallback-sync','primary-rename','primary-sync'}) do
+  local s,b,p=fixture();E.world.enter(s);assert(S.save(p,s,E));assert(b:beforeStory(s))
+  local original=bytes(p);local backup=bytes(p..'.before-story');assert(E.story.enter(s,E))
+  local rename=os.rename
+  os.rename=function(a,c)
+   if a==p..(failure=='fallback-rename' and '.old.tmp' or failure=='primary-rename' and '.tmp' or '.never') then return nil,'full disk' end
+   return rename(a,c)
+  end
+  local function syncdir(path)
+   if failure=='fallback-sync' and path==p..'.old' or failure=='primary-sync' and path==p then return false,'sync failed' end
+   return true
+  end
+  assert(not S.save(p,s,E,nil,syncdir));os.rename=rename
+  if failure~='primary-sync' then assert(bytes(p)==original) end
+  assert(bytes(p..'.before-story')==backup)
+  assert(S.save(p,s,E));assert(bytes(p)==S.encode(s) and bytes(p..'.old')==S.encode(s))
+  write(p,'broken');assert(S.load(p,E).version==13)
+ end
+end)
+test('an unchanged preview save also replaces an incompatible automatic fallback',function()
+ local s,b,p=fixture();assert(b:beforeStory(s));local original=bytes(p)
+ assert(E.story.enter(s,E));local data=S.encode(s)
+ write(p,data);write(p..'.old',original)
+ assert(S.save(p,s,E) and bytes(p)==data and bytes(p..'.old')==data)
+ assert(S.encode(b:preview('before-story').state)==original)
 end)
 print('BACKUPS: '..passed..' checks passed')
