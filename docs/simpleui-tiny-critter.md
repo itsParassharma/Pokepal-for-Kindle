@@ -1,13 +1,13 @@
 # PokePal on SimpleUI
 
-Install the PokePal build from this PR alongside SimpleUI, restart KOReader,
+Install PokePal v1.2.0 or later alongside SimpleUI, restart KOReader,
 then choose **Add module → PokePal** in SimpleUI's home-screen layout editor.
 The card follows your selected partner automatically. No export, file copying
 between plugins or separate companion selection is needed. Tap the card to
 open PokePal; without a partner it invites you to choose one.
 
-The existing v1.1.0 release does not contain these integrations. Both the card
-and Tiny Critter export are tested with SimpleUI **3.0.1** and pinned main.
+The card and Tiny Critter export are included in v1.2.0 and tested with
+SimpleUI **3.0.1** and pinned main.
 
 ## PokePal card
 
@@ -81,9 +81,8 @@ This preview uses SimpleUI's own dialogue; the speech text is not from PokePal.
 
 ### Install and choose the critter
 
-1. Install the PokePal build containing this integration in
-   `koreader/plugins/pokepal.koplugin/`, then restart KOReader. The existing
-   v1.1.0 release does not include this addition.
+1. Install PokePal v1.2.0 or later in
+   `koreader/plugins/pokepal.koplugin/`, then restart KOReader.
 2. Use a SimpleUI build that includes **Tiny Critter**. The tested release is
    **3.0.1**. The repository's `3.0.0` tag does not contain the critter module.
 3. Choose a partner in PokePal. Open **Tools > PokePal: SimpleUI >

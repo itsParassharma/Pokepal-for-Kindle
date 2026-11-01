@@ -1,9 +1,9 @@
-POKEPAL 1.1.0
+POKEPAL 1.2.0
 
 KUAL
 Needs a jailbroken touchscreen Kindle with KUAL installed.
 
-1. Unzip PokePal-v1.1.0-kual.zip.
+1. Unzip PokePal-v1.2.0-kual.zip.
 2. Copy extensions onto your Kindle drive, next to documents.
    Merge folders if asked.
 3. Eject, then open KUAL > PokePal > Play PokePal.
@@ -13,7 +13,7 @@ KOReader is not required for this version.
 KOREADER
 Needs KOReader installed on your Kindle.
 
-1. Unzip PokePal-v1.1.0-koreader.zip.
+1. Unzip PokePal-v1.2.0-koreader.zip.
 2. Copy koreader onto your Kindle drive. Merge with the existing folder.
 3. Restart KOReader. Choose Open PokePal in the welcome, or Tools > PokePal.
 
@@ -92,6 +92,19 @@ Offer 3 berries to a weakened wild Pokemon to befriend it. Gym badges open
 routes, lessons, revives and the Tower. Berries pay for supplies and entry.
 The town guide offers quests that open the Coast and cave shortcuts.
 Each battle turn is saved. Return through Explore after sleep or reading.
+
+CRYSTAL STORY
+Explore > Story begins with your care companion. Catch Pokemon, build a
+party of six and play through Violet, Azalea and Goldenrod, with three Gyms.
+The story currently ends after Whitney's Plain Badge.
+Starting Story upgrades older saves to version 13. Before upgrading, PokePal
+keeps the game and reading counter in More > Backups > Before story upgrade.
+A failed backup stops the upgrade. Older builds cannot read version 13.
+To downgrade, restore Before story upgrade in this build first, then install
+the older build. Your newer game is kept under Before last restore. Keep an
+external copy of the whole save folder and update both editions together.
+Physical Kindle touch, refresh and power-button/cover sleep/wake still need
+testing.
 
 HELP
 Missing from KUAL? Check extensions/pokepal/menu.json is on your Kindle.

@@ -4,7 +4,7 @@ A Tamagotchi-style Pokémon pet for your Kindle. Feed it, play together and watc
 
 ![PokePal](docs/kindle-preview.png)
 
-[Download 1.1.0](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/tag/v1.1.0) · [Watch the care demo](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/download/v1.0.9/PokePal-trailer.mp4)
+[Download 1.2.0](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/tag/v1.2.0) · [Watch the care demo](https://github.com/itsParassharma/Pokepal-for-Kindle/releases/download/v1.0.9/PokePal-trailer.mp4)
 
 ## Features
 
@@ -25,9 +25,9 @@ More:
 [Reading rewards guide](docs/reading-rewards.md)
 [Sleep screen setup](docs/companion-update.md#sleep-screen).
 
-See [what changed in 1.1.0](docs/release-v1.1.0.md).
+See [what changed in 1.2.0](docs/release-v1.2.0.md).
 
-**Story preview (source builds):** open **Explore → Story** with your chosen Tamagotchi Pokémon. Catch more with Poké Balls and build a party of six. Travel through Violet and Azalea, hatch Togepi and rescue the Slowpoke. Guide Farfetch’d home in Ilex Forest, use Cut and reach Goldenrod to challenge Whitney for your third badge. [Setup, save compatibility and current limits](docs/crystal-story.md). These chapters are not included in the v1.1.0 download.
+**Crystal story:** open **Explore → Story** with your chosen Tamagotchi Pokémon. Catch more with Poké Balls and build a party of six. Travel through Violet and Azalea, hatch Togepi and rescue the Slowpoke. Guide Farfetch’d home in Ilex Forest, use Cut and reach Goldenrod to challenge Whitney for your third badge. [Setup, save compatibility and current limits](docs/crystal-story.md). Included in v1.2.0. The story currently ends after Whitney’s Plain Badge.
 
 ## Screenshots
 
@@ -43,7 +43,7 @@ See [what changed in 1.1.0](docs/release-v1.1.0.md).
 
 You need KOReader installed on your Kindle.
 
-1. Download and unzip **PokePal-v1.1.0-koreader.zip**.
+1. Download and unzip **PokePal-v1.2.0-koreader.zip**.
 2. Copy the `koreader` folder onto the Kindle drive. Merge it with the existing folder.
 3. Restart KOReader. Choose **Open PokePal** in the welcome, or open **Tools > PokePal**.
 
@@ -79,7 +79,7 @@ Add your partner to [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin) 
 </tr>
 </table>
 
-SimpleUI support is tested with **3.0.1** and pinned main. It is available in the latest source, but **not in the v1.1.0 download yet**. See the [SimpleUI setup and Tiny Critter guide](docs/simpleui-tiny-critter.md).
+SimpleUI support is included in v1.2.0 and tested with **3.0.1** and pinned main. See the [SimpleUI setup and Tiny Critter guide](docs/simpleui-tiny-critter.md).
 
 ### KOReader shortcuts
 
@@ -89,13 +89,17 @@ You can assign **Open PokePal** to a gesture or QuickMenu. Hold **PokePal** in T
 
 You need a jailbroken touchscreen Kindle with KUAL installed. KOReader is not required.
 
-1. Download and unzip **PokePal-v1.1.0-kual.zip**.
+1. Download and unzip **PokePal-v1.2.0-kual.zip**.
 2. Connect your Kindle by USB. Copy the `extensions` folder onto the Kindle drive, next to `documents`. Merge folders if asked.
 3. Eject your Kindle, then open **KUAL > PokePal > Play PokePal**.
 
 ## Saves
 
-Both editions share your save. Use **More > Backups** to save or restore, and copy the `pokepal` folder to your computer before updating.
+Both editions share your save. Copy the whole `pokepal` folder to your computer before updating, and update KOReader and KUAL together if you use both.
+
+Starting Story upgrades older saves to version 13. PokePal first keeps the game and reading counter under **More > Backups > Before story upgrade**. Older builds cannot read upgraded saves. To downgrade, restore that backup using v1.2.0 before reinstalling the older build.
+
+Physical Kindle touch, e-ink refresh and power-button/cover sleep and wake still need testing in this release.
 
 [Save help](pokepal.koplugin/INSTALL.txt) · [Build and device notes](native/README.md) · [Credits](pokepal.koplugin/CREDITS.txt)
 

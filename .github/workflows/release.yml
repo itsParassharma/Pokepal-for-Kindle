@@ -4,56 +4,34 @@ on:
   push:
     branches: [main]
 permissions:
-  contents: write
+  contents: read
+concurrency:
+  group: pokepal-release
+  cancel-in-progress: false
 jobs:
-  release-notes:
-    if: github.repository == 'itsParassharma/Pokepal-for-Kindle' && github.event_name == 'push' && contains(github.event.head_commit.message, '[release-notes]')
-    runs-on: ubuntu-22.04
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Update the 1.1.0 release page
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          source=PokePal-v1.1.0-corresponding-source.zip
-          mkdir -p dist
-          asset_id=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/v1.1.0" --jq ".assets[] | select(.name == \"$source\") | .id")
-          if [ -n "$asset_id" ]; then
-            gh release download v1.1.0 --pattern "$source" --dir dist
-          else
-            curl --fail --location "https://github.com/$GITHUB_REPOSITORY/raw/refs/heads/release-sources/v1.1.0/$source" -o "dist/$source"
-          fi
-          gh release download v1.1.0 --pattern PokePal-v1.1.0-SHA256.txt --dir dist
-          (cd dist && sha256sum --check --ignore-missing PokePal-v1.1.0-SHA256.txt)
-          bash tools/publish_source.sh "dist/$source" v1.1.0
-          gh release edit v1.1.0 --title "1.1.0: Major content update" --notes-file docs/release-v1.1.0.md
-          if [ -n "$asset_id" ]; then
-            gh api --method DELETE "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id"
-          fi
-  trailer:
-    if: github.repository == 'itsParassharma/Pokepal-for-Kindle' && github.event_name == 'push' && contains(github.event.head_commit.message, '[trailer]')
-    runs-on: ubuntu-22.04
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Update the 1.0.9 trailer
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release upload v1.0.9 docs/PokePal-trailer.mp4 --clobber
   release:
-    if: github.repository == 'itsParassharma/Pokepal-for-Kindle' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release]'))
+    if: github.repository == 'itsParassharma/Pokepal-for-Kindle' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release]'))
     runs-on: ubuntu-22.04
-    timeout-minutes: 20
+    timeout-minutes: 30
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Check game, saves, sprites and layouts
+      - name: Refuse an existing release or tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash tools/publish_release.sh --check
+      - name: Check game, saves, sprites and release protection
         run: |
           python -m pip install -r requirements-dev.txt
+          python tests/test_release.py
           python tests/test_and_render.py
+          python tests/test_simpleui_assets.py
+      - name: Check the real KOReader runtime and SimpleUI
+        run: bash tools/check_reader_runtime.sh
       - name: Download the pinned compiler
         run: |
           python - <<'PY'
@@ -74,18 +52,17 @@ jobs:
         run: |
           python tools/build_native.py --zig ../pokepal-compiler/zig-linux-x86_64-0.13.0/zig --deps ../pokepal-build-cache
           file native/build/pokepal
-          readelf -h native/build/pokepal
+          readelf -h native/build/pokepal | grep -q 'Machine:.*ARM'
           if readelf -l native/build/pokepal | grep -q INTERP; then exit 1; fi
           sh -n native/kual/launch.sh
       - name: Package clean downloads and corresponding source
         run: python tools/package_release.py --deps ../pokepal-build-cache
-      - name: Publish 1.1.0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PokePal-release-${{ github.sha }}
+          path: dist/*
+          if-no-files-found: error
+      - name: Publish the new version
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          bash tools/publish_source.sh dist/PokePal-v1.1.0-corresponding-source.zip v1.1.0
-          if ! gh release view v1.1.0 >/dev/null 2>&1; then
-            gh release create v1.1.0 --target "$GITHUB_SHA" --title "1.1.0: Major content update" --draft --notes-file docs/release-v1.1.0.md
-          fi
-          gh release upload v1.1.0 dist/PokePal-v1.1.0-koreader.zip dist/PokePal-v1.1.0-kual.zip dist/PokePal-v1.1.0-SHA256.txt --clobber
-          gh release edit v1.1.0 --title "1.1.0: Major content update" --draft=false --prerelease=false --latest --notes-file docs/release-v1.1.0.md
+        run: bash tools/publish_release.sh
