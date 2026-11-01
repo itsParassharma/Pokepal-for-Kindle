@@ -171,11 +171,17 @@ function View:animate(effect,previous)
  UIManager:scheduleIn(self.interval,self.tick)
 end
 function View:go(screen)
- self.world_message=nil
+ self.world_message=nil;self.story_upgrade_error=nil
  self:stopAnimation();self:freeImages();self.screen=screen;self.page=1;self.hatched=nil;self.world_follow=nil;UIManager:setDirty(self,"ui")
  if screen=="worldmoves" then self.party_move_id=nil;self.move_slot=1 end
  if screen=="story" and not self.owner.reading_busy and not self.world_save_failed and not self.owner.save_error and not (self.owner.backups and self.owner.backups.blocked) then
-  if self.engine.story.enter(self.state,self.engine) then self.world_dirty=true end
+  local ready=true
+  if self.state.version<13 and self.owner.savepath then
+   local backups=self.owner.backups
+   ready=backups and backups:beforeStory(self.state)
+   self.story_upgrade_error=not ready
+  end
+  if ready and self.engine.story.enter(self.state,self.engine) then self.world_dirty=true end
  end
  if screen=="explore" and self.state.species~=0 then
   if self.engine.world.enter(self.state) then self.world_dirty=true end
@@ -598,7 +604,7 @@ function View:paintNickname(bb)
 end
 function View:loadBackups()
  self.backup_info={};self.backup_errors={}
- for _,slot in ipairs({"backup","before-restore"}) do
+ for _,slot in ipairs({"backup","before-restore","before-story"}) do
   if self.owner.backups then self.backup_info[slot],self.backup_errors[slot]=self.owner.backups:preview(slot)
   else self.backup_errors[slot]="Backups are unavailable." end
  end
@@ -611,11 +617,11 @@ function View:paintBackups(bb)
  end
  if not self.backup_info then self:loadBackups() end
  self:button(bb,"Save a backup now",32,194,536,52,"makebackup",nil,nil,not self.owner.backups)
- for i,slot in ipairs({"backup","before-restore"}) do
-  local b=self.backup_info[slot];local y=283+(i-1)*164
-  self:text(bb,i==1 and "Saved backup" or "Before last restore",32,y,23,536,true)
-  self:text(bb,b and savedDate(b.at)..(b.previous and " / previous copy" or "") or self.backup_errors[slot],32,y+35,17,536)
-  self:button(bb,"Preview",32,y+74,536,46,"previewbackup",slot,nil,not b)
+ for i,slot in ipairs({"backup","before-restore","before-story"}) do
+  local b=self.backup_info[slot];local y=266+(i-1)*116
+  self:text(bb,({"Saved backup","Before last restore","Before story upgrade"})[i],32,y,21,536,true)
+  self:text(bb,b and savedDate(b.at)..(b.previous and " / previous copy" or "") or self.backup_errors[slot],32,y+28,17,536)
+  self:button(bb,"Preview",32,y+57,536,44,"previewbackup",slot,nil,not b)
  end
  self:wrapped(bb,self.backup_message or "Preview a backup before restoring. Your current game is kept so you can go back.",632,18)
  self:backButton(bb)

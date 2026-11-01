@@ -48,11 +48,15 @@ Earlier preview saves migrate when you open Story. Chapter 1 saves at the old st
 
 Story data is stored within PokePal's existing atomic save. **Pause**, closing PokePal and sleeping stop movement. Returning resumes the same conversation or battle opponent and turn. Encounter and catch randomness is saved too. Failed saves block further actions, including spending balls or Potions and changing the party, until **Retry save** succeeds. Existing backup and restore tools include story progress. Care, reading totals, berries, XP and the separate Explore party are preserved.
 
+Before an older save first enters this story, PokePal automatically keeps its game and reading counter together in **More → Backups → Before story upgrade** (`pokepal.dat.before-story`). The snapshot retains the old save version and is separate from your manual backup and **Before last restore**. If it cannot be saved, Story waits without changing your story data; free storage and try again. Later saves and repeated Story visits keep the first snapshot. Saves already upgraded to version 13 by an earlier preview cannot recreate progress from before that upgrade.
+
 ## Installation
 
 This is an unreleased source preview; v1.1.0 downloads do not contain it. Close PokePal before replacing its plugin folder and restart KOReader afterward. For native KUAL builds, the same Lua files and assets belong under `extensions/pokepal/game/`; use a complete matching build.
 
-Copy your PokePal save folder off the device before installing. On Kindle it is `/mnt/us/pokepal/`, shared by KOReader and KUAL; on other KOReader devices use KOReader's settings directory. Opening this story upgrades the shared save to **version 13**. If you use both editions, update both together: older builds, including the previous chapter previews, cannot read version 13 saves and may recover an older snapshot. Keep the original backup if you plan to downgrade.
+Copy your PokePal save folder off the device before installing. On Kindle it is `/mnt/us/pokepal/`, shared by KOReader and KUAL; on other KOReader devices use KOReader's settings directory. Opening this story upgrades the shared save to **version 13**. Existing saves remain readable by this build; older builds cannot read version 13. Update both editions together. On upgrade, both automatic save copies use the new format so an older build cannot silently recover an outdated snapshot and replace your story progress.
+
+To downgrade intentionally, use this build to preview and restore **Before story upgrade**, then close PokePal and install the build that wrote that snapshot. A snapshot from a previous story preview still needs that preview's save support; a pre-story version 8 snapshot works with the prior main build. Restoration rolls care and reading back to the snapshot too. Your newer game, including its story and reading counter, is kept in **Before last restore**. Reinstall this build and restore that slot to return to it. Keep the whole save folder when changing builds. If no automatic pre-story snapshot exists, use the copy you made before installing.
 
 ## Adaptation and limits
 

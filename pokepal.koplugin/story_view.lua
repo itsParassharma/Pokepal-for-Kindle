@@ -116,7 +116,11 @@ return function(View,UIManager,BB,Device)
  end
  function View:paintStory(bb)
   local S=self.engine.story;local t=self.state.story
-  if not t or t.version~=5 then
+  if self.story_upgrade_error then
+   self:title(bb,"Crystal story","Your current progress is unchanged.")
+   self:wrapped(bb,"Could not keep a backup before starting Story. Check free storage, then try again.",280,22)
+   self:button(bb,"Try again",32,614,536,48,"nav","story")
+  elseif not t or t.version~=5 then
    self:title(bb,"Crystal story","Finish saving and syncing to start.")
    self:button(bb,"Start story",32,614,536,48,"nav","story",nil,self.owner.reading_busy or self.world_save_failed or self.owner.save_error)
   elseif self.story_panel or t.battle and t.battle.status=="active" and t.hp==0 then self:paintStoryPanel(bb,t)
@@ -161,7 +165,7 @@ return function(View,UIManager,BB,Device)
  function View:storyTap(action,arg)
   if not action:match("^story") then return false end
   local S=self.engine.story;local t=self.state.story
-  if self.screen~="story" or not t or self.world_save_failed or self.owner.save_error then return true end
+  if self.screen~="story" or not t or t.version~=5 or self.story_upgrade_error or self.world_save_failed or self.owner.save_error then return true end
   local changed
   if action=="storytile" then local m=S.maps[t.map];self:walkStory(S.path(t,arg%m.width,math.floor(arg/m.width)))
   elseif action=="storydir" and S.directions[arg] then self:walkStory({S.directions[arg]})

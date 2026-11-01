@@ -6,6 +6,20 @@ local function view()
  v.owner.save=function(owner) assert(E.valid(v.state));owner.saved=(owner.saved or 0)+1;return true end
  v:go('explore');tapButton(v,'nav','story');return v
 end
+test('failed pre-story backup blocks first entry and legacy migration until retry succeeds',function()
+ local legacy=dofile(BASE..'/../tests/story_legacy_fixtures.lua')
+ for _,data in ipairs({false,legacy.choose}) do
+  local v=newView(25);v.state.animation='off';v.owner.savepath=TESTDIR..'/story-gate.dat'
+  if data then v.state=assert(Store.decode(data,E)) end
+  local original=Store.encode(v.state);local backed
+  v.owner.backups={beforeStory=function(_,state) backed=Store.encode(state);return nil,'full disk' end}
+  v:go('story');assert(v.story_upgrade_error and backed==original and Store.encode(v.state)==original)
+  v:storyTap('storynext',1);assert(Store.encode(v.state)==original)
+  v.owner.backups.beforeStory=function(_,state) assert(Store.encode(state)==original);return true end
+  tapButton(v,'nav','story');assert(not v.story_upgrade_error and v.state.version==13 and v.state.story.version==5)
+  v:leave()
+ end
+end)
 test('Explore opens the story, and dialogue resumes after leaving and reloading',function()
  local v=view();assert(v.state.story.node=='welcome')
  tapButton(v,'nav','home');v.state=assert(Store.decode(Store.encode(v.state),E));v:go('explore');tapButton(v,'nav','story')

@@ -25,6 +25,7 @@ def run(c):
                         assert len(labels)<=(2 if b.action=='storyturn' else 1),(name,labels)
                     if width==600 and not large and dpi==160:image.save(out/f'story-{name}.png')
                     count+=1
+                v.story_upgrade_error=True;check('upgrade-backup-error');v.story_upgrade_error=None
                 for node,n in g.E.story.nodes.items():
                     if n.op in ('text','choice'):
                         t.node=node;check(node)

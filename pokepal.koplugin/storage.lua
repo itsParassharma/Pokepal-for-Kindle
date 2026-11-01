@@ -120,13 +120,8 @@ function S.load(path,engine,cache)
  end
  return state,notice
 end
-function S.save(path,s,engine,syncfile,syncdir)
- if not engine.valid(s) then return nil,"Invalid game state." end
- local data=S.encode(s)
- if not S.decode(data,engine) then return nil,"Could not serialize game state." end
- local current=read(path)
- if current==data and not uncertain[path] then return true end
- local f,err=io.open(path..".tmp","wb");if not f then return nil,err end
+local function stage(path,data,syncfile)
+ local f,err=io.open(path,"wb");if not f then return nil,err end
  local ok;ok,err=f:write(data)
  if ok then ok,err=f:flush() end
  if ok and syncfile then
@@ -134,8 +129,28 @@ function S.save(path,s,engine,syncfile,syncdir)
   if not called or result==false then ok=nil;err=why or result end
  end
  local closed,cerr=f:close();if not ok or not closed then return nil,err or cerr end
+ return true
+end
+function S.save(path,s,engine,syncfile,syncdir)
+ if not engine.valid(s) then return nil,"Invalid game state." end
+ local data=S.encode(s)
+ if not S.decode(data,engine) then return nil,"Could not serialize game state." end
+ local current=read(path)
+ local fallback=s.story and S.decode(read(path..".old"),engine)
+ if current==data and not uncertain[path] and not (fallback and fallback.version<s.version) then return true end
+ local ok,err=stage(path..".tmp",data,syncfile);if not ok then return nil,err end
+ local previous=S.decode(current,engine)
+ if s.story and (previous and previous.version<s.version or fallback and fallback.version<s.version) then
+  -- The separate pre-story backup keeps the old format. Do not leave an old
+  -- automatic fallback that a previous build could silently load and overwrite.
+  ok,err=stage(path..".old.tmp",data,syncfile);if not ok then return nil,err end
+  ok,err=os.rename(path..".old.tmp",path..".old");if not ok then return nil,err end
+  if syncdir then
+   local called,result,why=pcall(syncdir,path..".old")
+   if not called or result==false then return nil,why or result end
+  end
  -- Keep a good backup if we recovered from a damaged primary.
- if S.decode(read(path),engine) then
+ elseif previous then
   local moved;moved,err=os.rename(path,path..".old")
   if not moved then return nil,err end
  end

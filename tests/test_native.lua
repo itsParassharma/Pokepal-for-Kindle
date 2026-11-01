@@ -81,6 +81,9 @@ for _,screen in ipairs({'worldparty','worldbox','worldboxsearch','worldboxname',
 end
 print('NATIVE MENUS: ten town and box screens survive sleep without changing the party or scheduling idle repaints')
 local story=dofile('../../../tests/story_runtime.lua')(v,tap);app_paint()
+local checkpoint=assert(app.owner.backups:preview('before-story'))
+assert(checkpoint.state.version<13 and not checkpoint.state.story)
+assert(app.storage.load('data/pokepal.dat.old',E).version==13)
 assert(E.companion.encode(app.storage.load('data/pokepal.dat',E).story)==E.companion.encode(story))
 print('NATIVE STORY: maps, initial companion, catching, party, box, Gym turns, save reload and sleep passed')
 local azalea=dofile('../../../tests/story_azalea_runtime.lua')(v,tap);app_paint()
