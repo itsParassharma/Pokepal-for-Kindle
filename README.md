@@ -49,12 +49,6 @@ You need KOReader installed on your Kindle.
 
 You can also find **PokePal** in [KoStore](https://github.com/ThePixelPro366/KoStore), the KOReader plugin browser. After installing, restart KOReader and open **Tools > PokePal**. See the [KoStore guide](docs/kostore.md).
 
-**Kobo and other KOReader devices (experimental):** copy `pokepal.koplugin`
-from the KOReader ZIP into your existing KOReader `plugins` directory, usually
-`.adds/koreader/plugins` on Kobo. Reading rewards use KOReader sessions; the
-native Kobo reader is not integrated. Saves use KOReader's settings folder.
-Physical touch, sleep/wake and display behaviour still need device testing.
-
 ---
 
 ### KOReader integrations and discovery
@@ -93,13 +87,17 @@ You need a jailbroken touchscreen Kindle with KUAL installed. KOReader is not re
 2. Connect your Kindle by USB. Copy the `extensions` folder onto the Kindle drive, next to `documents`. Merge folders if asked.
 3. Eject your Kindle, then open **KUAL > PokePal > Play PokePal**.
 
+## Kobo and other KOReader devices
+**(Experimental):** copy `pokepal.koplugin`
+from the KOReader ZIP into your existing KOReader `plugins` directory, usually
+`.adds/koreader/plugins` on Kobo. Reading rewards use KOReader sessions; the
+native Kobo reader is not integrated. Saves use KOReader's settings folder.
+Physical touch, sleep/wake and display behaviour still need device testing.
+
 ## Saves
 
 Both editions share your save. Copy the whole `pokepal` folder to your computer before updating, and update KOReader and KUAL together if you use both.
 
-Starting Story upgrades older saves to version 13. PokePal first keeps the game and reading counter under **More > Backups > Before story upgrade**. Older builds cannot read upgraded saves. To downgrade, restore that backup using v1.2.0 before reinstalling the older build.
-
-Physical Kindle touch, e-ink refresh and power-button/cover sleep and wake still need testing in this release.
 
 [Save help](pokepal.koplugin/INSTALL.txt) · [Build and device notes](native/README.md) · [Credits](pokepal.koplugin/CREDITS.txt)
 
