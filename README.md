@@ -68,8 +68,8 @@ Add your partner to [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin) 
 </tr>
 <tr>
 <td valign="top">Add <strong>PokePal</strong> in the layout editor. Your partner sits on the shelf; tap it to play.<br><br><sub>Screenshot: <a href="https://github.com/AndyHazz">AndyHazz</a>.</sub></td>
-<td valign="top">Choose <strong>Add module → PokePal</strong>. Your selected partner appears alongside your books.<br><br><sub>Illustrative mockup with sample covers and reading progress.</sub></td>
-<td valign="top">With the <strong>App Store plugin</strong> installed, open <strong>Tools → App Store</strong> and filter for <strong>PokePal</strong>. After installing PokePal, restart KOReader and open <strong>Tools → PokePal</strong>.<br><br><sub>Edited preview based on this <a href="https://i.redd.it/x962b8nl1v2g1.png">source screenshot</a>; not a device capture of PokePal.</sub></td>
+<td valign="top">Choose <strong>Add module → PokePal</strong>. Your selected partner appears alongside your books.</td>
+<td valign="top">With the <strong>App Store plugin</strong> installed, open <strong>Tools → App Store</strong> and filter for <strong>PokePal</strong>. After installing PokePal, restart KOReader and open <strong>Tools → PokePal</strong>.<br><br><sub>Edited preview based on this <a href="https://i.redd.it/x962b8nl1v2g1.png"></td>
 </tr>
 </table>
 
