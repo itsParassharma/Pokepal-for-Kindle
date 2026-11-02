@@ -67,13 +67,13 @@ Add your partner to [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin) 
 <td align="center" valign="top"><a href="docs/koreader-appstore-preview.png"><img src="docs/koreader-appstore-preview.png" alt="Edited preview of a PokePal search result and plugin details in KOReader's App Store" height="260"></a></td>
 </tr>
 <tr>
-<td valign="top">Add <strong>PokePal</strong> in the layout editor. Your partner sits on the shelf; tap it to play.<br><br><sub>Screenshot: <a href="https://github.com/AndyHazz">AndyHazz</a>.</sub></td>
+<td valign="top">Add <strong>PokePal</strong> in the layout editor. Your partner sits on the shelf; tap it to play.<br></sub></td>
 <td valign="top">Choose <strong>Add module → PokePal</strong>. Your selected partner appears alongside your books.</td>
-<td valign="top">With the <strong>App Store plugin</strong> installed, open <strong>Tools → App Store</strong> and filter for <strong>PokePal</strong>. After installing PokePal, restart KOReader and open <strong>Tools → PokePal</strong>.<br><br><sub>Edited preview based on this <a href="https://i.redd.it/x962b8nl1v2g1.png"></td>
+<td valign="top">With the <strong>App Store plugin</strong> installed, open <strong>Tools → App Store</strong> and filter for <strong>PokePal</strong>. After installing PokePal, restart KOReader and open <strong>Tools → PokePal</strong>.<br><br><sub><a href="https://i.redd.it/x962b8nl1v2g1.png"></td>
 </tr>
 </table>
 
-SimpleUI support is included in v1.2.0 and tested with **3.0.1** and pinned main. See the [SimpleUI setup and Tiny Critter guide](docs/simpleui-tiny-critter.md).
+See the [SimpleUI setup and Tiny Critter guide](docs/simpleui-tiny-critter.md).
 
 ### KOReader shortcuts
 
