@@ -51,7 +51,7 @@ You can also find **PokePal** in [KoStore](https://github.com/ThePixelPro366/KoS
 
 ### KOReader integrations
 
-Add your partner to [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin) or [SimpleUI](https://github.com/doctorhetfield-cmd/simpleui.koplugin), and find PokePal inside KOReader with the [App Store plugin](https://github.com/omer-faruq/appstore.koplugin). Tap any image to see it full size.
+Add your partner to [Bookshelf](https://github.com/AndyHazz/bookshelf.koplugin) or [SimpleUI](https://github.com/doctorhetfield-cmd/simpleui.koplugin), and find PokePal inside KOReader with the [App Store plugin](https://github.com/omer-faruq/appstore.koplugin).
 
 <table>
 <tr>
