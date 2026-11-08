@@ -70,12 +70,15 @@ File modification times alone do not establish which candidate is best.
 
 ## Save-read safeguards
 
-The storage change distinguishes missing files from I/O failures, reports the
-failing path and OS error, treats empty files as existing data, and refuses to
-overwrite a primary or automatic snapshot that cannot be read. It does not
-repair file permissions, damaged storage, or missing bytes. A transient read
-failure no longer silently selects an older game. Readable invalid saves can
-still recover from a valid `.old`.
+Save, reading-counter and backup reads distinguish missing files from I/O
+failures, report the failing path and OS error, treat empty files as existing
+data, and refuse to overwrite a primary or automatic snapshot that cannot be
+read. They do not repair file permissions, damaged storage, or missing bytes.
+A transient read failure no longer silently selects an older game or reading
+total. Readable invalid saves can still recover from a valid `.old`.
+
+Pending reading time in the running KOReader session is retained when a counter
+read fails and can be saved on a later successful retry.
 
 This is a safeguard and diagnostic fix. It has not been tested on the affected
 Kobo.

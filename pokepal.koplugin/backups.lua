@@ -5,8 +5,15 @@ local S=dofile(source.."/storage.lua")
 local C=dofile(source.."/companion.lua")
 local function integer(n) return type(n)=="number" and n==n and n>=0 and n<=1e12 and n%1==0 end
 local function read(path)
- local f=io.open(path,"rb");if not f then return end
- local data=f:read(1065089);f:close();return data
+ local function errorMessage(err) return "Could not read "..path..": "..tostring(err or "Unknown file error") end
+ local f,err,code=io.open(path,"rb")
+ if not f then
+  if code==2 then return nil end
+  return nil,errorMessage(err)
+ end
+ local data,why=f:read(1065089);local closed,cerr=f:close()
+ if why or not closed then return nil,errorMessage(why or cerr) end
+ return data or ""
 end
 function B.new(path,engine,reading,fs,syncfile,syncdir)
  return setmetatable({path=path,engine=engine,reading=reading,fs=fs,syncfile=syncfile,syncdir=syncdir},B)
@@ -36,6 +43,9 @@ function B:decode(data)
 end
 function B:write(path,data)
  if not self:decode(data) then return nil,"Backup is unreadable." end
+ -- Check both copies before staging or rotating; either may hold recoverable progress.
+ local current,err=read(path);if err then return nil,err end
+ local _,old_err=read(path..".old");if old_err then return nil,old_err end
  local f,err=io.open(path..".tmp","wb");if not f then return nil,err end
  local ok;ok,err=f:write(data)
  if ok then ok,err=f:flush() end
@@ -44,7 +54,7 @@ function B:write(path,data)
   if not called or result==false then ok=nil;err=why or result end
  end
  local closed,why=f:close();if not ok or not closed then return nil,err or why end
- if self:decode(read(path)) then
+ if self:decode(current) then
   ok,err=os.rename(path,path..".old");if not ok then return nil,err end
  end
  ok,err=os.rename(path..".tmp",path);if not ok then return nil,err end
@@ -56,9 +66,11 @@ function B:write(path,data)
 end
 function B:preview(slot)
  if slot~="backup" and slot~="before-restore" and slot~="before-story" then return nil,"Unknown backup." end
- local path=self.path.."."..slot;local data=read(path);local backup=self:decode(data)
+ local path=self.path.."."..slot;local data,err=read(path);if err then return nil,err end
+ local backup=self:decode(data)
  if not backup then
-  backup=self:decode(read(path..".old"))
+  local previous;previous,err=read(path..".old");if err then return nil,err end
+  backup=self:decode(previous)
   if backup then backup.previous=true end
  end
  if backup then backup.slot=slot;return backup end
@@ -104,8 +116,8 @@ end
 function B:recover()
  if not self.fs.mode(self.path..".restore") then self.blocked=false;return true end
  local unlock,err=self.fs.lock(self.path..".reading.session");if not unlock then return nil,err end
- local pending=self:decode(read(self.path..".restore"));local ok
- if pending then ok,err=self:apply(pending) else err="Restore record is unreadable. Existing saves were kept." end
+ local data;data,err=read(self.path..".restore");local pending=self:decode(data);local ok
+ if pending then ok,err=self:apply(pending) else err=err or "Restore record is unreadable. Existing saves were kept." end
  self.blocked=not ok;unlock();return ok,err
 end
 function B:restore(state,preview)
