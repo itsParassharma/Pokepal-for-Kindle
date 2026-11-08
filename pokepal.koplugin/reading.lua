@@ -206,28 +206,40 @@ function R.validDays(days,total)
  end
  return sum<=total
 end
-function R.counter(path)
- local function read(p)
-  local f,_,code=io.open(p,"rb");if not f then return nil,code~=2 end
-  local data=f:read(8193);f:close();if not data or #data>8192 then return nil,true end
-  local version,n,tail=data:match("^POKEPAL_READING_(%d)\n(%d+)\n(.*)$");n=tonumber(n)
-  if not integer(n,1e12) or (version~="1" and version~="2") then return nil,true end
-  local days={}
-  if version=="1" then if tail~="" then return nil,true end
-  else
-   local rest=tail
-   for line in tail:gmatch("[^\n]+") do
-    local day,value=line:match("^(%d%d%d%d%-%d%d%-%d%d)=(%d+)$")
-    if not day or days[day] then return nil,true end;days[day]=tonumber(value)
-    rest=rest:sub(#line+2)
-   end
-   if rest~="" or not R.validDays(days,n) then return nil,true end
-  end
-  return n,true,days
+local function readCounter(path)
+ local function errorMessage(err) return "Could not read "..path..": "..tostring(err or "Unknown file error") end
+ local f,err,code=io.open(path,"rb")
+ if not f then
+  if code==2 then return nil end
+  return nil,errorMessage(err)
  end
- local n,exists,days=read(path);if n then return n,nil,true,days end
- local backup,old,previous=read(path..".old");if backup then return backup,nil,false,previous end
- if exists or old then return nil,"Reading counter is unreadable." end
+ local data,why=f:read(8193);local closed,cerr=f:close()
+ if why or not closed then return nil,errorMessage(why or cerr) end
+ return data or ""
+end
+local function decodeCounter(data)
+ if not data or #data>8192 then return nil end
+ local version,n,tail=data:match("^POKEPAL_READING_(%d)\n(%d+)\n(.*)$");n=tonumber(n)
+ if not integer(n,1e12) or (version~="1" and version~="2") then return nil end
+ local days={}
+ if version=="1" then if tail~="" then return nil end
+ else
+  local rest=tail
+  for line in tail:gmatch("[^\n]+") do
+   local day,value=line:match("^(%d%d%d%d%-%d%d%-%d%d)=(%d+)$")
+   if not day or days[day] then return nil end;days[day]=tonumber(value)
+   rest=rest:sub(#line+2)
+  end
+  if rest~="" or not R.validDays(days,n) then return nil end
+ end
+ return n,days
+end
+function R.counter(path)
+ local data,err=readCounter(path);if err then return nil,err end
+ local n,days=decodeCounter(data);if n then return n,nil,true,days end
+ local old;old,err=readCounter(path..".old");if err then return nil,err end
+ local backup,previous=decodeCounter(old);if backup then return backup,nil,false,previous end
+ if data or old then return nil,"Reading counter is unreadable." end
  return 0,nil,false,{}
 end
 function R.saveCounter(path,n,syncfile,syncdir,days)
@@ -237,6 +249,10 @@ function R.saveCounter(path,n,syncfile,syncdir,days)
  if days then local ks={};for day in pairs(days) do ks[#ks+1]=day end;table.sort(ks)
   for _,day in ipairs(ks) do data=data..day.."="..string.format("%.0f",days[day]).."\n" end
  end
+ -- Failed reads do not establish that an existing total or snapshot is disposable.
+ local current,err=readCounter(path);if err then return nil,err end
+ local _,old_err=readCounter(path..".old");if old_err then return nil,old_err end
+ local primary=decodeCounter(current)
  local f,err=io.open(path..".tmp","wb");if not f then return nil,err end
  local good;good,err=f:write(data)
  if good then good,err=f:flush() end
@@ -245,7 +261,6 @@ function R.saveCounter(path,n,syncfile,syncdir,days)
   if not called or result==false then good=nil;err=why or result end
  end
  local closed=f:close();if not good or not closed then return nil,err end
- local _,_,primary=R.counter(path)
  if primary then local moved;moved,err=os.rename(path,path..".old");if not moved then return nil,err end end
  good,err=os.rename(path..".tmp",path)
  if not good then return nil,err end

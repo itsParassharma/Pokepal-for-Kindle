@@ -210,6 +210,29 @@ check('failed reading sync stays pending until a retry succeeds',function()
  reader:flushReading();assert(syncs==3 and writes==3,'an unchanged, synced counter was rewritten')
 end)
 
+check('unreadable counters retain pending reading and retry without rolling back',function()
+ local reader=plugin('counter-read-retry',true)
+ assert(reader.reading.saveCounter(reader.counterpath,100))
+ assert(reader.reading.saveCounter(reader.counterpath,900))
+ reader.clock.pending=60;reader.clock.days={['2027-01-15']=60}
+ local open=io.open
+ io.open=function(path,mode)
+  if path==reader.counterpath and mode=='rb' then return nil,'Permission denied',13 end
+  return open(path,mode)
+ end
+ local ok,err=pcall(function()
+  reader:flushReading()
+  assert(reader.reading_error and reader.clock.pending==60 and reader.clock.days['2027-01-15']==60)
+ end)
+ io.open=open;assert(ok,err)
+ assert(reader.reading.counter(reader.counterpath)==900)
+ reader:flushReading()
+ local total,why,primary,days=reader.reading.counter(reader.counterpath)
+ assert(total==960 and primary and days['2027-01-15']==60)
+ assert(not reader.reading_error and reader.clock.pending==0 and next(reader.clock.days)==nil)
+ reader:flushReading();assert(reader.reading.counter(reader.counterpath)==960)
+end)
+
 check('reading added after a failed sync is saved once',function()
  local reader=plugin('sync-more-reading',true)
  local ffiUtil=require('ffi/util');local syncs=0

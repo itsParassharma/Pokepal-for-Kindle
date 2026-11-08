@@ -4,9 +4,20 @@ local source=debug.getinfo(1,"S").source:sub(2):match("^(.*)/")
 local C=dofile(source.."/companion.lua")
 local uncertain={}
 local numeric={"version","species","food","joy","energy","bond","xp","berries","last","gift","trained","played","cleaned","dirt","trip","due","trips","seed","care","started"}
+local function readError(path,err)
+ return "Could not read "..path..": "..tostring(err or "Unknown file error").."; existing files were left unchanged."
+end
 local function read(path)
- local f=io.open(path,"rb");if not f then return nil end
- local data=f:read(1048577);f:close();return data
+ local f,err,code=io.open(path,"rb")
+ if not f then
+  -- Only ENOENT means absent. Permission and I/O failures must not start a new game.
+  if code==2 then return nil end
+  return nil,readError(path,err)
+ end
+ local data,why=f:read(1048577);local closed,cerr=f:close()
+ if why or not closed then return nil,readError(path,why or cerr) end
+ -- A numeric read returns nil at EOF for an empty file, which is still an existing save.
+ return data or ""
 end
 function S.encode(s)
  local lines={}
@@ -104,17 +115,20 @@ function S.decode(data,engine)
  if engine.valid(s) then return s end
 end
 function S.load(path,engine,cache)
- local primary=read(path);local backup=read(path..".old")
+ local primary,problem=read(path);local backup,backup_problem=read(path..".old")
+ -- An inaccessible primary may contain newer progress than the fallback.
+ if problem then return nil,problem end
  -- File timestamps can share a whole second; compare the bytes before reusing a decoded save.
- if cache and cache.loaded and cache.primary==primary and cache.backup==backup then return cache.state,cache.notice end
+ if not backup_problem and cache and cache.loaded and cache.primary==primary and cache.backup==backup then return cache.state,cache.notice end
  local state=S.decode(primary,engine)
  local notice
  if not state then
+  if backup_problem then return nil,backup_problem end
   state=S.decode(backup,engine)
   if state then notice="Recovered the previous saved snapshot."
   elseif primary or backup then notice="Save is unreadable; existing files were left unchanged." end
  end
- if cache then
+ if cache and not backup_problem then
   cache.loaded=true;cache.primary=primary;cache.backup=backup;cache.state=state;cache.notice=notice
   cache.revision=(cache.revision or 0)+1
  end
@@ -135,8 +149,9 @@ function S.save(path,s,engine,syncfile,syncdir)
  if not engine.valid(s) then return nil,"Invalid game state." end
  local data=S.encode(s)
  if not S.decode(data,engine) then return nil,"Could not serialize game state." end
- local current=read(path)
- local fallback=s.story and S.decode(read(path..".old"),engine)
+ local current,problem=read(path);if problem then return nil,problem end
+ local old;old,problem=read(path..".old");if problem then return nil,problem end
+ local fallback=s.story and S.decode(old,engine)
  if current==data and not uncertain[path] and not (fallback and fallback.version<s.version) then return true end
  local ok,err=stage(path..".tmp",data,syncfile);if not ok then return nil,err end
  local previous=S.decode(current,engine)
